@@ -84,12 +84,22 @@ public class GameActivity extends SherlockActivity implements RendererListener {
 		mGLRenderer.addDrawable(rect);
 		rect = new TexturedRect(this, R.drawable.main_menu_background);
 		rect.setSize(0.1f, 0.1f);
-		rect.setPosition(0f, 0.5f);
+		rect.setPosition(0.5f, 1f);
 		mGLRenderer.addDrawable(rect);
 		rect = new TexturedRect(this, R.drawable.white_pix);
 		rect.setSize(0.4f, 0.4f);
 		rect.setPosition(0f, 0.0f);
 		rect.setColor(1.0f, 0.0f, 1.0f, 1.0f);
+		mGLRenderer.addDrawable(rect);
+		rect = new TexturedRect(this, R.drawable.white_pix);
+		rect.setSize(0.4f, 0.4f);
+		rect.setPosition(-0.5f, 0.8f);
+		rect.setColor(0.1f, 0.0f, 1.0f, 1.0f);
+		mGLRenderer.addDrawable(rect);
+		rect = new TexturedRect(this, R.drawable.white_pix);
+		rect.setSize(0.4f, 0.4f);
+		rect.setPosition(-0.5f, 0.3f);
+		rect.setColor(0.5f, 0.0f, 1.0f, 1.0f);
 		mGLRenderer.addDrawable(rect);
 	}
 
@@ -103,6 +113,12 @@ public class GameActivity extends SherlockActivity implements RendererListener {
 	public void onSurfaceChanged() {
 		// TODO Auto-generated method stub
 		
+		// More tests for screen bounds (shows in upper left) 
+		Log.d(TAG, "surface changed "+mGLRenderer.getXBound());
+		TexturedRect rect = new TexturedRect(this, R.drawable.main_menu_background);
+		rect.setSize(0.1f, 0.1f);
+		rect.setPosition(-mGLRenderer.getXBound(), mGLRenderer.getYBound());
+		mGLRenderer.addDrawable(rect);
 	}
     
 }

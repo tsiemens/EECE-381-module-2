@@ -29,6 +29,9 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	private ArrayList<GL20Drawable> mDrawables;
 	
 	private RendererListener mListener;
+
+	private int mWidth = 1;
+	private int mHeight = 1;
 	
 	public static interface RendererListener
 	{
@@ -91,6 +94,8 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	{
 	    GLES20.glViewport(0, 0, width, height);
 
+	    mWidth = width;
+	    mHeight = height;
 	    float ratio = (float) width / height;
 
 	    //This Projection Matrix is applied to object coordinates in the onDrawFrame() method
@@ -99,6 +104,16 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    if (mListener != null) {
 	    	mListener.onSurfaceChanged();
 	    }
+	}
+	
+	public float getXBound()
+	{
+		return (float)mWidth/(float)mHeight;
+	}
+	
+	public float getYBound()
+	{
+		return 1;
 	}
 	
 	public void setRendererListener(RendererListener listener)

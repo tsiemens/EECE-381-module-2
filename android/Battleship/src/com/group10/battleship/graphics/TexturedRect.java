@@ -162,6 +162,9 @@ public class TexturedRect implements GL20Drawable{
 	{
 	    //Add program to OpenGL ES Environment
 	    GLES20.glUseProgram(sShaderProgramHandle);
+	    
+	    GLES20.glEnable(GLES20.GL_BLEND);
+	    GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
 	    //Get handle to vertex shader's vPosition member
 	    mPositionHandle = GLES20.glGetAttribLocation(sShaderProgramHandle, "vPosition");
