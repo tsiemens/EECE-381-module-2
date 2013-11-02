@@ -114,10 +114,9 @@ public class GameActivity extends SherlockActivity implements RendererListener {
 		// TODO Auto-generated method stub
 		
 		// More tests for screen bounds (shows in upper left) 
-		Log.d(TAG, "surface changed "+mGLRenderer.getXBound());
 		TexturedRect rect = new TexturedRect(this, R.drawable.main_menu_background);
 		rect.setSize(0.1f, 0.1f);
-		rect.setPosition(-mGLRenderer.getXBound(), mGLRenderer.getYBound());
+		rect.setPosition(mGLRenderer.getXMin(), mGLRenderer.getYMax());
 		mGLRenderer.addDrawable(rect);
 	}
     

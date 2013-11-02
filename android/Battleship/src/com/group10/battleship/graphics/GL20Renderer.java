@@ -33,6 +33,9 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	private int mWidth = 1;
 	private int mHeight = 1;
 	
+	private float mCamPosX = 0;
+	private float mCamPosY = 0;
+	
 	public static interface RendererListener
 	{
 		/**
@@ -69,7 +72,7 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
 	    //Set the camera position (View Matrix)
-	    Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+	    Matrix.setLookAtM(mVMatrix, 0, mCamPosX, mCamPosY, 3f, mCamPosX, mCamPosY, 0f, 0f, 1.0f, 0.0f);
 
 	    //Calculate the projection and view transformation
 	    Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
@@ -106,15 +109,30 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    }
 	}
 	
-	public float getXBound()
+	public float getXMax()
 	{
-		return (float)mWidth/(float)mHeight;
+		return mCamPosX + (float)mWidth/(float)mHeight;
 	}
 	
-	public float getYBound()
+	public float getXMin()
 	{
-		return 1;
+		return mCamPosX - (float)mWidth/(float)mHeight;
 	}
+	
+	public float getYMax()
+	{
+		return mCamPosY + 1;
+	}
+	
+	public float getYMin()
+	{
+		return mCamPosY - 1;
+	}
+	
+	public float getCamPosX() { return mCamPosX; }
+	public float getCamPosY() { return mCamPosY; }
+	public void setCamPosX(float x) { mCamPosX = x; }
+	public void setCamPosY(float y) { mCamPosY = y; }
 	
 	public void setRendererListener(RendererListener listener)
 	{
