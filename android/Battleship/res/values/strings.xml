@@ -2,8 +2,7 @@
 <resources>
 
     <string name="app_name">Battleship</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="menu_item_settings">Settings</string>
     
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
@@ -11,5 +10,8 @@
     <string name="host_ip_none">No IP set</string>
     <string name="host_ip_separator">:</string>
     <string name="host_port_none">No port set</string>
+    
+    <string name="prefs_activity_title">Settings</string>
+    <string name="pref_title_local_debug">Local Debug Mode</string>
 
 </resources>
