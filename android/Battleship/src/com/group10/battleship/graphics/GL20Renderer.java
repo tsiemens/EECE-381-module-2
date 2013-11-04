@@ -1,6 +1,6 @@
 package com.group10.battleship.graphics;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -26,7 +26,7 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 
 	private float mAngle = 0;
 
-	private ArrayList<GL20Drawable> mDrawables;
+	private List<GL20Drawable> mDrawables;
 	
 	private RendererListener mListener;
 
@@ -51,7 +51,7 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 
 	public GL20Renderer()
 	{
-	    mDrawables = new ArrayList<GL20Drawable>();
+		
 	}
 
 	@Override
@@ -84,8 +84,10 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    Matrix.multiplyMM(mMVPMatrix, 0, mRotationMatrix, 0, mMVPMatrix, 0);
 
 	    //Draw Items
-	    for (GL20Drawable item : mDrawables) {
-	    	item.draw(mMVPMatrix);
+	    if (mDrawables != null) {
+	    	for (GL20Drawable item : mDrawables) {
+	    		item.draw(mMVPMatrix);
+	    	}
 	    }
 	    //sprite.draw(mMVPMatrix);
 	    if (mListener != null) {
@@ -139,14 +141,9 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 		mListener = listener;
 	}
 	
-	public void addDrawable(GL20Drawable item)
+	public void setDrawList(List<GL20Drawable> items)
 	{
-		mDrawables.add(item);
-	}
-	
-	public void removeDrawable(GL20Drawable item)
-	{
-		mDrawables.remove(item);
+		mDrawables = items;
 	}
 
 	public static int loadShader(int type, String shaderCode)
