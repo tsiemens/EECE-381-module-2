@@ -50,7 +50,9 @@ ENTITY module2nios IS
 		AUD_ADCLRCK : IN STD_LOGIC;
 		AUD_BCLK : IN STD_LOGIC;
 		AUD_DACDAT : OUT STD_LOGIC;
-		AUD_DACLRCK : IN STD_LOGIC
+		AUD_DACLRCK : IN STD_LOGIC;
+		UART_RXD : IN STD_LOGIC;
+		UART_TXD : OUT STD_LOGIC
 		
 		);
 
@@ -111,7 +113,9 @@ ARCHITECTURE Structure OF module2nios IS
 		audio_ADCLRCK        : in    std_logic;
 		audio_BCLK           : in    std_logic;
 		audio_DACDAT         : out   std_logic;
-		audio_DACLRCK        : in    std_logic
+		audio_DACLRCK        : in    std_logic;
+		rs232_RXD 				: in STD_LOGIC;
+		rs232_TXD 				: out STD_LOGIC
 	);
  
    END COMPONENT;
@@ -177,7 +181,9 @@ ARCHITECTURE Structure OF module2nios IS
 			audio_ADCLRCK => AUD_ADCLRCK,
 			audio_BCLK => AUD_BCLK,
 			audio_DACDAT => AUD_DACDAT,
-			audio_DACLRCK => AUD_DACLRCK
+			audio_DACLRCK => AUD_DACLRCK,
+			rs232_RXD => UART_RXD,
+			rs232_TXD => UART_TXD
 			
 		);
 
