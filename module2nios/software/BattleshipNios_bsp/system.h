@@ -4,7 +4,7 @@
  * Machine generated for CPU 'nios2_qsys_0' in SOPC Builder design 'nios_system'
  * SOPC Builder design path: C:/Users/trevsiemens/Documents/UBC/EECE_381/EECE-381-module-2/module2nios/nios_system.sopcinfo
  *
- * Generated: Wed Oct 30 13:11:01 PDT 2013
+ * Generated: Wed Nov 06 10:11:44 PST 2013
  */
 
 /*
@@ -137,6 +137,7 @@
 #define __ALTERA_UP_AVALON_AUDIO_AND_VIDEO_CONFIG
 #define __ALTERA_UP_AVALON_CHARACTER_LCD
 #define __ALTERA_UP_AVALON_PS2
+#define __ALTERA_UP_AVALON_RS232
 #define __ALTERA_UP_AVALON_SRAM
 #define __ALTERA_UP_AVALON_VIDEO_CHARACTER_BUFFER_WITH_DMA
 #define __ALTERA_UP_AVALON_VIDEO_PIXEL_BUFFER_DMA
@@ -268,7 +269,7 @@
  */
 
 #define ALT_MODULE_CLASS_character_lcd_0 altera_up_avalon_character_lcd
-#define CHARACTER_LCD_0_BASE 0x44a8
+#define CHARACTER_LCD_0_BASE 0x44b0
 #define CHARACTER_LCD_0_IRQ -1
 #define CHARACTER_LCD_0_IRQ_INTERRUPT_CONTROLLER_ID -1
 #define CHARACTER_LCD_0_NAME "/dev/character_lcd_0"
@@ -282,8 +283,8 @@
  */
 
 #define ALT_MAX_FD 32
-#define ALT_SYS_CLK TIMER_0
-#define ALT_TIMESTAMP_CLK none
+#define ALT_SYS_CLK none
+#define ALT_TIMESTAMP_CLK TIMER_0
 
 
 /*
@@ -373,6 +374,20 @@
 #define PS2_0_NAME "/dev/ps2_0"
 #define PS2_0_SPAN 8
 #define PS2_0_TYPE "altera_up_avalon_ps2"
+
+
+/*
+ * rs232_0 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_rs232_0 altera_up_avalon_rs232
+#define RS232_0_BASE 0x44a8
+#define RS232_0_IRQ 3
+#define RS232_0_IRQ_INTERRUPT_CONTROLLER_ID 0
+#define RS232_0_NAME "/dev/rs232_0"
+#define RS232_0_SPAN 8
+#define RS232_0_TYPE "altera_up_avalon_rs232"
 
 
 /*

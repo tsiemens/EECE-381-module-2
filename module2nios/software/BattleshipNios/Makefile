@@ -142,7 +142,23 @@ ACDS_VERSION := 12.0sp2
 ELF := BattleshipNios.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS := BSNMain.c
+C_SRCS += src/BSNMain.c
+C_SRCS += src/audio/AudioHandler.c
+C_SRCS += src/io/Audio.c
+C_SRCS += src/io/SDCard.c
+C_SRCS += src/sprite/AlphaSprite.c
+C_SRCS += src/sprite/BaseSprite.c
+C_SRCS += src/sprite/ImgSprite.c
+C_SRCS += src/sprite/RectSprite.c
+C_SRCS += src/sprite/SpriteArrayList.c
+C_SRCS += src/sprite/SpriteFactory.c
+C_SRCS += src/sprite/SpriteParser.c
+C_SRCS += src/util/ArrayPtr.c
+C_SRCS += src/util/Timer.c
+C_SRCS += src/video/VideoHandler.c
+C_SRCS += src/video/VideoLibrary.c
+C_SRCS += src/game/BSNStateMachine.c
+C_SRCS += src/network/RS232Handler.c
 CXX_SRCS :=
 ASM_SRCS :=
 

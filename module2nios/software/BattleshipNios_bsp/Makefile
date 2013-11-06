@@ -376,6 +376,13 @@ up_avalon_ps2_driver_C_LIB_SRCS := \
 	$(up_avalon_ps2_driver_SRCS_ROOT)/src/altera_up_ps2_keyboard.c \
 	$(up_avalon_ps2_driver_SRCS_ROOT)/src/altera_up_ps2_mouse.c
 
+# up_avalon_rs232_driver sources root 
+up_avalon_rs232_driver_SRCS_ROOT := drivers
+
+# up_avalon_rs232_driver sources 
+up_avalon_rs232_driver_C_LIB_SRCS := \
+	$(up_avalon_rs232_driver_SRCS_ROOT)/src/altera_up_avalon_rs232.c
+
 
 # Assemble all component C source files 
 COMPONENT_C_LIB_SRCS += \
@@ -389,7 +396,8 @@ COMPONENT_C_LIB_SRCS += \
 	$(avalon_character_lcd_driver_C_LIB_SRCS) \
 	$(avalon_video_pixel_buffer_dma_driver_C_LIB_SRCS) \
 	$(hal_C_LIB_SRCS) \
-	$(up_avalon_ps2_driver_C_LIB_SRCS)
+	$(up_avalon_ps2_driver_C_LIB_SRCS) \
+	$(up_avalon_rs232_driver_C_LIB_SRCS)
 
 # Assemble all component assembly source files 
 COMPONENT_ASM_LIB_SRCS += \

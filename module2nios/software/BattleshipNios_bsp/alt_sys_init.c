@@ -4,7 +4,7 @@
  * Machine generated for CPU 'nios2_qsys_0' in SOPC Builder design 'nios_system'
  * SOPC Builder design path: C:/Users/trevsiemens/Documents/UBC/EECE_381/EECE-381-module-2/module2nios/nios_system.sopcinfo
  *
- * Generated: Wed Oct 30 13:11:01 PDT 2013
+ * Generated: Wed Nov 06 10:11:44 PST 2013
  */
 
 /*
@@ -66,6 +66,7 @@
 #include "altera_up_avalon_audio_and_video_config.h"
 #include "altera_up_avalon_character_lcd.h"
 #include "altera_up_avalon_ps2.h"
+#include "altera_up_avalon_rs232.h"
 #include "altera_up_avalon_video_character_buffer_with_dma.h"
 #include "altera_up_avalon_video_pixel_buffer_dma.h"
 
@@ -80,6 +81,7 @@ ALTERA_UP_AVALON_AUDIO_AND_VIDEO_CONFIG_INSTANCE ( AUDIO_AND_VIDEO, audio_and_vi
 ALTERA_UP_AVALON_AUDIO_INSTANCE ( AUDIO_0, audio_0);
 ALTERA_UP_AVALON_CHARACTER_LCD_INSTANCE ( CHARACTER_LCD_0, character_lcd_0);
 ALTERA_UP_AVALON_PS2_INSTANCE ( PS2_0, ps2_0);
+ALTERA_UP_AVALON_RS232_INSTANCE ( RS232_0, rs232_0);
 ALTERA_UP_AVALON_VIDEO_CHARACTER_BUFFER_WITH_DMA_INSTANCE ( CHAR_DRAWER, char_drawer);
 ALTERA_UP_AVALON_VIDEO_PIXEL_BUFFER_DMA_INSTANCE ( PIXEL_BUFFER_DMA, pixel_buffer_dma);
 ALTERA_UP_SD_CARD_AVALON_INTERFACE_INSTANCE ( SD_CARD, sd_card);
@@ -111,6 +113,7 @@ void alt_sys_init( void )
     ALTERA_UP_AVALON_AUDIO_INIT ( AUDIO_0, audio_0);
     ALTERA_UP_AVALON_CHARACTER_LCD_INIT ( CHARACTER_LCD_0, character_lcd_0);
     ALTERA_UP_AVALON_PS2_INIT ( PS2_0, ps2_0);
+    ALTERA_UP_AVALON_RS232_INIT ( RS232_0, rs232_0);
     ALTERA_UP_AVALON_VIDEO_CHARACTER_BUFFER_WITH_DMA_INIT ( CHAR_DRAWER, char_drawer);
     ALTERA_UP_AVALON_VIDEO_PIXEL_BUFFER_DMA_INIT ( PIXEL_BUFFER_DMA, pixel_buffer_dma);
     ALTERA_UP_SD_CARD_AVALON_INTERFACE_INIT ( SD_CARD, sd_card);
