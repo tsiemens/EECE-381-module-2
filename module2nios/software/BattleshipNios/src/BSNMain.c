@@ -14,6 +14,7 @@
 #include "sprite/SpriteParser.h"
 #include "game/BSNStateMachine.h"
 #include "network/RS232Handler.h"
+#include "network/ProtocolHandler.h"
 
 // Approx time per loop for 60 Hz
 #define MAIN_LOOP_MIN_TIME_MS 16
@@ -32,13 +33,24 @@ int main()
 	IOWR_8DIRECT(LEDS_BASE, 0, ledVals);
 
 	RS232Handler_init();
-	// TODO remove
-	uartTest();
 
 	// Video and Character handler init
 	VideoHandlerInit();
 
 	BSNStateMachine* stateMachine = BSNStateMachine_init(BSNStateMachine_alloc());
+
+	// TESTING
+	int hostID = 1;
+	int clientID = 2;
+	int idTemp;
+	int numTemp;
+	RS232Handler_send(hostID, "GPP123.456.7.8", 14);
+	ProtocolHandler_receive(stateMachine);
+	RS232Handler_receive(&idTemp, &numTemp);
+	RS232Handler_send(hostID, "C", 1);
+	ProtocolHandler_receive(stateMachine);
+	RS232Handler_send(clientID, "GPP777.777.7.7", 14);
+	ProtocolHandler_receive(stateMachine);
 
 	char debugFreqStr[10];
 

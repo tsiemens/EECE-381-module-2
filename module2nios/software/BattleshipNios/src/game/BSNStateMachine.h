@@ -18,12 +18,20 @@
 #include "../sprite/AlphaSprite.h"
 #include "../sprite/SpriteParser.h"
 
-typedef enum {START} SystemState; // TODO add other states
+#define NO_PLAYER_CLIENT_ID -1
+
+typedef enum {WAITING_FOR_PLAYERS, PLAYING, GAME_OVER } SystemState; // TODO add other states
 
 typedef struct BSNStateMachine
 {
 	// The game state
 	SystemState state;
+
+	unsigned char* hostPortIp;
+	int hostPortIpLength;
+	short hostConfirmed;
+	int hostClientID;
+	int p2ClientID;
 
 	SpriteArrayList* boardSprites;
 

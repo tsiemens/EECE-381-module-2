@@ -2,8 +2,8 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>Nov 6, 2013 10:11:39 AM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1383761499506</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>8-Nov-2013 9:06:42 AM</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1383930402521</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>C:\Users\trevsiemens\Documents\UBC\EECE_381\EECE-381-module-2\module2nios\software\BattleshipNios_bsp</BspGeneratedLocation>
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>C:\Users\trevsiemens\Documents\UBC\EECE_381\EECE-381-module-2\module2nios\nios_system.sopcinfo</SopcDesignFile>

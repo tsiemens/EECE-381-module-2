@@ -19,7 +19,12 @@ BSNStateMachine* BSNStateMachine_alloc()
 // Constructor for BSNStateMachine
 BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this)
 {
-	this->state = START;
+	this->state = WAITING_FOR_PLAYERS;
+
+	this->hostConfirmed = 0;
+	this->hostPortIp = NULL;
+	this->hostClientID = NO_PLAYER_CLIENT_ID;
+	this->p2ClientID = NO_PLAYER_CLIENT_ID;
 
 	this->boardSprites = SpriteArrayList_init(SpriteArrayList_alloc(), 2);
 
@@ -30,7 +35,7 @@ void BSNStateMachine_performFrameLogic(BSNStateMachine* this)
 {
 	BSNStateMachine_PerformLogic(this);
 
-	if(this->state == START)
+	if(this->state == WAITING_FOR_PLAYERS)
 	{
 
 	}
@@ -40,7 +45,7 @@ void BSNStateMachine_PerformLogic(BSNStateMachine* this)
 {
 	switch( this->state )
 	{
-	    case START:
+	    case WAITING_FOR_PLAYERS:
 	        BSNStateMachine_StartPerformLogic(this);
 	        break;
 	}
