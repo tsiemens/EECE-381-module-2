@@ -11,13 +11,17 @@
 #include "RS232Handler.h"
 #include "../game/BSNStateMachine.h"
 
-// Android to DE2
-
-// new_game = bytes: { ‘G’, [2 byte little endian short short for port], ip string }
-//confirm_host_server_started = bytes { ‘C‘ } // sent after you_are_host and before
-//shot_missed = bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
-//shot_hit = bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
-//game_over = bytes: { 'O', ['1' or '2' for winner or 'Q' for forfeit/quit midgame] }
+/**
+ * Receives a message from client, and takes action, changing values and state of sm
+ *
+ * Compatible messages are the following. Action taken depends on state of sm.
+ *
+ * new_game = bytes: { ‘G’, [2 byte little endian short short for port], ip string }
+ * confirm_host_server_started = bytes { ‘C‘ } // sent after you_are_host and before
+ * shot_missed = bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
+ * shot_hit = bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
+ * game_over = bytes: { 'O', ['1' or '2' for winner or 'Q' for forfeit/quit midgame] }
+ */
 void ProtocolHandler_receive(BSNStateMachine* sm)
 {
 	int length;
@@ -27,8 +31,11 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 		if (sm->state == WAITING_FOR_PLAYERS){
 			if (sm->hostPortIp == NULL){
 				// This is the first client to contact, so set as host
-				sm->hostPortIp = data;
-				sm->hostPortIpLength = length;
+				sm->hostPortIp = malloc(sizeof(unsigned char)* (length-1));
+				int i;
+				for (i=1; i<length; i++)
+				sm->hostPortIp[i-1] = data[i];
+				sm->hostPortIpLength = length-1;
 				sm->hostClientID = clientID;
 				printf("Sending host confirmation\n");
 				ProtocolHandler_sendSimpleNotification(clientID, 'H');
@@ -54,29 +61,42 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 			ProtocolHandler_sendYouAreP2Notification(sm->p2ClientID, sm->hostPortIp, sm->hostPortIpLength);
 			sm->state = PLAYING;
 		}
-	} else if (data[0] == 'M'){
+	} else if (data[0] == 'M' && sm->state == PLAYING){
 		// Shot missed
-
-	} else if (data[0] == 'H'){
+		// TODO implement
+	} else if (data[0] == 'H' && sm->state == PLAYING){
 		// Shot hit
-
-	} else if (data[0] == 'O'){
+		// TODO implement
+	} else if (data[0] == 'O' && sm->state == PLAYING){
 		// Game over
-
+		// TODO implement
 	}
 }
 
-// DE2 to Android:
-
-//you_are_host = bytes: { ‘H’ } // The host has a server socket, so does not need ip of p2
-//game_in_progress = bytes: { 'X' } // if a third device sends new_game
+/**
+ * Sends message to clientID over RS232, with the message
+ * bytes: { c }
+ *
+ * @param clientID -- the id assigned by middleman
+ * @param c -- character to send. Valid characters are the following:
+ * 	'H' : Sent to host to tell it that it is host.
+ * 	'X' : Sent to client after a host and p2 have already been found.
+ */
 void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c)
 {
 	unsigned char msg = c;
 	RS232Handler_send((unsigned char)clientID, &msg, 1);
 }
 
-//you_are_player2 = bytes: { ‘2’ , [2 byte little endian short short for port of host], ip string of host}
+/**
+ * Sends message to clientID over RS232, with the message
+ * bytes: { ‘2’ , portip }
+ *
+ * @param clientID -- the id assigned by middleman
+ * @param portip -- string with the contents:
+ * 	[2 byte little endian short for port of host], ip string of host
+ * @param length -- the length of portip
+ */
 void ProtocolHandler_sendYouAreP2Notification(int clientID, unsigned char* portip, int length)
 {
 	int newLength = length+1;
@@ -88,4 +108,18 @@ void ProtocolHandler_sendYouAreP2Notification(int clientID, unsigned char* porti
 		msg[i] = portip[i-1];
 	}
 	RS232Handler_send((unsigned char)clientID, msg, newLength);
+}
+
+void ProtocolTest(BSNStateMachine* stateMachine) {
+	int hostID = 1;
+	int clientID = 2;
+	int idTemp;
+	int numTemp;
+	RS232Handler_send(hostID, "GPP123.456.7.8", 14);
+	ProtocolHandler_receive(stateMachine);
+	RS232Handler_receive(&idTemp, &numTemp);
+	RS232Handler_send(hostID, "C", 1);
+	ProtocolHandler_receive(stateMachine);
+	RS232Handler_send(clientID, "GPP777.777.7.7", 14);
+	ProtocolHandler_receive(stateMachine);
 }

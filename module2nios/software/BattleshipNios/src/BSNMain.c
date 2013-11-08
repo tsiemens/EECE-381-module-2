@@ -39,22 +39,12 @@ int main()
 
 	BSNStateMachine* stateMachine = BSNStateMachine_init(BSNStateMachine_alloc());
 
-	// TESTING
-	int hostID = 1;
-	int clientID = 2;
-	int idTemp;
-	int numTemp;
-	RS232Handler_send(hostID, "GPP123.456.7.8", 14);
-	ProtocolHandler_receive(stateMachine);
-	RS232Handler_receive(&idTemp, &numTemp);
-	RS232Handler_send(hostID, "C", 1);
-	ProtocolHandler_receive(stateMachine);
-	RS232Handler_send(clientID, "GPP777.777.7.7", 14);
-	ProtocolHandler_receive(stateMachine);
+	// TODO TESTING
+	//ProtocolTest(stateMachine);
 
 	char debugFreqStr[10];
 
-	printf("Done init");
+	printf("Done init\n");
 
 	// MAIN PROGRAM LOOP
 	while (hasQuit == 0) {
@@ -64,9 +54,7 @@ int main()
 		ledVals++;
 		IOWR_8DIRECT(LEDS_BASE, 0, ledVals);
 
-		// TODO insert game logic here
 		BSNStateMachine_performFrameLogic(stateMachine);
-
 
 		// Swap buffers and clear background buffer
 		//display();

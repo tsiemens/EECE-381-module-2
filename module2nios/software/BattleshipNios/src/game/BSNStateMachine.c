@@ -35,10 +35,12 @@ void BSNStateMachine_performFrameLogic(BSNStateMachine* this)
 {
 	BSNStateMachine_PerformLogic(this);
 
-	if(this->state == WAITING_FOR_PLAYERS)
+	if(this->state == WAITING_FOR_PLAYERS || this->state == PLAYING)
 	{
-
+		ProtocolHandler_receive(this);
 	}
+
+	// TODO draw
 }
 
 void BSNStateMachine_PerformLogic(BSNStateMachine* this)
@@ -46,12 +48,28 @@ void BSNStateMachine_PerformLogic(BSNStateMachine* this)
 	switch( this->state )
 	{
 	    case WAITING_FOR_PLAYERS:
-	        BSNStateMachine_StartPerformLogic(this);
+	        BSNStateMachine_WaitingPerformLogic(this);
 	        break;
+	    case PLAYING:
+	    	BSNStateMachine_PlayingPerformLogic(this);
+	    	break;
+	    case GAME_OVER:
+	    	BSNStateMachine_GameOverPerformLogic(this);
+	    	break;
 	}
 }
 
-void BSNStateMachine_StartPerformLogic(BSNStateMachine* this)
+void BSNStateMachine_WaitingPerformLogic(BSNStateMachine* this)
+{
+
+}
+
+void BSNStateMachine_PlayingPerformLogic(BSNStateMachine* this)
+{
+
+}
+
+void BSNStateMachine_GameOverPerformLogic(BSNStateMachine* this)
 {
 
 }
