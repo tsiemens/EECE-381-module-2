@@ -18,7 +18,7 @@ void RS232Handler_init()
 {
 	unsigned char data;
 	unsigned char parity;
-	int isDebug = 1;
+	int isDebug = 0;
 
 	printf("UART Initialization\n");
 	s_rs232Dev = alt_up_rs232_open_dev(RS232_0_NAME);
