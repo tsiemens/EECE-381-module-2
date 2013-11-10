@@ -111,22 +111,22 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    }
 	}
 	
-	public float getXMax()
+	public float getXRight()
 	{
 		return mCamPosX + (float)mWidth/(float)mHeight;
 	}
 	
-	public float getXMin()
+	public float getXLeft()
 	{
 		return mCamPosX - (float)mWidth/(float)mHeight;
 	}
 	
-	public float getYMax()
+	public float getYTop()
 	{
 		return mCamPosY + 1;
 	}
 	
-	public float getYMin()
+	public float getYBottom()
 	{
 		return mCamPosY - 1;
 	}

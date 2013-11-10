@@ -97,7 +97,6 @@ public class TexturedRect implements GL20Drawable{
 		GLES20.glGetProgramiv(sShaderProgramHandle, GLES20.GL_LINK_STATUS, linkStatus, 0);
 		 
 	    // We don't want to repeat if the program is still valid
-	    Log.d(TAG, "Shader program status: "+linkStatus[0]);
 	    if (linkStatus[0] != 0)
 	    {
 	        return;
@@ -294,10 +293,10 @@ public class TexturedRect implements GL20Drawable{
 	 */
 	public void setColor(int color)
 	{
-		mColor[3] = Color.alpha(color)/255;
-		mColor[0] = Color.red(color)/255;
-		mColor[1] = Color.green(color)/255;
-		mColor[2] = Color.blue(color)/255;
+		mColor[3] = (float) (Color.alpha(color)/255.0);
+		mColor[0] = (float) (Color.red(color)/255.0);
+		mColor[1] = (float) (Color.green(color)/255.0);
+		mColor[2] = (float) (Color.blue(color)/255.0);
 	}
 
 	/**
