@@ -12,7 +12,7 @@ import com.group10.battleship.graphics.TexturedRect;
 public class Board implements GL20Drawable{
 
 	public static final int TILE_COLOR_NORMAL = Color.parseColor("#aa4285f4");
-	public static final int TILE_COLOR_MISS = Color.parseColor("#aaa0c3ff");
+	public static final int TILE_COLOR_MISS = Color.parseColor("#aaeeeeee");
 	public static final int TILE_COLOR_HIT = Color.parseColor("#aadb4437");
 	public static final int BOARD_SIZE = 10;
 	
@@ -59,6 +59,19 @@ public class Board implements GL20Drawable{
 						mTopLeftY - (((row + 1)*tileGridSize)+tilePadding) );
 				tempTile.setSize(tileSize, tileSize);
 				tempArray.add(tempTile);
+			}
+		}
+	}
+	
+	/**
+	 * Copies the tile state of board to this.
+	 * Does not affect the rendering parameters, such as width, height, position, etc.
+	 * @param board
+	 */
+	public void copyState(Board board) {
+		for (int row = 0; row < Board.BOARD_SIZE; row++) {
+			for (int col = 0; col < Board.BOARD_SIZE; col++) {
+				this.setTileColour(board.getTileColour(col, row), col, row);
 			}
 		}
 	}

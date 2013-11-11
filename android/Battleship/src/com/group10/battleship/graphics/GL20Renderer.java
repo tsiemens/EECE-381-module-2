@@ -1,5 +1,6 @@
 package com.group10.battleship.graphics;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -28,7 +29,7 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 
 	private List<GL20Drawable> mDrawables;
 	
-	private RendererListener mListener;
+	private List<RendererListener> mListeners;
 
 	private int mWidth = 1;
 	private int mHeight = 1;
@@ -42,16 +43,16 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 		 * Only after this is called, is it safe to create new GL20Drawables,
 		 * and add them to the renderer.
 		 */
-		public void onSurfaceCreated();
+		public void onSurfaceCreated(GL20Renderer renderer);
 		
-		public void onFrameDrawn();
+		public void onFrameDrawn(GL20Renderer renderer);
 		
-		public void onSurfaceChanged();
+		public void onSurfaceChanged(GL20Renderer renderer);
 	}
 
 	public GL20Renderer()
 	{
-		
+		mListeners = new ArrayList<RendererListener>();
 	}
 
 	@Override
@@ -61,8 +62,9 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    GLES20.glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 	    Log.i(TAG, "Renderer surface created");
 
-	    if (mListener != null) {
-	    	mListener.onSurfaceCreated();
+	    // Notify the listeners
+	    for (RendererListener l : mListeners) {
+	    	l.onSurfaceCreated(this);
 	    }
 	}
 
@@ -89,9 +91,10 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    		item.draw(mMVPMatrix);
 	    	}
 	    }
-	    //sprite.draw(mMVPMatrix);
-	    if (mListener != null) {
-	    	mListener.onFrameDrawn();
+
+	    // Notify the listeners
+	    for (RendererListener l : mListeners) {
+	    	l.onFrameDrawn(this);
 	    }
 	}
 
@@ -106,8 +109,9 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    //This Projection Matrix is applied to object coordinates in the onDrawFrame() method
 	    Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 	    
-	    if (mListener != null) {
-	    	mListener.onSurfaceChanged();
+	 // Notify the listeners
+	    for (RendererListener l : mListeners) {
+	    	l.onSurfaceChanged(this);
 	    }
 	}
 	
@@ -136,9 +140,14 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	public void setCamPosX(float x) { mCamPosX = x; }
 	public void setCamPosY(float y) { mCamPosY = y; }
 	
-	public void setRendererListener(RendererListener listener)
+	public void addRendererListener(RendererListener listener)
 	{
-		mListener = listener;
+		mListeners.add(listener);
+	}
+	
+	public void removeRendererListener(RendererListener listener)
+	{
+		mListeners.remove(listener);
 	}
 	
 	public void setDrawList(List<GL20Drawable> items)
