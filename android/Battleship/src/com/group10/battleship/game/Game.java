@@ -105,11 +105,8 @@ public class Game implements RendererListener {
 		if (inx != null) {
 			Log.d(TAG, "Touched tile: "+inx[0]+","+inx[1]);
 
-			 //Test code. delete later
-			if (inx[0] > 4)
-				mPlayerBoard.setTileColour(Board.TILE_COLOR_HIT, inx[0], inx[1]);
-			else
-				mPlayerBoard.setTileColour(Board.TILE_COLOR_MISS, inx[0], inx[1]);
+			// TODO: this should only be permitted during the players turn
+			mPlayerBoard.setSelectedTile(inx[0], inx[1]);
 				
 			
 			// TODO do stuff with the touch event, during game

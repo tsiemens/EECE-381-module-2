@@ -14,6 +14,7 @@ public class Board implements GL20Drawable{
 	public static final int TILE_COLOR_NORMAL = Color.parseColor("#aa4285f4");
 	public static final int TILE_COLOR_MISS = Color.parseColor("#aaeeeeee");
 	public static final int TILE_COLOR_HIT = Color.parseColor("#aadb4437");
+	public static final int TILE_COLOR_SELECTION = Color.parseColor("#aaff7800");
 	public static final int BOARD_SIZE = 10;
 	
 	private Context mContext;
@@ -21,6 +22,9 @@ public class Board implements GL20Drawable{
 	private TexturedRect mAlphaCol;
 	
 	private ArrayList<ArrayList<TexturedRect>> mTileRows;
+	// In format of { Col, Row }
+	private int[] mSelectedTileIndex;
+	private TexturedRect mSelectionTile;
 	
 	private float mTopLeftX;
 	private float mTopLeftY;
@@ -61,6 +65,11 @@ public class Board implements GL20Drawable{
 				tempArray.add(tempTile);
 			}
 		}
+		
+		mSelectedTileIndex = new int[]{-1, -1};
+		mSelectionTile = new TexturedRect(mContext, R.drawable.white_pix);
+		mSelectionTile.setColor(TILE_COLOR_SELECTION);
+		mSelectionTile.setSize(tileGridSize, tileGridSize);
 	}
 	
 	/**
@@ -74,12 +83,21 @@ public class Board implements GL20Drawable{
 				this.setTileColour(board.getTileColour(col, row), col, row);
 			}
 		}
+		
+		int [] sel = board.getSelectedTileIndex();
+		if (sel != null) {
+			setSelectedTile(sel[0], sel[1]);
+		}
 	}
 	
 	@Override
 	public void draw(float[] mvpMatrix) {
 		mNumberRow.draw(mvpMatrix);
 		mAlphaCol.draw(mvpMatrix);
+		
+		if (isTileIndexValid(mSelectedTileIndex[0], mSelectedTileIndex[1])) {
+			mSelectionTile.draw(mvpMatrix);
+		}
 		
 		for (ArrayList<TexturedRect> al : mTileRows) {
 			for (TexturedRect t : al) {
@@ -95,6 +113,33 @@ public class Board implements GL20Drawable{
 	 */
 	public void setTileColour(int colour, int col, int row) {
 		mTileRows.get(row).get(col).setColor(colour);
+	}
+	
+	/**
+	 * Selects the currently selected tile. If the index is invalid (< 0 or >= BOARD_SIZE),
+	 * selects no tile.
+	 * @param col
+	 * @param row
+	 */
+	public void setSelectedTile(int col, int row) {
+		if (!isTileIndexValid(col, row)) {
+			mSelectedTileIndex[0] = -1;
+		} else {
+			mSelectedTileIndex[0] = col;
+			mSelectedTileIndex[1] = row;
+
+			float tileGridSize = getTileGridSize();
+			mSelectionTile.setPosition( mTopLeftX + ((col + 1)*tileGridSize), 
+					mTopLeftY - ((row + 1)*tileGridSize) );
+		}
+	}
+	
+	public int[] getSelectedTileIndex() {
+		int[] inx = null;
+		if (isTileIndexValid(mSelectedTileIndex[0], mSelectedTileIndex[1])) {
+			inx = new int[]{mSelectedTileIndex[0], mSelectedTileIndex[1]};
+		}
+		return inx;
 	}
 	
 	/**
@@ -116,7 +161,7 @@ public class Board implements GL20Drawable{
 		double col = ((((x - mTopLeftX) - getTileOffset())/(mSideLength-getTileGridSize())) * BOARD_SIZE);
 		double row = ((((mTopLeftY - y) - getTileOffset())/(mSideLength-getTileGridSize())) * BOARD_SIZE);
 		
-		if (col >= BOARD_SIZE || col < 0 || row >= BOARD_SIZE || row < 0) {
+		if (!isTileIndexValid((int)col, (int)row)) {
 			return null;
 		}
 		
@@ -134,5 +179,9 @@ public class Board implements GL20Drawable{
 	
 	private float getTilePadding() {
 		return (float) (getTileGridSize() * 0.05);
+	}
+	
+	public static boolean isTileIndexValid(int col, int row) {
+		return  !(col >= BOARD_SIZE || col < 0 || row >= BOARD_SIZE || row < 0);
 	}
 }

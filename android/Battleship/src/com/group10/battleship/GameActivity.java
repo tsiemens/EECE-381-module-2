@@ -27,7 +27,7 @@ import android.view.View.OnTouchListener;
  * http://www.learnopengles.com/android-lesson-one-getting-started/
  *
  */
-public class GameActivity extends SherlockActivity implements RendererListener, OnTouchListener {
+public class GameActivity extends SherlockActivity implements OnTouchListener {
 	
 	private static final String TAG = GameActivity.class.getSimpleName();
 	
@@ -51,7 +51,7 @@ public class GameActivity extends SherlockActivity implements RendererListener, 
         {
             // This is where you could create an OpenGL ES 1.x compatible
             // renderer if you wanted to support both ES 1 and ES 2.
-        	throw new RuntimeException("Device not compatible with Open GL ES 2.0");     
+        	throw new RuntimeException("Device not compatible with Open GL ES 2.0");
         }
      
         // Request an OpenGL ES 2.0 compatible context.
@@ -59,7 +59,6 @@ public class GameActivity extends SherlockActivity implements RendererListener, 
  
         // Set the renderer to our demo renderer, defined below.
         mGLRenderer = new GL20Renderer();
-        //mGLRenderer.addRendererListener(this);
         mGLSurfaceView.setRenderer(mGLRenderer);
         mGLSurfaceView.setOnTouchListener(this);
         
@@ -91,22 +90,6 @@ public class GameActivity extends SherlockActivity implements RendererListener, 
         getSupportMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
-	@Override
-	public void onSurfaceCreated(GL20Renderer renderer) {
-		Log.d(TAG, "GL surface created");
-	}
-
-	@Override
-	public void onFrameDrawn(GL20Renderer renderer) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onSurfaceChanged(GL20Renderer renderer) {
-		Log.d(TAG, "GL surface changed");
-	}
 	
 	@Override
 	public boolean onTouch(View view, MotionEvent me) {
