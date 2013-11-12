@@ -5,4 +5,10 @@
         android:persistent="true"
         android:title="@string/pref_title_local_debug"
         android:defaultValue="false" />
+    
+    <CheckBoxPreference
+        android:key="pref_use_nios"
+        android:persistent="true"
+        android:title="@string/pref_title_use_nios"
+        android:defaultValue="true" />
 </PreferenceScreen>
