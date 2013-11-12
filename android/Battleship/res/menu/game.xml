@@ -1,0 +1,30 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+     <item
+        android:id="@+id/confirm_item"
+        android:icon="@drawable/ic_cab_done_holo_light"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_item_confirm"/>
+    
+    <item
+        android:id="@+id/switch_boards_item"
+        android:icon="@drawable/ic_find_previous_holo_light"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_item_goto_oboard"/>
+    
+    <item
+        android:id="@+id/fire_item"
+        android:icon="@android:drawable/ic_menu_mylocation"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_item_fire"/>
+    
+    <item
+        android:id="@+id/quit_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_item_quit"/>
+
+</menu>

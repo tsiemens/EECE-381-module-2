@@ -1,11 +1,15 @@
 package com.group10.battleship.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 
 import com.group10.battleship.R;
+import com.group10.battleship.game.Ship;
+import com.group10.battleship.game.Ship.ShipType;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.TexturedRect;
 
@@ -15,6 +19,9 @@ public class Board implements GL20Drawable{
 	public static final int TILE_COLOR_MISS = Color.parseColor("#aaeeeeee");
 	public static final int TILE_COLOR_HIT = Color.parseColor("#aadb4437");
 	public static final int TILE_COLOR_SELECTION = Color.parseColor("#aaff7800");
+	
+	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff55ff59");
+	public static final int BORDER_COLOR_OPPONENT = Color.parseColor("#ffff5555");
 	public static final int BOARD_SIZE = 10;
 	
 	private Context mContext;
@@ -26,11 +33,15 @@ public class Board implements GL20Drawable{
 	private int[] mSelectedTileIndex;
 	private TexturedRect mSelectionTile;
 	
+	private boolean mIsPlayerBoard = false;
+	
 	private float mTopLeftX;
 	private float mTopLeftY;
 	private float mSideLength;
 	
-	public Board(Context context, float sideLength, float x, float y) {
+	private List<Ship> mShips;
+	
+	public Board(Context context, float sideLength, float x, float y, boolean isPlayerBoard) {
 		mContext = context;
 		mTopLeftX = x;
 		mTopLeftY = y;
@@ -43,6 +54,8 @@ public class Board implements GL20Drawable{
 		mAlphaCol = new TexturedRect(mContext, R.drawable.boardside);
 		mAlphaCol.setPosition(mTopLeftX, mTopLeftY);
 		mAlphaCol.setSize(getTileOffset(), mSideLength);
+		
+		setIsPlayerBoard(isPlayerBoard);
 		
 		mTileRows = new ArrayList<ArrayList<TexturedRect>>(BOARD_SIZE);
 		TexturedRect tempTile;
@@ -70,6 +83,27 @@ public class Board implements GL20Drawable{
 		mSelectionTile = new TexturedRect(mContext, R.drawable.white_pix);
 		mSelectionTile.setColor(TILE_COLOR_SELECTION);
 		mSelectionTile.setSize(tileGridSize, tileGridSize);
+		
+		if (mIsPlayerBoard) {
+			// Initialize the player's ships
+			mShips = new ArrayList<Ship>(5);
+			Ship shipTemp = new Ship(mContext, ShipType.CARRIER);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.BATTLESHIP);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.DESTROYER);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.SUB);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.PATROL);
+			mShips.add(shipTemp);
+
+			for (int i = 0; i < mShips.size(); i++) {
+				Ship s = mShips.get(i);
+				s.configureBoardConstraints(this);
+				s.setPosIndex(0, i);
+			}
+		}
 	}
 	
 	/**
@@ -83,10 +117,26 @@ public class Board implements GL20Drawable{
 				this.setTileColour(board.getTileColour(col, row), col, row);
 			}
 		}
+		this.setIsPlayerBoard(board.isPlayerBoard());
 		
 		int [] sel = board.getSelectedTileIndex();
 		if (sel != null) {
 			setSelectedTile(sel[0], sel[1]);
+		}
+		
+		List<Ship> ships = board.getShips();
+		if (ships != null && mShips != null)
+		{
+			for (Ship s : ships) {
+				for (Ship myShip : mShips) {
+					if (myShip.getType().equals(s.getType())) {
+						myShip.setHorizontal(s.isHorizontal());
+						int [] pos = s.getPosIndex();
+						myShip.setPosIndex(pos[0], pos[1]);
+						break;
+					}
+				}
+			}
 		}
 	}
 	
@@ -103,6 +153,36 @@ public class Board implements GL20Drawable{
 			for (TexturedRect t : al) {
 				t.draw(mvpMatrix);
 			}
+		}
+		
+		if (isPlayerBoard() && mShips != null) {
+			for (Ship s : mShips) {
+				s.draw(mvpMatrix);
+			}
+		}
+	}
+	
+	private void setIsPlayerBoard(boolean isPlayerBoard){
+		mIsPlayerBoard = isPlayerBoard;
+		if (mIsPlayerBoard) {
+			mNumberRow.setColor(BORDER_COLOR_PLAYER);
+			mAlphaCol.setColor(BORDER_COLOR_PLAYER);
+		} else {
+			mNumberRow.setColor(BORDER_COLOR_OPPONENT);
+			mAlphaCol.setColor(BORDER_COLOR_OPPONENT);
+		}
+	}
+	
+	public boolean isPlayerBoard(){
+		return mIsPlayerBoard;
+	}
+	
+	public List<Ship> getShips() { return mShips; }
+	
+	public void setShips(List<Ship> s) {
+		mShips = s;
+		for (Ship ship : mShips) {
+			ship.configureBoardConstraints(this);
 		}
 	}
 	
@@ -168,17 +248,21 @@ public class Board implements GL20Drawable{
 		return new int [] { (int)col, (int)row };
 	}
 	
-	private float getTileOffset() {
+	public float getTileOffset() {
 		// 11 is the drawable ratio
 		return (float) (mSideLength / 11.0);
 	}
 	
-	private float getTileGridSize() {
+	public float getTileGridSize() {
 		return (float) (mSideLength / 11.0);
 	}
 	
-	private float getTilePadding() {
+	public float getTilePadding() {
 		return (float) (getTileGridSize() * 0.05);
+	}
+	
+	public float[] getPosition() {
+		return new float[] {mTopLeftX, mTopLeftY};
 	}
 	
 	public static boolean isTileIndexValid(int col, int row) {

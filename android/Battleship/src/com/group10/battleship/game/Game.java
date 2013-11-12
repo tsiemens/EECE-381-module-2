@@ -81,32 +81,44 @@ public class Game implements RendererListener {
 	public void onSurfaceChanged(GL20Renderer renderer) {
 		Log.d(TAG, "GL surface changed");
 		
-		float x = renderer.getXLeft();
-		float y = renderer.getYTop();
-		float width = renderer.getXRight() - x;
-		float height = y - renderer.getYBottom();
+		float x = renderer.getDefaultLeft();
+		float y = renderer.getDefaultTop();
+		float width = renderer.getDefaultRight() - x;
+		float height = y - renderer.getDefaultBottom();
 		float sideLength = (height > width) ? width : height;
 		
 		if (mPlayerBoard == null) {
-			mPlayerBoard = new Board(mContext, sideLength, x, y);
+			mPlayerBoard = new Board(mContext, sideLength, x, y, true);
 		} else {
 			// The screen may have changed, so we need to rebuild the board
-			Board b = new Board(mContext, sideLength, x, y);
+			Board b = new Board(mContext, sideLength, x, y, true);
 			b.copyState(mPlayerBoard);
 			mDrawList.remove(mPlayerBoard);
 			mPlayerBoard = b;
 		}
+		
+		if (mOpponentBoard == null) {
+			mOpponentBoard = new Board(mContext, sideLength, x, y + height, false);
+		} else {
+			// The screen may have changed, so we need to rebuild the board
+			Board b = new Board(mContext, sideLength, x, y + height, false);
+			b.copyState(mOpponentBoard);
+			mDrawList.remove(mOpponentBoard);
+			mOpponentBoard = b;
+		}
+		
+		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
 		
 	}
 	
 	public void onTouchGLSurface(float x, float y) {
-		int[] inx = mPlayerBoard.getTileIndexAtLocation(x, y);
+		int[] inx = mOpponentBoard.getTileIndexAtLocation(x, y);
 		if (inx != null) {
 			Log.d(TAG, "Touched tile: "+inx[0]+","+inx[1]);
 
 			// TODO: this should only be permitted during the players turn
-			mPlayerBoard.setSelectedTile(inx[0], inx[1]);
+			mOpponentBoard.setSelectedTile(inx[0], inx[1]);
 				
 			
 			// TODO do stuff with the touch event, during game

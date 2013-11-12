@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
+import android.opengl.Matrix;
 import android.util.Log;
 import android.util.SparseIntArray;
 
@@ -89,7 +90,8 @@ public class TexturedRect implements GL20Drawable{
 	private float mTextureCoords[] = { 0.0f, 0.0f,  // top left
             						0.0f, 1.0f,  // bottom left
             						1.0f, 1.0f,  // bottom right
-            						1.0f, 0.0f}; // top right
+            						1.0f, 0.0f}; // top right	
+	private float mTexAngle = 0.0f;
 	
 	private static void loadShaderProgram()
 	{
@@ -264,6 +266,30 @@ public class TexturedRect implements GL20Drawable{
 	public float getHeight()
 	{
 		return mCoords[1] - mCoords[3];
+	}
+	
+	/**
+	 * Sets the texture's rotation angle.
+	 * angle should be in degrees, and rotates counterclockwise.
+	 * @param angle
+	 */
+	public void setTexRotation(float angle) {
+		float texCoords[] = { 0.0f, 0.0f,  // top left
+				0.0f, 1.0f,  // bottom left
+				1.0f, 1.0f,  // bottom right
+				1.0f, 0.0f}; // top right
+		
+		android.graphics.Matrix m = new android.graphics.Matrix();
+		m.setRotate(angle, 0.5f, 0.5f);
+		m.mapPoints(texCoords);
+		
+		mTexAngle = angle;
+		mTextureCoords = texCoords;
+		mTextureBuffer = toFloatBuffer(mTextureCoords);
+	}
+	
+	public float getTexRotation() {
+		return mTexAngle;
 	}
 	
 	public int getColor()
