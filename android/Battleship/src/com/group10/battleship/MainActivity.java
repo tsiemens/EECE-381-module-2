@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends SherlockActivity implements OnClickListener {
@@ -17,8 +18,12 @@ public class MainActivity extends SherlockActivity implements OnClickListener {
 	private static final String TAG = MainActivity.class.getSimpleName();
 	
 	private Button mStartGameBtn;
+	private Button mFindGameBtn;
+	
 	private EditText mHostIpEt;
 	private EditText mHostPortEt;
+	
+	private TextView mHostIpTv;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -28,8 +33,30 @@ public class MainActivity extends SherlockActivity implements OnClickListener {
         mStartGameBtn = (Button)findViewById(R.id.btn_start_game);
         mStartGameBtn.setOnClickListener(this);
         
+        mFindGameBtn = (Button)findViewById(R.id.btn_find_game);
+        mFindGameBtn.setOnClickListener(this);
+        
         mHostIpEt = (EditText)findViewById(R.id.et_host_ip);
         mHostPortEt = (EditText)findViewById(R.id.et_host_port);
+        
+        mHostIpTv = (TextView)findViewById(R.id.tv_host_ip);
+    }
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	// Setting visibility of components. Prefs could have changed
+    	PrefsManager pm = PrefsManager.getInstance();
+    	if ( pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false) ||
+    			!pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)) {
+    		// This should be the current ip
+    		mHostIpTv.setText("current ip here");
+        	mStartGameBtn.setVisibility(View.VISIBLE);
+        } else {
+    		// This should be the current ip
+    		mHostIpTv.setText(R.string.main_menu_nios_ip);
+        	mStartGameBtn.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -51,14 +78,22 @@ public class MainActivity extends SherlockActivity implements OnClickListener {
 
 	@Override
 	public void onClick(View view) {
+		PrefsManager pm = PrefsManager.getInstance();
 		if (view == mStartGameBtn) {
-			if (PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
+			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
 				startActivity(new Intent(this, GameActivity.class));
-			} else {
+			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
 				Toast.makeText(this, "Enter a host ip, or turn on local debugging in settings.",
 						Toast.LENGTH_LONG).show();
 				// TODO check for game connection, etc.
+			} else {
+				// Not using nios
+				mHostIpTv.setText("Your ip here");
 			}
+		} else if (view == mFindGameBtn) {
+			Toast.makeText(this, "Starting game host server...",
+					Toast.LENGTH_SHORT).show();
+			// TODO
 		}
 	}
     

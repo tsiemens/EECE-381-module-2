@@ -12,6 +12,7 @@
     <string name="menu_item_quit">Quit</string>
     
     <string name="main_menu_start_game">Start Game</string>
+    <string name="main_menu_find_game">Find Game</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
     
     <string name="host_ip_none">No IP set</string>
@@ -20,5 +21,6 @@
     
     <string name="prefs_activity_title">Settings</string>
     <string name="pref_title_local_debug">Local Debug Mode</string>
+    <string name="pref_title_use_nios">Use Nios/Middleman</string>
 
 </resources>
