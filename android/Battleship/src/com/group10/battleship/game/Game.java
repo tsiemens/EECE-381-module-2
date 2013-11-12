@@ -5,8 +5,8 @@ import java.util.List;
 
 import android.content.Context;
 import android.util.Log;
+import android.view.MotionEvent;
 
-import com.group10.battleship.GameActivity;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
@@ -27,6 +27,11 @@ public class Game implements RendererListener {
 	
 	private GameState mState;
 	
+	// Ship dragging state
+	private Ship mDraggedShip;
+	// How far away the initial touch was from the ship's 'origin'
+	private int[] mShipDraggingOffset;
+	
 	public enum GameState {
 		UNITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN,
 		GAME_OVER_WIN, GAME_OVER_LOSS
@@ -41,12 +46,19 @@ public class Game implements RendererListener {
 	
 	private Game() {
 		mState = GameState.UNITIALIZED;
+		mShipDraggingOffset = new int[]{0, 0};
 	}
 	
 	public void start() {
 		mState = GameState.PLACING_SHIPS;
 	}
 	
+	/**
+	 * Reconfigures the game to use the renderer.
+	 * Does not affect any internal game state.
+	 * @param context
+	 * @param renderer
+	 */
 	public void configure(Context context, GL20Renderer renderer) {
 		mDrawList = new ArrayList<GL20Drawable>();
 		renderer.addRendererListener(this);
@@ -112,16 +124,62 @@ public class Game implements RendererListener {
 		
 	}
 	
-	public void onTouchGLSurface(float x, float y) {
-		int[] inx = mOpponentBoard.getTileIndexAtLocation(x, y);
-		if (inx != null) {
-			Log.d(TAG, "Touched tile: "+inx[0]+","+inx[1]);
+	public void onRotateButtonPressed() {
+		Ship ship = mPlayerBoard.getSelectedShip();
+		if (ship != null){
+			if (mPlayerBoard.verifyShipRotation(ship)) {
+				ship.setHorizontal(!ship.isHorizontal());
+			}
+		}
+	}
+	
+	public void onTouchGLSurface(MotionEvent me, float x, float y) {
+		if (me.getAction() == MotionEvent.ACTION_DOWN) {
+			// Check for selection of enemy tile
+			int[] inx = mOpponentBoard.getTileIndexAtLocation(x, y);
+			if (inx != null) {
+				Log.d(TAG, "Touched down enemy tile: "+inx[0]+","+inx[1]);
 
-			// TODO: this should only be permitted during the players turn
-			mOpponentBoard.setSelectedTile(inx[0], inx[1]);
-				
+				// TODO: this should only be permitted during the players turn
+				mOpponentBoard.setSelectedTile(inx[0], inx[1]);
+			}
 			
-			// TODO do stuff with the touch event, during game
+			// Check for selecting ship
+			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
+			if (inx != null) {
+				Log.d(TAG, "Touched down player tile: "+inx[0]+","+inx[1]);
+
+				// TODO: this should only be permitted during ship placement
+				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
+				if (selectShip != null) {
+					mPlayerBoard.selectShip(selectShip);
+					mDraggedShip = selectShip;
+
+					mShipDraggingOffset[0] = inx[0] - selectShip.getPosIndex()[0];
+					mShipDraggingOffset[1] = inx[1] - selectShip.getPosIndex()[1];
+				}
+			}
+		} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
+			if (mDraggedShip != null) {
+				int[] inx = mPlayerBoard.getTileIndexAtLocation(x, y);
+				if (inx != null) {
+					/* To make moving around easier, find how much the user has moved
+					 the ship, from the point where they selected it. Find the potential index
+					 to move the ship to here. */
+					inx[0] = inx[0] - mShipDraggingOffset[0];
+					inx[1] = inx[1] - mShipDraggingOffset[1];
+					
+					int[] dragShipPos = mDraggedShip.getPosIndex();
+					// Only bother moving the ship, if it has moved
+					if ( (dragShipPos[0] != inx[0] || dragShipPos[1] != inx[1] )
+							&& mPlayerBoard.verifyNewShipPos(inx[0], inx[1], mDraggedShip)) {
+						mDraggedShip.setPosIndex(inx[0], inx[1]);
+					}
+				}
+			}
+		} else if (me.getAction() == MotionEvent.ACTION_UP) {
+			Log.d(TAG, "Action up");
+			mDraggedShip = null;
 		}
 	}
 	

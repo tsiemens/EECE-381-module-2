@@ -133,6 +133,7 @@ public class Board implements GL20Drawable{
 						myShip.setHorizontal(s.isHorizontal());
 						int [] pos = s.getPosIndex();
 						myShip.setPosIndex(pos[0], pos[1]);
+						myShip.setSelected(s.isSelected());
 						break;
 					}
 				}
@@ -184,6 +185,103 @@ public class Board implements GL20Drawable{
 		for (Ship ship : mShips) {
 			ship.configureBoardConstraints(this);
 		}
+	}
+	
+	/**
+	 * Returns the first ship which lies on the coordinate {x, y}
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public Ship getShipAtIndex(int x, int y) {
+		if (mShips != null) {
+			for (Ship s : mShips) {
+				if(s.isOnGridTile(x, y)){
+					return s;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Marks the ship at the index (found with getShipAtIndex) as selected.
+	 * Deselects other ships
+	 * @param x
+	 * @param y
+	 */
+	public void selectShipAtIndex(int x, int y) {
+		if (mShips != null) {
+			Ship s = getShipAtIndex(x, y);
+			if (s != null) {
+				// Deselect all other ships
+				for (Ship othership : mShips) {
+					othership.setSelected(false);
+				}
+				s.setSelected(true);
+			}
+		}
+	}
+	
+	/**
+	 * Marks the ship as selected, and deselects other ships
+	 * Does nothing if ship is not contained by the board
+	 * @param ship
+	 */
+	public void selectShip(Ship ship) {
+		if (mShips != null && ship != null && mShips.contains(ship)) {
+			// Deselect all other ships
+			for (Ship othership : mShips) {
+				othership.setSelected(false);
+			}
+			ship.setSelected(true);
+		}
+	}
+	
+	public Ship getSelectedShip() {
+		for (Ship ship : mShips) {
+			if (ship.isSelected()) {
+				return ship;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Verifies that ship won't overlap other ships, or be out of bounds
+	 * at the new position.
+	 * @param x
+	 * @param y
+	 * @param ship
+	 * @return true if the new position is ok, false otherwise or if ship is not on this board
+	 */
+	public boolean verifyNewShipPos(int x, int y, Ship ship) {
+		if (mShips.contains(ship) && ship.wouldBeOnGridAtPos(x, y)) {
+			for (Ship othership : mShips) {
+				if (othership != ship && ship.wouldIntersectShipAtPos(x, y, othership)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Checks if the ship can be rotated on the board in its current position
+	 * @param ship
+	 * @return true if the new position is ok, false otherwise or if ship is not on this board
+	 */
+	public boolean verifyShipRotation(Ship ship) {
+		if (mShips.contains(ship) && ship.wouldBeOnGridAfterRotate()) {
+			for (Ship othership : mShips) {
+				if (othership != ship && ship.wouldIntersectShipAfterRotate(othership)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 	
 	/**

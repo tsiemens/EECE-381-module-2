@@ -8,6 +8,7 @@
     <string name="menu_item_confirm">Confirm</string>
     <string name="menu_item_goto_pboard">Look at my board</string>
     <string name="menu_item_goto_oboard">Look at enemy board</string>
+    <string name="menu_item_rotate">Rotate Ship</string>
     <string name="menu_item_quit">Quit</string>
     
     <string name="main_menu_start_game">Start Game</string>

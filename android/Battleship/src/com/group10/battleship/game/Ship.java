@@ -1,12 +1,16 @@
 package com.group10.battleship.game;
 
 import android.content.Context;
+import android.graphics.Color;
 
 import com.group10.battleship.R;
 import com.group10.battleship.graphics.TexturedRect;
 import com.group10.battleship.model.Board;
 
 public class Ship extends TexturedRect{
+	
+	public static int SELECTED_COLOR = Color.parseColor("#ff00ffff");
+	public static int SHIP_COLOR = Color.parseColor("#ff999999");
 	
 	private ShipType mType;
 	
@@ -24,6 +28,7 @@ public class Ship extends TexturedRect{
 		mGridIndex = new int[] {0, 0};
 		mBoardLoc = new float[] {0, 0};
 		mIsHorizontal = true;
+		setSelected(false);
 	}
 
 	public void configureBoardConstraints(Board board) {
@@ -48,6 +53,78 @@ public class Ship extends TexturedRect{
 	}
 	
 	public boolean isHorizontal() { return mIsHorizontal; }
+	
+	public void setSelected(boolean isSelected) {
+		if (isSelected)
+			setColor(SELECTED_COLOR);
+		else
+			setColor(SHIP_COLOR);
+	}
+	
+	public boolean isSelected() {
+		if (getColor() == SELECTED_COLOR)
+			return true;
+		else
+			return false;
+	}
+	
+	public boolean isOnGridTile(int x, int y) {
+		if (mIsHorizontal && mGridIndex[1] == y) {
+			return (x >= mGridIndex[0] && x < (mGridIndex[0] + mType.size()) );
+		} else if (!mIsHorizontal && mGridIndex[0] == x) {
+			return (y >= mGridIndex[1] && y < (mGridIndex[1] + mType.size()) );
+		}
+		return false;
+	}
+	
+	public boolean wouldIntersectShipAtPos(int x, int y, Ship ship) {
+		for (int i = 0; i < mType.size(); i++) {
+			if (ship.isOnGridTile(x, y)) {
+				return true;
+			}
+			
+			if (mIsHorizontal) x++;
+			else y++;
+		}
+		return false;
+	}
+	
+	public boolean wouldIntersectShipAfterRotate(Ship ship) {
+		int x = mGridIndex[0];
+		int y = mGridIndex[1];
+		for (int i = 0; i < mType.size(); i++) {
+			if (ship.isOnGridTile(x, y)) {
+				return true;
+			}
+			
+			if (mIsHorizontal) y++;
+			else x++;
+		}
+		return false;
+	}
+	
+	public boolean wouldBeOnGridAtPos(int x, int y) {
+		if (x >= Board.BOARD_SIZE || x < 0 || y >= Board.BOARD_SIZE || y < 0)
+			return false;
+		if (mIsHorizontal && (x + mType.size()) <= Board.BOARD_SIZE)
+			return true;
+		else if (!mIsHorizontal && (y + mType.size()) <= Board.BOARD_SIZE)
+			return true;
+		else
+			return false;
+	}
+	
+	public boolean wouldBeOnGridAfterRotate(){
+		if (mGridIndex[0] >= Board.BOARD_SIZE || mGridIndex[0] < 0 
+			|| mGridIndex[1] >= Board.BOARD_SIZE || mGridIndex[1] < 0)
+			return false;
+		if (mIsHorizontal && (mGridIndex[1] + mType.size()) <= Board.BOARD_SIZE)
+			return true;
+		else if (!mIsHorizontal && (mGridIndex[0] + mType.size()) <= Board.BOARD_SIZE)
+			return true;
+		else
+			return false;
+	}
 	
 	public void setPosIndex(int x, int y) {
 		mGridIndex[0] = x;

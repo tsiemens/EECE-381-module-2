@@ -21,7 +21,9 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.TouchDelegate;
 import android.view.View;
+import android.view.View.OnGenericMotionListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -67,8 +69,10 @@ public class GameActivity extends SherlockActivity implements OnTouchListener, A
         mGLRenderer.setAnimationListener(this);
         
         Game game = Game.getInstance();
+        game.configure(this, mGLRenderer);
+        
         if (game.getState() == GameState.UNITIALIZED) {
-        	game.configure(this, mGLRenderer);
+        	// No game was in progress, so we have to start it.
         	game.start();
         }
         
@@ -120,6 +124,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener, A
 			} else {
 				mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
 			}
+		} else if (item.getItemId() == R.id.rotate_item) {
+			Game.getInstance().onRotateButtonPressed();
 		}
 		return true;
 	}
@@ -136,9 +142,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener, A
 		float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
 		y = mGLRenderer.getTop() - (y * gly);
 		
-		Game.getInstance().onTouchGLSurface(x, y);
-
-		return false;
+		Game.getInstance().onTouchGLSurface(me, x, y);
+		
+		return true;
 	}
 
 	@Override
