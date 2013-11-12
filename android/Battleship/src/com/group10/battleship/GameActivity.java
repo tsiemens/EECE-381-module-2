@@ -5,10 +5,14 @@ import java.util.List;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.game.Game;
+import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
 import com.group10.battleship.graphics.TexturedRect;
+import com.group10.battleship.model.Board;
 
 import android.app.ActivityManager;
 import android.content.Context;
@@ -16,19 +20,24 @@ import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.TouchDelegate;
+import android.view.View;
+import android.view.View.OnGenericMotionListener;
+import android.view.View.OnTouchListener;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 
 /**
  * http://www.learnopengles.com/android-lesson-one-getting-started/
  *
  */
-public class GameActivity extends SherlockActivity implements RendererListener {
+public class GameActivity extends SherlockActivity implements OnTouchListener, AnimationListener {
 	
 	private static final String TAG = GameActivity.class.getSimpleName();
 	
 	private GLSurfaceView mGLSurfaceView;
 	private GL20Renderer mGLRenderer;
-	
-	private List<GL20Drawable> mDrawList;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,7 +56,7 @@ public class GameActivity extends SherlockActivity implements RendererListener {
         {
             // This is where you could create an OpenGL ES 1.x compatible
             // renderer if you wanted to support both ES 1 and ES 2.
-        	throw new RuntimeException("Device not compatible with Open GL ES 2.0");     
+        	throw new RuntimeException("Device not compatible with Open GL ES 2.0");
         }
      
         // Request an OpenGL ES 2.0 compatible context.
@@ -55,10 +64,19 @@ public class GameActivity extends SherlockActivity implements RendererListener {
  
         // Set the renderer to our demo renderer, defined below.
         mGLRenderer = new GL20Renderer();
-        mGLRenderer.setRendererListener(this);
         mGLSurfaceView.setRenderer(mGLRenderer);
+        mGLSurfaceView.setOnTouchListener(this);
+        mGLRenderer.setAnimationListener(this);
         
-        mDrawList = new ArrayList<GL20Drawable>();
+        Game game = Game.getInstance();
+        game.configure(this, mGLRenderer);
+        
+        if (game.getState() == GameState.UNITIALIZED) {
+        	// No game was in progress, so we have to start it.
+        	game.start();
+        }
+        
+        supportInvalidateOptionsMenu();
     }
 
     @Override
@@ -79,55 +97,67 @@ public class GameActivity extends SherlockActivity implements RendererListener {
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getSupportMenuInflater().inflate(R.menu.main, menu);
+        getSupportMenuInflater().inflate(R.menu.game, menu);
+        
+        MenuItem mi;
+        for (int i = 0; i < menu.size(); i++) {
+        	mi = menu.getItem(i);
+        	if (mi.getItemId() == R.id.switch_boards_item && mGLRenderer != null) {
+        		if (mGLRenderer.getCamPosY() > 1.0f) {
+                	mi.setIcon(R.drawable.ic_find_next_holo_light);
+                	mi.setTitle(R.string.menu_item_goto_pboard);
+                } else {
+                	mi.setIcon(R.drawable.ic_find_previous_holo_light);
+                	mi.setTitle(R.string.menu_item_goto_oboard);
+                }
+        	}
+        }
+        
         return true;
     }
-
+	
 	@Override
-	public void onSurfaceCreated() {
-		// TODO This is all test code to demo the drawing
-		mGLRenderer.setDrawList(mDrawList);
-		
-		TexturedRect rect = new TexturedRect(this, R.drawable.main_menu_background);
-		rect.setSize(0.3f, 0.3f);
-		//rect.setPosition(0f, 0.5f);
-		mDrawList.add(rect);
-		rect = new TexturedRect(this, R.drawable.main_menu_background);
-		rect.setSize(0.1f, 0.1f);
-		rect.setPosition(0.5f, 1f);
-		mDrawList.add(rect);
-		rect = new TexturedRect(this, R.drawable.white_pix);
-		rect.setSize(0.4f, 0.4f);
-		rect.setPosition(0f, 0.0f);
-		rect.setColor(1.0f, 0.0f, 1.0f, 1.0f);
-		mDrawList.add(rect);
-		rect = new TexturedRect(this, R.drawable.white_pix);
-		rect.setSize(0.4f, 0.4f);
-		rect.setPosition(-0.5f, 0.8f);
-		rect.setColor(0.1f, 0.0f, 1.0f, 1.0f);
-		mDrawList.add(rect);
-		rect = new TexturedRect(this, R.drawable.white_pix);
-		rect.setSize(0.4f, 0.4f);
-		rect.setPosition(-0.5f, 0.3f);
-		rect.setColor(0.5f, 0.0f, 1.0f, 1.0f);
-		mDrawList.add(rect);
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.switch_boards_item) {
+			if (mGLRenderer.getCamPosY() > 1.0f) {
+				mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+			} else {
+				mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+			}
+		} else if (item.getItemId() == R.id.rotate_item) {
+			Game.getInstance().onRotateButtonPressed();
+		}
+		return true;
 	}
 
 	@Override
-	public void onFrameDrawn() {
-		// TODO Auto-generated method stub
+	public boolean onTouch(View view, MotionEvent me) {
 		
+		// Calculate the touch event in terms of the GL surface
+		float x = me.getX()/mGLSurfaceView.getWidth();
+		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
+		x = mGLRenderer.getLeft() + (x * glx);
+		
+		float y = me.getY()/mGLSurfaceView.getHeight();
+		float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
+		y = mGLRenderer.getTop() - (y * gly);
+		
+		Game.getInstance().onTouchGLSurface(me, x, y);
+		
+		return true;
 	}
 
 	@Override
-	public void onSurfaceChanged() {
-		// TODO Auto-generated method stub
-		
-		// More tests for screen bounds (shows in upper left) 
-		TexturedRect rect = new TexturedRect(this, R.drawable.main_menu_background);
-		rect.setSize(0.1f, 0.1f);
-		rect.setPosition(mGLRenderer.getXMin(), mGLRenderer.getYMax());
-		mDrawList.add(rect);
+	public void onAnimationEnd(Animation arg0) {
+		supportInvalidateOptionsMenu();		
+	}
+
+	@Override
+	public void onAnimationRepeat(Animation arg0) {	
+	}
+
+	@Override
+	public void onAnimationStart(Animation arg0) {
 	}
     
 }

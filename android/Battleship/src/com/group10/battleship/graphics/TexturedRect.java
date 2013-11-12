@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
+import android.opengl.Matrix;
 import android.util.Log;
 import android.util.SparseIntArray;
 
@@ -89,7 +90,8 @@ public class TexturedRect implements GL20Drawable{
 	private float mTextureCoords[] = { 0.0f, 0.0f,  // top left
             						0.0f, 1.0f,  // bottom left
             						1.0f, 1.0f,  // bottom right
-            						1.0f, 0.0f}; // top right
+            						1.0f, 0.0f}; // top right	
+	private float mTexAngle = 0.0f;
 	
 	private static void loadShaderProgram()
 	{
@@ -97,7 +99,6 @@ public class TexturedRect implements GL20Drawable{
 		GLES20.glGetProgramiv(sShaderProgramHandle, GLES20.GL_LINK_STATUS, linkStatus, 0);
 		 
 	    // We don't want to repeat if the program is still valid
-	    Log.d(TAG, "Shader program status: "+linkStatus[0]);
 	    if (linkStatus[0] != 0)
 	    {
 	        return;
@@ -267,6 +268,30 @@ public class TexturedRect implements GL20Drawable{
 		return mCoords[1] - mCoords[3];
 	}
 	
+	/**
+	 * Sets the texture's rotation angle.
+	 * angle should be in degrees, and rotates counterclockwise.
+	 * @param angle
+	 */
+	public void setTexRotation(float angle) {
+		float texCoords[] = { 0.0f, 0.0f,  // top left
+				0.0f, 1.0f,  // bottom left
+				1.0f, 1.0f,  // bottom right
+				1.0f, 0.0f}; // top right
+		
+		android.graphics.Matrix m = new android.graphics.Matrix();
+		m.setRotate(angle, 0.5f, 0.5f);
+		m.mapPoints(texCoords);
+		
+		mTexAngle = angle;
+		mTextureCoords = texCoords;
+		mTextureBuffer = toFloatBuffer(mTextureCoords);
+	}
+	
+	public float getTexRotation() {
+		return mTexAngle;
+	}
+	
 	public int getColor()
 	{
 		return Color.argb((int)(mColor[3]*255), (int)(mColor[0]*255),
@@ -294,10 +319,10 @@ public class TexturedRect implements GL20Drawable{
 	 */
 	public void setColor(int color)
 	{
-		mColor[3] = Color.alpha(color)/255;
-		mColor[0] = Color.red(color)/255;
-		mColor[1] = Color.green(color)/255;
-		mColor[2] = Color.blue(color)/255;
+		mColor[3] = (float) (Color.alpha(color)/255.0);
+		mColor[0] = (float) (Color.red(color)/255.0);
+		mColor[1] = (float) (Color.green(color)/255.0);
+		mColor[2] = (float) (Color.blue(color)/255.0);
 	}
 
 	/**

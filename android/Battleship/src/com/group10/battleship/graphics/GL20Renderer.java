@@ -1,5 +1,6 @@
 package com.group10.battleship.graphics;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -9,6 +10,11 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.Transformation;
+import android.view.animation.TranslateAnimation;
 
 /**
  * Based off http://stackoverflow.com/questions/12793341/draw-a-2d-image-using-opengl-es-2-0
@@ -28,7 +34,8 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 
 	private List<GL20Drawable> mDrawables;
 	
-	private RendererListener mListener;
+	private List<RendererListener> mRendererListeners;
+	private AnimationListener mAnimListener;
 
 	private int mWidth = 1;
 	private int mHeight = 1;
@@ -36,22 +43,27 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	private float mCamPosX = 0;
 	private float mCamPosY = 0;
 	
+	private TranslateAnimation mCurrentTransAnim;
+	private Transformation mAnimTransformation;
+	private float mPreAnimCamX;
+	private float mPreAnimCamY;
+	
 	public static interface RendererListener
 	{
 		/**
 		 * Only after this is called, is it safe to create new GL20Drawables,
 		 * and add them to the renderer.
 		 */
-		public void onSurfaceCreated();
+		public void onSurfaceCreated(GL20Renderer renderer);
 		
-		public void onFrameDrawn();
+		public void onFrameDrawn(GL20Renderer renderer);
 		
-		public void onSurfaceChanged();
+		public void onSurfaceChanged(GL20Renderer renderer);
 	}
 
 	public GL20Renderer()
 	{
-		
+		mRendererListeners = new ArrayList<RendererListener>();
 	}
 
 	@Override
@@ -61,8 +73,9 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    GLES20.glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 	    Log.i(TAG, "Renderer surface created");
 
-	    if (mListener != null) {
-	    	mListener.onSurfaceCreated();
+	    // Notify the listeners
+	    for (RendererListener l : mRendererListeners) {
+	    	l.onSurfaceCreated(this);
 	    }
 	}
 
@@ -70,6 +83,20 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	{
 	    //Redraw background color
 	    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+	    
+	    // If there is an animation in progress, process it
+	    if (mCurrentTransAnim != null) {
+	    	if (mCurrentTransAnim.getTransformation(System.currentTimeMillis(), 
+	    			mAnimTransformation)) {
+	    		android.graphics.Matrix m = mAnimTransformation.getMatrix();
+	    		float[] p = new float []{mPreAnimCamX, mPreAnimCamY};
+	    		m.mapPoints(p);
+	    		mCamPosX = p[0];
+	    		mCamPosY = p[1];
+	    	} else {
+	    		mCurrentTransAnim = null;
+	    	}
+	    }
 
 	    //Set the camera position (View Matrix)
 	    Matrix.setLookAtM(mVMatrix, 0, mCamPosX, mCamPosY, 3f, mCamPosX, mCamPosY, 0f, 0f, 1.0f, 0.0f);
@@ -89,9 +116,10 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    		item.draw(mMVPMatrix);
 	    	}
 	    }
-	    //sprite.draw(mMVPMatrix);
-	    if (mListener != null) {
-	    	mListener.onFrameDrawn();
+
+	    // Notify the listeners
+	    for (RendererListener l : mRendererListeners) {
+	    	l.onFrameDrawn(this);
 	    }
 	}
 
@@ -106,39 +134,78 @@ public class GL20Renderer implements GLSurfaceView.Renderer{
 	    //This Projection Matrix is applied to object coordinates in the onDrawFrame() method
 	    Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 	    
-	    if (mListener != null) {
-	    	mListener.onSurfaceChanged();
+	    // Notify the listeners
+	    for (RendererListener l : mRendererListeners) {
+	    	l.onSurfaceChanged(this);
 	    }
 	}
 	
-	public float getXMax()
-	{
+	public float getRight() {
 		return mCamPosX + (float)mWidth/(float)mHeight;
 	}
 	
-	public float getXMin()
-	{
+	public float getDefaultRight() {
+		return (float)mWidth/(float)mHeight;
+	}
+	
+	public float getLeft() {
 		return mCamPosX - (float)mWidth/(float)mHeight;
 	}
 	
-	public float getYMax()
-	{
+	public float getDefaultLeft() {
+		return - (float)mWidth/(float)mHeight;
+	}
+	
+	public float getTop() {
 		return mCamPosY + 1;
 	}
 	
-	public float getYMin()
-	{
+	public float getDefaultTop() { return 1;}
+	
+	public float getBottom() {
 		return mCamPosY - 1;
 	}
+	
+	public float getDefaultBottom() { return -1;}
 	
 	public float getCamPosX() { return mCamPosX; }
 	public float getCamPosY() { return mCamPosY; }
 	public void setCamPosX(float x) { mCamPosX = x; }
 	public void setCamPosY(float y) { mCamPosY = y; }
 	
-	public void setRendererListener(RendererListener listener)
+	public boolean translateCamWithAnimation(float newCamX, float newCamY, long durationMilis) {
+		if (mCurrentTransAnim != null)
+			return false;
+		
+		mAnimTransformation = new Transformation();
+		mPreAnimCamX = mCamPosX;
+		mPreAnimCamY = mCamPosY;
+		mCurrentTransAnim = new TranslateAnimation(Animation.ABSOLUTE, 0, Animation.ABSOLUTE, newCamX - mCamPosX, 
+				Animation.ABSOLUTE, 0, Animation.ABSOLUTE, newCamY - mCamPosY );
+		mCurrentTransAnim.setDuration(durationMilis);
+		mCurrentTransAnim.setFillEnabled(true);
+		mCurrentTransAnim.setFillAfter(true);
+		mCurrentTransAnim.setInterpolator(new AccelerateDecelerateInterpolator());
+		mCurrentTransAnim.setAnimationListener(mAnimListener);
+		mCurrentTransAnim.initialize(0, 0, 0, 0);
+		mCurrentTransAnim.start();
+		return true;
+	}
+	
+	public void setAnimationListener(AnimationListener al) {
+		mAnimListener = al;
+		if (mCurrentTransAnim != null)
+			mCurrentTransAnim.setAnimationListener(al);
+	}
+	
+	public void addRendererListener(RendererListener listener)
 	{
-		mListener = listener;
+		mRendererListeners.add(listener);
+	}
+	
+	public void removeRendererListener(RendererListener listener)
+	{
+		mRendererListeners.remove(listener);
 	}
 	
 	public void setDrawList(List<GL20Drawable> items)
