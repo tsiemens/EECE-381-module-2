@@ -20,10 +20,18 @@
 
 #define NO_PLAYER_CLIENT_ID -1
 
-typedef enum {WAITING_FOR_PLAYERS, PLAYING, GAME_OVER } SystemState; // TODO add other states
+#define HOST 1
+#define P2 2
 
-typedef struct BSNStateMachine
-{
+#define GAME_BOARD_LENGTH 10
+#define MISSED 1
+#define HIT 2
+
+typedef enum {
+	WAITING_FOR_PLAYERS, PLAYING, GAME_OVER, FORFEIT
+} SystemState; // TODO add other states
+
+typedef struct BSNStateMachine {
 	// The game state
 	SystemState state;
 
@@ -34,16 +42,19 @@ typedef struct BSNStateMachine
 	int p2ClientID;
 
 	SpriteArrayList* boardSprites;
+	int hostBoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH] = { 0 };
+	int p2BoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH] = { 0 };
+
+	int winner;
 
 } BSNStateMachine;
 
 BSNStateMachine* BSNStateMachine_alloc();
-BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this);
-void BSNStateMachine_performFrameLogic(BSNStateMachine* this);
-void BSNStateMachine_PerformLogic(BSNStateMachine* this);
+BSNStateMachine* BSNStateMachine_init(BSNStateMachine * this);
+void BSNStateMachine_performFrameLogic(BSNStateMachine * this);
+void BSNStateMachine_PerformLogic(BSNStateMachine * this);
 
-void BSNStateMachine_StartPerformLogic(BSNStateMachine* this);
+void BSNStateMachine_StartPerformLogic(BSNStateMachine * this);
 
 #endif /* BSNSTATEMACHINE_H_ */
-
 
