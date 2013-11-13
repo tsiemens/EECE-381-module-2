@@ -41,7 +41,6 @@ void testGameBoard(BSNStateMachine* this)
 	int y;
 	for(x = 0; x < GAMEBOARD_LENGTH; x++)
 	{
-
 		for(y = 0; y < GAMEBOARD_LENGTH; y++)
 		{
 				GameBoard_p2Hit(this, x, y);
@@ -55,12 +54,11 @@ void BSNStateMachine_performFrameLogic(BSNStateMachine* this)
 	BSNStateMachine_PerformLogic(this);
 
 	//DELETE: testing
-	while(1) {
-		GameBoard_hostMiss(this, rand()%10, rand()%10);
-		//GameBoard_hostHit(this, rand()%10, rand()%10);
-		GameBoard_p2Miss(this, rand()%10, rand()%10);
-		//GameBoard_p2Hit(this, rand()%10, rand()%10);
-	}
+
+	GameBoard_hostMiss(this, rand()%10, rand()%10);
+	GameBoard_hostHit(this, rand()%10, rand()%10);
+	GameBoard_p2Miss(this, rand()%10, rand()%10);
+	GameBoard_p2Hit(this, rand()%10, rand()%10);
 
 	if(this->state == WAITING_FOR_PLAYERS || this->state == PLAYING)
 	{

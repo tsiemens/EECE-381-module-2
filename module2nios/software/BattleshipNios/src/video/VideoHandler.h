@@ -9,6 +9,8 @@
 
 #define SCREEN_HEIGHT 240
 #define SCREEN_WIDTH 320
+#define PIXEL_TO_CHAR_HEIGHT (60.0/240)
+#define PIXEL_TO_CHAR_WIDTH (80.0/320)
 
 void VideoDemo();
 void VideoHandlerInit();
