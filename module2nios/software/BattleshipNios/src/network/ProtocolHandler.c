@@ -21,8 +21,10 @@
  * confirm_host_server_started = bytes { ‘C‘ } // sent after you_are_host and before
  * shot_missed = bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
  * shot_hit = bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
- * game_over = bytes: { 'O', ['1' or '2' for winner or '3' (host) or '4' (p2) for forfeit/quit midgame] }
+ * game_over = bytes: { 'O', ['1' or '2' for winner], ['1' for forfeit/quit midgame or '0' for not forfeit] }
  */
+
+// TODO: check for data length otherwise request for confirmation??
 void ProtocolHandler_receive(BSNStateMachine* sm)
 {
 	int length;
@@ -34,8 +36,9 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 				// This is the first client to contact, so set as host
 				sm->hostPortIp = malloc(sizeof(unsigned char)* (length-1));
 				int i;
-				for (i=1; i<length; i++)
-				sm->hostPortIp[i-1] = data[i];
+				for (i=1; i<length; i++) {
+					sm->hostPortIp[i-1] = data[i];
+				}
 				sm->hostPortIpLength = length-1;
 				sm->hostClientID = clientID;
 				printf("Sending host confirmation\n");
@@ -79,7 +82,8 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 	} else if (data[0] == 'O' && sm->state == PLAYING){
 		// Game over
 		sm->winner = data[1];
-		sm->state = GAMEOVER;
+		if(data[2] == 1) sm->state = FORFEIT;
+		else sm->state = GAME_OVER;
 	}
 }
 

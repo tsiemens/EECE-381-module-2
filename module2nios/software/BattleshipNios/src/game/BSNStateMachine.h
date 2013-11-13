@@ -22,8 +22,6 @@
 
 #define HOST 1
 #define P2 2
-#define HOST_FORFEIT 3
-#define P2_FORFEIT 4
 
 #define GAME_BOARD_LENGTH 10
 #define MISSED 1
