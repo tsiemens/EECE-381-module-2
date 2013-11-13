@@ -26,6 +26,7 @@ BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this)
 	this->hostClientID = NO_PLAYER_CLIENT_ID;
 	this->p2ClientID = NO_PLAYER_CLIENT_ID;
 
+	//this->gameBoard = GameBoard_init(GameBoard_alloc());
 	this->boardSprites = SpriteArrayList_init(SpriteArrayList_alloc(), 2);
 
 	return this;

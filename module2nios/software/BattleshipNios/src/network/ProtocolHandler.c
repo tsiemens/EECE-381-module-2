@@ -65,21 +65,21 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 	} else if (data[0] == 'M' && sm->state == PLAYING){
 		// Shot missed
 		if (data[1] == HOST) {
-			sm->hostBoardHitMiss[data[2]][data[3]] = MISS;
+			sm->gameBoard->hostMiss(sm->gameBoard, data[2], data[3]);
 		} else {
-			sm->p2BoardHitMiss[data[2]][data[3]] = MISS;
+			sm->gameBoard->p2Miss(sm->gameBoard, data[2], data[3]);
 		}
 	} else if (data[0] == 'H' && sm->state == PLAYING){
 		// Shot hit
 		if (data[1] == HOST) {
-			sm->hostBoardHitMiss[data[2]][data[3]] = HIT;
+			sm->gameBoard->hostHit(sm->gameBoard, data[2], data[3]);
 		} else {
-			sm->p2BoardHitMiss[data[2]][data[3]] = HIT;
+			sm->gameBoard->p2Hit(sm->gameBoard, data[2], data[3]);
 		}
 	} else if (data[0] == 'O' && sm->state == PLAYING){
 		// Game over
 		sm->winner = data[1];
-		sm->state = GAMEOVER;
+		sm->state = GAME_OVER;
 	}
 }
 

@@ -77,6 +77,14 @@ void Video_drawPixel(VideoBuffer *video_buffer, unsigned int color,  unsigned in
 }
 
 /*
+ * Draws pixel to Video Buffer. Abstracts messy HAL naming.
+ */
+void Video_drawPixelForeground(VideoBuffer *video_buffer, unsigned int color,  unsigned int x, unsigned int y)
+{
+	draw_pixel_fast(video_buffer -> pixel_buffer, color, x, y, FOREGROUND);
+}
+
+/*
  * Returns the VideoBuffer settings struct using the Device Name from QSYS
  */
 alt_up_pixel_buffer_dma_dev* Video_openDevice(const char* name)

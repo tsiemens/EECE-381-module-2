@@ -7,6 +7,9 @@
 #include "../sprite/SpriteArrayList.h"
 #include "VideoLibrary.h"
 
+#define SCREEN_HEIGHT 240
+#define SCREEN_WIDTH 320
+
 void VideoDemo();
 void VideoHandlerInit();
 void drawPixel(unsigned int color, unsigned int x, unsigned int y);

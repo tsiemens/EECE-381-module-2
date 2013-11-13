@@ -65,6 +65,11 @@ void drawLine(int x0, int y0, int x1, int y1, int color)
 	Video_drawLine(Video, x0, y0, x1, y1, color, BACKGROUND);
 }
 
+void drawLineForeground(int x0, int y0, int x1, int y1, int color)
+{
+	Video_drawLine(Video, x0, y0, x1, y1, color, FOREGROUND);
+}
+
 /*
  * Prints a string to the foreground
  * WARNING: The character buffer is separate from the video buffer.
