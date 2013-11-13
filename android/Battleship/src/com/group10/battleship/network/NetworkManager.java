@@ -333,7 +333,6 @@ public class NetworkManager extends Object
 			{
 				String line = null;
                 try {
-//                	Log.d(TAG, "Re: " + getSocketInput().readLine());
                 	while ((line = getSocketInput().readLine()) != null) {
                 		Log.d(TAG, "Received: " + line);
                 		final String receivedString = line;
