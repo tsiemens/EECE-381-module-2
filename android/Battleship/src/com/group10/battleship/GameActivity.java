@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
@@ -149,7 +150,13 @@ public class GameActivity extends SherlockActivity implements OnTouchListener, A
 
 	@Override
 	public void onAnimationEnd(Animation arg0) {
-		supportInvalidateOptionsMenu();		
+		Runnable r = new Runnable() {
+			
+			@Override
+			public void run() {
+					GameActivity.this.supportInvalidateOptionsMenu();					}
+		}; 
+		runOnUiThread(r);
 	}
 
 	@Override
