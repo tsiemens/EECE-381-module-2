@@ -4,18 +4,15 @@ package com.group10.battleship.network;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.List;
 
 import android.content.Context;
-import android.net.DhcpInfo;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.text.format.Formatter;
@@ -58,6 +55,7 @@ public class NetworkManager extends Object
 	private OnIPFoundListener onIPFoundListener; 
 	private OnGameFoundListener onGameFoundListener; 
 	private OnNetworkErrorListener onNetworkErrorListener;
+	private OnDataReceivedListener onDataReceivedListener;
 	
 	private Handler handler;
 	
@@ -91,6 +89,11 @@ public class NetworkManager extends Object
 	}
 	
 	/* Mutators */
+	
+	public void setOnDataReceivedListener(OnDataReceivedListener dataListener)
+	{
+		onDataReceivedListener = dataListener;
+	}
 	
 	public void setOnNetworkErrorListener(OnNetworkErrorListener networkListener)
 	{
@@ -182,6 +185,7 @@ public class NetworkManager extends Object
 			try {
 				socketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream())), true);
 			} catch (IOException e) {
+				Log.d(TAG, "Error with socket writer");
 				e.printStackTrace();
 			}
 		}
@@ -190,6 +194,13 @@ public class NetworkManager extends Object
 	
 	public BufferedReader getSocketInput()
 	{
+		if(socketInput == null)
+			try {
+				socketInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			} catch (IOException e) {
+				Log.d(TAG, "Error with socket reader");
+				e.printStackTrace();
+			}
 		return socketInput; 
 	}
 	
@@ -212,7 +223,21 @@ public class NetworkManager extends Object
 					if(isNios)
 						niosSocket = setupSocket(ipAddress, portNum);
 					else 
+					{
 						clientSocket = setupSocket(ipAddress, portNum);
+						
+						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST! 
+						new Thread(new ReceiverThread()).start();
+						Runnable gameFoundRunnable = new Runnable() {
+							@Override
+							public void run() {
+								if(onGameFoundListener != null)
+									onGameFoundListener.onGameFound();
+								
+							}
+						};
+						handler.post(gameFoundRunnable);
+					}
 				} catch (UnknownHostException e) {
 					Log.d(TAG, "Unknown Host");
 					e.printStackTrace();
@@ -221,7 +246,8 @@ public class NetworkManager extends Object
 					Runnable socketErrorRunnable = new Runnable() {
 						@Override
 						public void run() {
-							onNetworkErrorListener.onClientSocketError();
+							if(onNetworkErrorListener != null)
+								onNetworkErrorListener.onClientSocketError();
 						}
 					};
 					handler.post(socketErrorRunnable);
@@ -253,6 +279,9 @@ public class NetworkManager extends Object
 				}; 
 				handler.post(ipRunnable);
 				clientSocket = serverSocket.accept();
+				
+				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it finds a client)
+				new Thread(new ReceiverThread()).start();
 				Log.d(TAG, "Connected!");
 				Runnable gameFoundRunnable = new Runnable() {
 					@Override
@@ -289,6 +318,7 @@ public class NetworkManager extends Object
 
 		@Override
 		public void run() {
+			Log.d(TAG, "Sending message: " + message);
 			getSocketOutput().println(message);
 		};	
 	}
@@ -298,6 +328,29 @@ public class NetworkManager extends Object
 
 		@Override
 		public void run() {
+			Log.d(TAG, "Made Receiver thread");
+			while(true)
+			{
+				String line = null;
+                try {
+//                	Log.d(TAG, "Re: " + getSocketInput().readLine());
+                	while ((line = getSocketInput().readLine()) != null) {
+                		Log.d(TAG, "Received: " + line);
+                		final String receivedString = line;
+                		Runnable gameFoundRunnable = new Runnable() {
+        					@Override
+        					public void run() {
+        						if(onDataReceivedListener != null)
+        							onDataReceivedListener.ReceivedData(receivedString);
+        					}
+        				};
+        				handler.post(gameFoundRunnable);
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			
 		};	
 	}
@@ -312,6 +365,10 @@ public class NetworkManager extends Object
 	
 	public static interface OnNetworkErrorListener {
 		public void onClientSocketError(); 
+	}
+	
+	public static interface OnDataReceivedListener {
+		public void ReceivedData(String message);
 	}
 	
 	public static String getLocalIpAddress()

@@ -100,9 +100,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener,
 			} else {
 				// Not using nios
 				try {
-					// setup host
-					NetworkManager.getInstance().setupAndroidSocket(null, 0,
-							true);
+					//	HOST SETUP
+					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
 					NetworkManager.getInstance().setOnIPFoundListener(this);
 					NetworkManager.getInstance().setOnGameFoundListener(this);
 					NetworkManager.getInstance()
@@ -116,19 +115,20 @@ public class MainActivity extends SherlockActivity implements OnClickListener,
 		} else if (view == mFindGameBtn) {
 			Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
 			try {
-				NetworkManager.getInstance().setupAndroidSocket(
-						mHostIpEt.getText().toString(),
-						Integer.parseInt(mHostPortEt.getText().toString()),
-						false); // setup client
-			} catch (NumberFormatException e) {
-				Toast.makeText(this, "No Port specified", Toast.LENGTH_LONG)
-						.show();
+				//	CLIENT SETUP
+				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
+					Integer.parseInt(mHostPortEt.getText().toString()), false); 
+				NetworkManager.getInstance().setOnGameFoundListener(this);
+				NetworkManager.getInstance().setOnGameFoundListener(this);
+			}
+			catch(NumberFormatException e)
+			{
+				Toast.makeText(this, "No Port specified", Toast.LENGTH_LONG).show();
 			} catch (Exception e) {
 				Toast.makeText(this, "Error: " + e.getMessage(),
 						Toast.LENGTH_LONG).show();
 				e.printStackTrace();
 			}
-
 			// TODO
 		}
 	}
