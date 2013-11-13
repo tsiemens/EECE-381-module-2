@@ -4,15 +4,13 @@ package com.group10.battleship.network;
 public class NIOS2NetworkManager {
 
 	// TODO: change send to NIOS
-	
+
 	// new_game = bytes: { ‘G’, [2 byte little endian short short for port], ip
 	// string }
-	public static void sendNewGame(int port, int ip) {
-		byte[] conn_port = intToByteArray(port, 2);
-		byte[] conn_ip = intToByteArray(ip, 0);
-		byte[] conn = (byte[]) combineArray(conn_port, conn_port.length,
-				conn_ip, conn_ip.length);
-		NetworkManager.getInstance().send(new String(conn));
+	public static void sendNewGame(int port, String ip) {
+		byte[] identifier = { (byte) 'G' };
+		byte[] data = combineArray(identifier, 1, intToByteArray(port, 2), 2);
+		NetworkManager.getInstance().send((new String(data)).concat(ip));
 	}
 
 	// bytes { ‘C‘ }
@@ -38,20 +36,20 @@ public class NIOS2NetworkManager {
 	// bytes: { 'O', ['1' or '2' for winner], ['1’ for forfeit/quit midgame or
 	// ‘0’ for not forfeit] }
 	public static void sendGameOver(int winner, Boolean forfeit) {
-		byte[] data = { (byte) winner, (byte) (forfeit ? 1 : 0) };
+		byte[] data = { (byte) 'O', (byte) winner, (byte) (forfeit ? 1 : 0) };
 		NetworkManager.getInstance().send(new String(data));
 	}
 
-	// combines 2 arrays
-	private static Object combineArray(Object l1, int l1Size, Object l2,
+	// combines 2 byte arrays
+	private static byte[] combineArray(byte[] l1, int l1Size, byte[] l2,
 			int l2Size) {
-		Object[] result = new Object[l1Size + l2Size];
+		byte[] result = new byte[l1Size + l2Size];
 		System.arraycopy(l1, 0, result, 0, l1Size);
 		System.arraycopy(l2, 0, result, l1Size, l2Size);
 		return result;
 	}
 
-	// convert int to array
+	// convert int to array in little endian
 	// if size is 0, convert entire int
 	// otherwise size is number of bytes to convert to
 	private static byte[] intToByteArray(int convert, int size) {
