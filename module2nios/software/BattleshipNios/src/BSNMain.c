@@ -19,8 +19,7 @@
 // Approx time per loop for 60 Hz
 #define MAIN_LOOP_MIN_TIME_MS 16
 
-int main()
-{
+int main() {
 
 	// INITIALISATION
 	int hasQuit = 0;
@@ -37,7 +36,8 @@ int main()
 	// Video and Character handler init
 	VideoHandlerInit();
 
-	BSNStateMachine* stateMachine = BSNStateMachine_init(BSNStateMachine_alloc());
+	BSNStateMachine* stateMachine = BSNStateMachine_init(
+			BSNStateMachine_alloc());
 
 	// TODO TESTING
 	//ProtocolTest(stateMachine);
@@ -59,7 +59,7 @@ int main()
 		// Swap buffers and clear background buffer
 		//display();
 
-		sprintf(debugFreqStr, "FPS:%2.1f", 1000/Timer_timeElapsed(loopTimer));
+		sprintf(debugFreqStr, "FPS:%2.1f", 1000 / Timer_timeElapsed(loopTimer));
 		//printString(debugFreqStr, 70, 0);
 
 	}
