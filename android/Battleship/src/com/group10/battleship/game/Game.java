@@ -6,13 +6,17 @@ import java.util.List;
 import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
+import com.group10.battleship.BattleshipApplication;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
 import com.group10.battleship.model.*;
+import com.group10.battleship.network.NetworkManager;
+import com.group10.battleship.network.NetworkManager.OnDataReceivedListener;
 
-public class Game implements RendererListener {
+public class Game implements RendererListener, OnDataReceivedListener {
 
 	private static final String TAG = Game.class.getSimpleName();
 	
@@ -47,6 +51,7 @@ public class Game implements RendererListener {
 	private Game() {
 		mState = GameState.UNITIALIZED;
 		mShipDraggingOffset = new int[]{0, 0};
+		NetworkManager.getInstance().setOnDataReceivedListener(this);
 	}
 	
 	public void start() {
@@ -139,7 +144,6 @@ public class Game implements RendererListener {
 			int[] inx = mOpponentBoard.getTileIndexAtLocation(x, y);
 			if (inx != null) {
 				Log.d(TAG, "Touched down enemy tile: "+inx[0]+","+inx[1]);
-
 				// TODO: this should only be permitted during the players turn
 				mOpponentBoard.setSelectedTile(inx[0], inx[1]);
 			}
@@ -148,7 +152,7 @@ public class Game implements RendererListener {
 			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
 			if (inx != null) {
 				Log.d(TAG, "Touched down player tile: "+inx[0]+","+inx[1]);
-
+				NetworkManager.getInstance().send("Touched down player tile: "+inx[0]+","+inx[1]);
 				// TODO: this should only be permitted during ship placement
 				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
 				if (selectShip != null) {
@@ -181,6 +185,11 @@ public class Game implements RendererListener {
 			Log.d(TAG, "Action up");
 			mDraggedShip = null;
 		}
+	}
+
+	@Override
+	public void ReceivedData(String message) {
+		Toast.makeText(mContext, "I just received: " + message, Toast.LENGTH_SHORT).show();
 	}
 	
 }

@@ -96,7 +96,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			} else {
 				// Not using nios
 				try {
-					//setup host
+					//	HOST SETUP
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
 					NetworkManager.getInstance().setOnIPFoundListener(this);
 					NetworkManager.getInstance().setOnGameFoundListener(this);
@@ -110,8 +110,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			Toast.makeText(this, "Finding game...",
 					Toast.LENGTH_SHORT).show();
 			try {
+				//	CLIENT SETUP
 				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
-					Integer.parseInt(mHostPortEt.getText().toString()), false); //setup client
+					Integer.parseInt(mHostPortEt.getText().toString()), false); 
+				NetworkManager.getInstance().setOnGameFoundListener(this);
+				NetworkManager.getInstance().setOnGameFoundListener(this);
 			}
 			catch(NumberFormatException e)
 			{
@@ -120,7 +123,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
 				e.printStackTrace();
 			}
-			
 			// TODO
 		}
 	}
