@@ -21,7 +21,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends SherlockActivity implements OnClickListener, OnIPFoundListener, OnGameFoundListener, OnNetworkErrorListener, OnNiosDataReceivedListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnIPFoundListener, OnGameFoundListener, 
+	OnNetworkErrorListener, OnNiosDataReceivedListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -103,7 +104,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 							Integer.parseInt(mHostPortEt.getText().toString()));
 					NetworkManager.getInstance().setOnNiosDataReceivedListener(this);
 					// Send a game request
-//					NIOS2NetworkManager.sendNewGame();
+					NIOS2NetworkManager.sendNewGame();
 					
 				} catch (Exception e) {
 					Log.d(TAG, "Error making NIOS socket");
@@ -133,8 +134,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			} 
 			else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
 				try {
+					// Setup nios socket & request for game
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
+					NetworkManager.getInstance().setOnNiosDataReceivedListener(this);
+					NIOS2NetworkManager.sendNewGame();
 				} catch (Exception e) {
 					handleSocketError(e);
 				}
@@ -201,21 +205,25 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		if(message.equals("H")) // Received host confirmation
 		{
 			try {
+				// Set up host & send confirmation & IP/port to NIOS
 				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-				// TODO: 
+				NIOS2NetworkManager.sendConfirmationHostStarted(NetworkManager.getInstance().getAndroidHostIP(), 
+						NetworkManager.getInstance().getAndroidHostPort());
 			} catch (Exception e) {
 				handleSocketError(e);
 			}
 		}
-		else if(message.equals("2"))
+		else if(message.equals("2")) // Received Client/Player confirmation
 		{
 			try {
 				// TODO: Get the IP & port from the message: message.getIP() / message.getPort() 
-				NetworkManager.getInstance().setupAndroidSocket("Insert IP from message here", 1234, false);
+				NetworkManager.getInstance().setupAndroidSocket("NiosReturnMessage.getIP()", 1234, false);
 			} catch (Exception e) {
 				handleSocketError(e);
 			}
-
+		}
+		else if(message.equals("X")) { 
+			Toast.makeText(this, "A game is aleady in progress", Toast.LENGTH_LONG).show();
 		}
 	}
 	

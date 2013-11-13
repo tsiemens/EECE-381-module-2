@@ -7,16 +7,16 @@ public class NIOS2NetworkManager {
 
 	// new_game = bytes: { ‘G’, [2 byte little endian short short for port], ip
 	// string }
-	public static void sendNewGame(int port, String ip) {
-		byte[] identifier = { (byte) 'G' };
-		byte[] data = combineArray(identifier, 1, intToByteArray(port, 2), 2);
-		NetworkManager.getInstance().send((new String(data)).concat(ip), false);
+	public static void sendNewGame() {
+		byte[] identifier = { (byte) 'N' };
+		NetworkManager.getInstance().send(new String(identifier), false);
 	}
 
-	// bytes { ‘C‘ }
-	public static void sendConfirmation() {
+	// bytes { ‘C‘, [2 byte short for port], ip string } // sent after you_are_host
+	public static void sendConfirmationHostStarted(String ip, int port) {
 		byte[] data = { (byte) 'C' };
-		NetworkManager.getInstance().send(new String(data), false);
+		byte[] socketByteArray = (byte[])combineArray(intToByteArray(port, 2), 2, ip.getBytes(), ip.getBytes().length);
+		NetworkManager.getInstance().send(new String(data).concat(new String(socketByteArray)), false);
 	}
 
 	// bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1
@@ -41,11 +41,11 @@ public class NIOS2NetworkManager {
 	}
 
 	// combines 2 byte arrays
-	private static byte[] combineArray(byte[] l1, int l1Size, byte[] l2,
-			int l2Size) {
-		byte[] result = new byte[l1Size + l2Size];
-		System.arraycopy(l1, 0, result, 0, l1Size);
-		System.arraycopy(l2, 0, result, l1Size, l2Size);
+	private static byte[] combineArray(byte[] array1, int size1, byte[] array2,
+			int size2) {
+		byte[] result = new byte[size1 + size2];
+		System.arraycopy(array1, 0, result, 0, size1);
+		System.arraycopy(array2, 0, result, size1, size2);
 		return result;
 	}
 

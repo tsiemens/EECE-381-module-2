@@ -445,7 +445,7 @@ public class NetworkManager extends Object
 		public void ReceivedNiosData(String message);
 	}
 	
-	public static String getLocalIpAddress()
+	private static String getLocalIpAddress()
 	{
 		WifiManager wifiManager = (WifiManager) BattleshipApplication.getAppContext().getSystemService(Context.WIFI_SERVICE);
 		return Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
