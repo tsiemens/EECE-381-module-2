@@ -19,7 +19,6 @@ BSNStateMachine* BSNStateMachine_alloc() {
 BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this) {
 	this->state = WAITING_FOR_PLAYERS;
 
-	this->hostConfirmed = 0;
 	this->hostPortIp = NULL;
 	this->hostClientID = NO_PLAYER_CLIENT_ID;
 	this->p2ClientID = NO_PLAYER_CLIENT_ID;
