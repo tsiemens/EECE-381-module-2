@@ -11,6 +11,7 @@
 #include "RS232Handler.h"
 #include "../game/BSNStateMachine.h"
 
+
 /**
  * Receives a message from client, and takes action, changing values and state of sm
  *
@@ -20,7 +21,7 @@
  * confirm_host_server_started = bytes { ‘C‘ } // sent after you_are_host and before
  * shot_missed = bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
  * shot_hit = bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
- * game_over = bytes: { 'O', ['1' or '2' for winner or 'Q' for forfeit/quit midgame] }
+ * game_over = bytes: { 'O', ['1' or '2' for winner or '3' (host) or '4' (p2) for forfeit/quit midgame] }
  */
 void ProtocolHandler_receive(BSNStateMachine* sm)
 {
@@ -54,7 +55,7 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 			}
 		}
 	} else if (data[0] == 'C'){
-		// Host is confirming that is is ready
+		// Host is confirming that it is ready
 		sm->hostConfirmed = 1;
 		if (sm->state == WAITING_FOR_PLAYERS && sm->p2ClientID != NO_PLAYER_CLIENT_ID) {
 			printf("Sending p2 confirmation\n");
@@ -63,13 +64,22 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 		}
 	} else if (data[0] == 'M' && sm->state == PLAYING){
 		// Shot missed
-		// TODO implement
+		if (data[1] == HOST) {
+			sm->hostBoardHitMiss[data[2]][data[3]] = MISS;
+		} else {
+			sm->p2BoardHitMiss[data[2]][data[3]] = MISS;
+		}
 	} else if (data[0] == 'H' && sm->state == PLAYING){
 		// Shot hit
-		// TODO implement
+		if (data[1] == HOST) {
+			sm->hostBoardHitMiss[data[2]][data[3]] = HIT;
+		} else {
+			sm->p2BoardHitMiss[data[2]][data[3]] = HIT;
+		}
 	} else if (data[0] == 'O' && sm->state == PLAYING){
 		// Game over
-		// TODO implement
+		sm->winner = data[1];
+		sm->state = GAMEOVER;
 	}
 }
 
