@@ -7,39 +7,42 @@ public class NIOS2NetworkManager {
 	
 	// new_game = bytes: { ‘G’, [2 byte little endian short short for port], ip
 	// string }
-	public static void sendNewGame(int port, int ip) {
-		byte[] conn_port = intToByteArray(port, 2);
-		byte[] conn_ip = intToByteArray(ip, 0);
-		byte[] conn = (byte[]) combineArray(conn_port, conn_port.length,
-				conn_ip, conn_ip.length);
-		NetworkManager.getInstance().send(new String(conn));
+	public static void sendNewGame() {
+		byte[] data = { (byte) 'N' };
+		NetworkManager.getInstance().send(new String(data), false);
 	}
 
 	// bytes { ‘C‘ }
-	public static void sendConfirmation() {
+	public static void sendConfirmation(String ip, int port) {
 		byte[] data = { (byte) 'C' };
-		NetworkManager.getInstance().send(new String(data));
+		
+		byte[] conn_port = intToByteArray(port, 2);
+		byte[] conn_ip = ip.getBytes(); //intToByteArray(5, 0);
+		byte[] conn = (byte[]) combineArray(conn_port, conn_port.length,
+				conn_ip, conn_ip.length);
+		
+		NetworkManager.getInstance().send(new String(data) + new String(conn), false);
 	}
 
 	// bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1
 	// byte y coord] }
 	public static void sendMiss(int player, int x, int y) {
 		byte[] data = { (byte) 'M', (byte) player, (byte) x, (byte) y };
-		NetworkManager.getInstance().send(new String(data));
+		NetworkManager.getInstance().send(new String(data), false);
 	}
 
 	// bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1
 	// byte y coord] }
 	public static void sendHit(int player, int x, int y) {
 		byte[] data = { (byte) 'H', (byte) player, (byte) x, (byte) y };
-		NetworkManager.getInstance().send(new String(data));
+		NetworkManager.getInstance().send(new String(data), false);
 	}
 
 	// bytes: { 'O', ['1' or '2' for winner], ['1’ for forfeit/quit midgame or
 	// ‘0’ for not forfeit] }
-	public static void sendGameOver(int winner, Boolean forfeit) {
+	public static void sendGameOver(int winner, boolean forfeit) {
 		byte[] data = { (byte) winner, (byte) (forfeit ? 1 : 0) };
-		NetworkManager.getInstance().send(new String(data));
+		NetworkManager.getInstance().send(new String(data), false);
 	}
 
 	// combines 2 arrays

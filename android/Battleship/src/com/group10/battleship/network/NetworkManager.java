@@ -19,6 +19,7 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.group10.battleship.BattleshipApplication;
+import com.group10.battleship.PrefsManager;
 
 
 @SuppressWarnings("deprecation")
@@ -30,11 +31,13 @@ public class NetworkManager extends Object
 	public boolean isHost = false;
 	
 	// IO Streams
-	private static PrintWriter socketOutput; 
-	private static BufferedReader socketInput;
+	private static PrintWriter AndroidSocketOutput; 
+	private static BufferedReader AndroidSocketInput;
+	private static PrintWriter NiosSocketOutput; 		// Android to Nios Output Stream
+	private static BufferedReader NiosSocketInput;		// Nios to Android Input Stream
 	
 	// Threads
-	private ReceiverThread receiverThread;
+	private AndroidReceiverThread receiverThread;
 	private ServerThread serverThread;
 	
 	// Sockets 
@@ -55,7 +58,8 @@ public class NetworkManager extends Object
 	private OnIPFoundListener onIPFoundListener; 
 	private OnGameFoundListener onGameFoundListener; 
 	private OnNetworkErrorListener onNetworkErrorListener;
-	private OnDataReceivedListener onDataReceivedListener;
+	private OnAndroidDataReceivedListener onAndroidDataReceivedListener;
+	private OnNiosDataReceivedListener onNiosDataReceivedListener;
 	
 	private Handler handler;
 	
@@ -90,9 +94,14 @@ public class NetworkManager extends Object
 	
 	/* Mutators */
 	
-	public void setOnDataReceivedListener(OnDataReceivedListener dataListener)
+	public void setOnAndroidDataReceivedListener(OnAndroidDataReceivedListener dataListener)
 	{
-		onDataReceivedListener = dataListener;
+		onAndroidDataReceivedListener = dataListener;
+	}
+	
+	public void setOnNiosDataReceivedListener(OnNiosDataReceivedListener niosListener)
+	{
+		onNiosDataReceivedListener = niosListener;
 	}
 	
 	public void setOnNetworkErrorListener(OnNetworkErrorListener networkListener)
@@ -178,30 +187,56 @@ public class NetworkManager extends Object
 		return serverSocket;
 	}
 	
-	public PrintWriter getSocketOutput()
+	public PrintWriter getNiosSocketOutput()
 	{
-		if(socketOutput == null)
+		if(AndroidSocketOutput == null)
 		{
 			try {
-				socketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream())), true);
+				NiosSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(niosSocket.getOutputStream())), true);
 			} catch (IOException e) {
 				Log.d(TAG, "Error with socket writer");
 				e.printStackTrace();
 			}
 		}
-		return socketOutput; 
+		return AndroidSocketOutput; 
 	}
 	
-	public BufferedReader getSocketInput()
+	public BufferedReader getNiosSocketInput()
 	{
-		if(socketInput == null)
+		if(AndroidSocketInput == null)
 			try {
-				socketInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				NiosSocketInput = new BufferedReader(new InputStreamReader(niosSocket.getInputStream()));
 			} catch (IOException e) {
 				Log.d(TAG, "Error with socket reader");
 				e.printStackTrace();
 			}
-		return socketInput; 
+		return AndroidSocketInput; 
+	}
+	
+	public PrintWriter getAndroidSocketOutput()
+	{
+		if(AndroidSocketOutput == null)
+		{
+			try {
+				AndroidSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream())), true);
+			} catch (IOException e) {
+				Log.d(TAG, "Error with socket writer");
+				e.printStackTrace();
+			}
+		}
+		return AndroidSocketOutput; 
+	}
+	
+	public BufferedReader getAndroidSocketInput()
+	{
+		if(AndroidSocketInput == null)
+			try {
+				AndroidSocketInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			} catch (IOException e) {
+				Log.d(TAG, "Error with socket reader");
+				e.printStackTrace();
+			}
+		return AndroidSocketInput; 
 	}
 	
 	public class SetupSocketThread implements Runnable
@@ -227,7 +262,7 @@ public class NetworkManager extends Object
 						clientSocket = setupSocket(ipAddress, portNum);
 						
 						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST! 
-						new Thread(new ReceiverThread()).start();
+						new Thread(new AndroidReceiverThread()).start();
 						Runnable gameFoundRunnable = new Runnable() {
 							@Override
 							public void run() {
@@ -281,7 +316,7 @@ public class NetworkManager extends Object
 				clientSocket = serverSocket.accept();
 				
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it finds a client)
-				new Thread(new ReceiverThread()).start();
+				new Thread(new AndroidReceiverThread()).start();
 				Log.d(TAG, "Connected!");
 				Runnable gameFoundRunnable = new Runnable() {
 					@Override
@@ -302,28 +337,33 @@ public class NetworkManager extends Object
 		};	
 	}
 	
-	public void send(String message)
+	public void send(String message, boolean toAndroid)
 	{
-		SenderThread sendThread = new SenderThread(message);
+		SenderThread sendThread = new SenderThread(message, toAndroid);
 		new Thread(sendThread).start();
 	}
 	
 	public class SenderThread implements Runnable
 	{
-		String message; 
-		public SenderThread(String msg)
+		String message;
+		boolean sendToAndroid;
+		public SenderThread(String msg, boolean toAndroid)
 		{
 			message = msg;
+			sendToAndroid = toAndroid;
 		}
 
 		@Override
 		public void run() {
 			Log.d(TAG, "Sending message: " + message);
-			getSocketOutput().println(message);
+			if(sendToAndroid)
+				getAndroidSocketOutput().println(message);
+			else 
+				getNiosSocketOutput().println(message);
 		};	
 	}
 	
-	public class ReceiverThread implements Runnable
+	public class NiosReceiverThread implements Runnable
 	{
 
 		@Override
@@ -331,27 +371,58 @@ public class NetworkManager extends Object
 			Log.d(TAG, "Made Receiver thread");
 			while(true)
 			{
-				String line = null;
                 try {
-                	while ((line = getSocketInput().readLine()) != null) {
-                		Log.d(TAG, "Received: " + line);
-                		final String receivedString = line;
-                		Runnable gameFoundRunnable = new Runnable() {
-        					@Override
-        					public void run() {
-        						if(onDataReceivedListener != null)
-        							onDataReceivedListener.ReceivedData(receivedString);
-        					}
-        				};
-        				handler.post(gameFoundRunnable);
-					}
+                	final String receivedString = readFromInput(getNiosSocketInput());
+                	Runnable gameFoundRunnable = new Runnable() {
+    					@Override
+    					public void run() {
+    						if(onNiosDataReceivedListener != null)
+    							onNiosDataReceivedListener.ReceivedNiosData(receivedString);
+    					}
+    				};
+    				handler.post(gameFoundRunnable);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 			
 		};	
+	}
+	
+	public class AndroidReceiverThread implements Runnable
+	{
+
+		@Override
+		public void run() {
+			Log.d(TAG, "Made Receiver thread");
+			while(true)
+			{
+                try {
+                		final String receivedString = readFromInput(getAndroidSocketInput());
+                		Runnable gameFoundRunnable = new Runnable() {
+        					@Override
+        					public void run() {
+        						if(onAndroidDataReceivedListener != null)
+        							onAndroidDataReceivedListener.ReceivedAndroidData(receivedString);
+        					}
+        				};
+        				handler.post(gameFoundRunnable);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		};	
+	}
+	
+	public static String readFromInput(BufferedReader br) throws IOException {
+		String line = null;
+		StringBuilder sb = new StringBuilder("");
+        	while ((line = br.readLine()) != null) {
+        		Log.d(TAG, "Received: " + line);
+        		sb.append(line);
+			}
+        	return sb.toString();
 	}
 	
 	public static interface OnIPFoundListener {
@@ -366,8 +437,12 @@ public class NetworkManager extends Object
 		public void onClientSocketError(); 
 	}
 	
-	public static interface OnDataReceivedListener {
-		public void ReceivedData(String message);
+	public static interface OnAndroidDataReceivedListener {
+		public void ReceivedAndroidData(String message);
+	}
+	
+	public static interface OnNiosDataReceivedListener {
+		public void ReceivedNiosData(String message);
 	}
 	
 	public static String getLocalIpAddress()
