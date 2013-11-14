@@ -8,10 +8,9 @@ import android.graphics.Color;
 import android.util.Log;
 
 import com.group10.battleship.R;
-import com.group10.battleship.game.Ship;
-import com.group10.battleship.game.Ship.ShipType;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.TexturedRect;
+import com.group10.battleship.model.Ship.ShipType;
 
 public class Board implements GL20Drawable{
 

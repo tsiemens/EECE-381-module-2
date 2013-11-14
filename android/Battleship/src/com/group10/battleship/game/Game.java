@@ -3,16 +3,21 @@ package com.group10.battleship.game;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
 import android.content.Context;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
-import com.group10.battleship.BattleshipApplication;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
-import com.group10.battleship.model.*;
+import com.group10.battleship.model.Board;
+import com.group10.battleship.model.ModelParser;
+import com.group10.battleship.model.Ship;
 import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnDataReceivedListener;
 
@@ -152,7 +157,12 @@ public class Game implements RendererListener, OnDataReceivedListener {
 			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
 			if (inx != null) {
 				Log.d(TAG, "Touched down player tile: "+inx[0]+","+inx[1]);
-				NetworkManager.getInstance().send("Touched down player tile: "+inx[0]+","+inx[1]);
+				try {
+					NetworkManager.getInstance().send(ModelParser.getJsonForMove(inx[0], inx[1], ""));
+				} catch (JSONException e) {
+					Log.d(TAG, "Error creating json object for move");
+					e.printStackTrace();
+				}
 				// TODO: this should only be permitted during ship placement
 				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
 				if (selectShip != null) {
@@ -189,7 +199,18 @@ public class Game implements RendererListener, OnDataReceivedListener {
 
 	@Override
 	public void ReceivedData(String message) {
-		Toast.makeText(mContext, "I just received: " + message, Toast.LENGTH_SHORT).show();
+		try {
+			JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
+			if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_TYPE_VAL))
+			{
+				// TODO: determine hit/miss, update view with player move, send to NIOS & other player (if hit/miss)
+				Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
+			}
+		} catch (JSONException e) {
+		Log.d(TAG, "Error getting json object from json string");
+		e.printStackTrace();
+		}
+		
 	}
 	
 }
