@@ -1,11 +1,10 @@
-package com.group10.battleship.game;
+package com.group10.battleship.model;
 
 import android.content.Context;
 import android.graphics.Color;
 
 import com.group10.battleship.R;
 import com.group10.battleship.graphics.TexturedRect;
-import com.group10.battleship.model.Board;
 
 public class Ship extends TexturedRect{
 	
