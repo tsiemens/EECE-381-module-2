@@ -14,9 +14,9 @@ import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
 import com.group10.battleship.model.*;
 import com.group10.battleship.network.NetworkManager;
-import com.group10.battleship.network.NetworkManager.OnDataReceivedListener;
+import com.group10.battleship.network.NetworkManager.OnAndroidDataReceivedListener;
 
-public class Game implements RendererListener, OnDataReceivedListener {
+public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private static final String TAG = Game.class.getSimpleName();
 	
@@ -51,7 +51,7 @@ public class Game implements RendererListener, OnDataReceivedListener {
 	private Game() {
 		mState = GameState.UNITIALIZED;
 		mShipDraggingOffset = new int[]{0, 0};
-		NetworkManager.getInstance().setOnDataReceivedListener(this);
+		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 	
 	public void start() {
@@ -152,7 +152,7 @@ public class Game implements RendererListener, OnDataReceivedListener {
 			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
 			if (inx != null) {
 				Log.d(TAG, "Touched down player tile: "+inx[0]+","+inx[1]);
-				NetworkManager.getInstance().send("Touched down player tile: "+inx[0]+","+inx[1]);
+				NetworkManager.getInstance().send("Touched down player tile: "+inx[0]+","+inx[1], true);
 				// TODO: this should only be permitted during ship placement
 				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
 				if (selectShip != null) {
@@ -188,7 +188,7 @@ public class Game implements RendererListener, OnDataReceivedListener {
 	}
 
 	@Override
-	public void ReceivedData(String message) {
+	public void ReceivedAndroidData(String message) {
 		Toast.makeText(mContext, "I just received: " + message, Toast.LENGTH_SHORT).show();
 	}
 	
