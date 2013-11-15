@@ -168,7 +168,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 		}
 	}
-<<<<<<< HEAD
 	
 	public void onConfirmBoardPressed()
 	{
@@ -185,8 +184,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 	}
 	
-=======
-
 	public void onFireButtonPressed() {
 		int[] pos = mOpponentBoard.getSelectedTileIndex();
 		if (mOpponentBoard.getTileColour(pos[0], pos[1]) == Board.TILE_COLOR_NORMAL) {
@@ -227,7 +224,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 	}
 
->>>>>>> f2f819f707c5112adfac53c74f152da7daa5191d
 	public void onTouchGLSurface(MotionEvent me, float x, float y) {
 		if (me.getAction() == MotionEvent.ACTION_DOWN) {
 			// Check for selection of enemy tile
