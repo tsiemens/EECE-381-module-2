@@ -102,6 +102,21 @@ public class Board implements GL20Drawable{
 				s.configureBoardConstraints(this);
 				s.setPosIndex(0, i);
 			}
+		} else {
+			// to delete
+			mShips = new ArrayList<Ship>(5);
+			Ship shipTemp = new Ship(mContext, ShipType.CARRIER);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.BATTLESHIP);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.DESTROYER);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.SUB);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.PATROL);
+			mShips.add(shipTemp);
+			
+			setShips(mShips);
 		}
 	}
 	
@@ -173,16 +188,29 @@ public class Board implements GL20Drawable{
 		}
 	}
 	
+	public boolean playerShotAttempt(int x, int y) {
+		// notify player if already fired
+		if (getShipAtIndex(x,y) != null) { 
+			setTileColour(TILE_COLOR_HIT, x, y);
+			return true;
+		} else {
+			setTileColour(TILE_COLOR_MISS, x, y);
+			return false;
+		}
+	}
+	
 	public boolean isPlayerBoard(){
 		return mIsPlayerBoard;
 	}
 	
 	public List<Ship> getShips() { return mShips; }
 	
-	public void setShips(List<Ship> s) {
-		mShips = s;
-		for (Ship ship : mShips) {
-			ship.configureBoardConstraints(this);
+	public void setShips(List<Ship> ss) {
+		mShips = ss;
+		for (int i = 0; i < mShips.size(); i++) {
+			Ship s = mShips.get(i);
+			s.configureBoardConstraints(this);
+			s.setPosIndex(0, i);
 		}
 	}
 	
