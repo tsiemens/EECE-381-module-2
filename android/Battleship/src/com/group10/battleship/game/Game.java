@@ -17,9 +17,13 @@ import com.group10.battleship.PrefsManager;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
+<<<<<<< HEAD
 import com.group10.battleship.model.Board;
 import com.group10.battleship.model.ModelParser;
 import com.group10.battleship.model.Ship;
+=======
+import com.group10.battleship.model.*;
+>>>>>>> 22cb5b20e13752f49e71f5ab7b59f8684f6a0048
 import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidDataReceivedListener;
@@ -36,7 +40,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> 22cb5b20e13752f49e71f5ab7b59f8684f6a0048
 	private boolean isHost;
 
 	private GameState mState;
@@ -59,9 +67,14 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private Game() {
 		mState = GameState.UNINITIALIZED;
+<<<<<<< HEAD
 		mShipDraggingOffset = new int[] { 0, 0 };
 		if (!PrefsManager.getInstance().getBoolean(
 				PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+=======
+		mShipDraggingOffset = new int[]{0, 0};
+		if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+>>>>>>> 22cb5b20e13752f49e71f5ab7b59f8684f6a0048
 			NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 
@@ -158,12 +171,20 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		int[] pos = mOpponentBoard.getSelectedTileIndex();
 		boolean hit = mOpponentBoard.playerShotAttempt(pos[0], pos[1]);
 		if (hit)
+<<<<<<< HEAD
 			// TODO send Android hit and check if send to nios
 			if (!PrefsManager.getInstance().getBoolean(
 					PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
 				NIOS2NetworkManager.sendHit(isHost, pos[0], pos[1]);
 			else if (!PrefsManager.getInstance().getBoolean(
 					PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+=======
+			// TODO send Android hit and check if send to nios 
+			if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+				NIOS2NetworkManager.sendHit(isHost, pos[0], pos[1]);
+		else 
+			if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+>>>>>>> 22cb5b20e13752f49e71f5ab7b59f8684f6a0048
 				NIOS2NetworkManager.sendMiss(isHost, pos[0], pos[1]);
 	}
 
@@ -231,7 +252,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 	}
 
-	@Override
 	public void ReceivedAndroidData(String message) {
 		try {
 			JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
