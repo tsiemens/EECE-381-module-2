@@ -37,6 +37,7 @@ void VideoHandlerInit()
 {
 	Video = Video_New();
 	Character = Char_New();
+	clearChar();
 }
 
 /*
@@ -63,6 +64,16 @@ void drawPixel(unsigned int color, unsigned int x, unsigned int y)
 void drawLine(int x0, int y0, int x1, int y1, int color)
 {
 	Video_drawLine(Video, x0, y0, x1, y1, color, BACKGROUND);
+}
+
+void drawBoxForeground(int x0, int y0, int x1, int y1, int color)
+{
+	Video_drawBox(Video, x0, y0, x1, y1, color, FOREGROUND);
+}
+
+void drawLineForeground(int x0, int y0, int x1, int y1, int color)
+{
+	Video_drawLine(Video, x0, y0, x1, y1, color, FOREGROUND);
 }
 
 /*
@@ -106,6 +117,10 @@ void display()
 		AudioHandler_play();
 	}
 	Video_clearScreen(Video, BACKGROUND);
+}
+
+void clearForeground() {
+	Video_clearScreen(Video, FOREGROUND);
 }
 
 void VideoHandler_drawSprites(SpriteArrayList* spriteArray)
