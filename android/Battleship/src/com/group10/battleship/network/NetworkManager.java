@@ -82,6 +82,7 @@ public class NetworkManager extends Object
 	public void close()
 	{
 		try {
+			androidSocketVersion++;
 			if (clientSocket != null)
 				clientSocket.close();
 			if (serverSocket != null)
