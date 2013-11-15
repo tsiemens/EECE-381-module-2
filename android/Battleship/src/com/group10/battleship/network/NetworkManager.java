@@ -19,7 +19,6 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.group10.battleship.BattleshipApplication;
-import com.group10.battleship.PrefsManager;
 
 
 @SuppressWarnings("deprecation")
@@ -168,6 +167,10 @@ public class NetworkManager extends Object
 	
 	
 	/* Accessors */
+	public boolean getIsHost()
+	{
+		return isHost;
+	}
 	
 	public String getAndroidHostIP()
 	{
@@ -271,8 +274,8 @@ public class NetworkManager extends Object
 						}
 						clientSocket = setupSocket(ipAddress, portNum);
 						
-						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST!
-						new Thread(new AndroidReceiverThread()).start();
+						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST! 
+						new Thread(new ReceiverThread()).start();
 						Runnable gameFoundRunnable = new Runnable() {
 							@Override
 							public void run() {
@@ -304,7 +307,6 @@ public class NetworkManager extends Object
 	
 	public class ServerThread implements Runnable
 	{
-
 		@Override
 		public void run() {
 			// Wait for connections
@@ -335,7 +337,7 @@ public class NetworkManager extends Object
 				clientSocket = serverSocket.accept();
 				
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it finds a client)
-				new Thread(new AndroidReceiverThread()).start();
+				new Thread(new ReceiverThread()).start();
 				Log.d(TAG, "Connected!");
 				Runnable gameFoundRunnable = new Runnable() {
 					@Override
@@ -382,20 +384,20 @@ public class NetworkManager extends Object
 		};	
 	}
 	
-	public class AndroidReceiverThread implements Runnable
+	public class ReceiverThread implements Runnable
 	{
 		private int currentSocketVersion;
 		
-		public AndroidReceiverThread() {
+		public ReceiverThread() {
 			currentSocketVersion = androidSocketVersion;
 		}
 
 		@Override
 		public void run() {
 			Log.d(TAG, "Made Receiver thread");
-			Log.d(TAG, "onAndroidDataReceivedListener: " + onAndroidDataReceivedListener);
 			while(true)
 			{
+				String line = null;
 				// If the socket has changed, then there is another duplicate thread.
 				// Kill this one
 				if (androidSocketVersion != currentSocketVersion) {
@@ -403,7 +405,9 @@ public class NetworkManager extends Object
 				}
 				
                 try {
-                		final String receivedString = readFromInput(getAndroidSocketInput());
+                	while ((line = getAndroidSocketInput().readLine()) != null) {
+                		Log.d(TAG, "Received: " + line);
+                		final String receivedString = line;
                 		Runnable gameFoundRunnable = new Runnable() {
         					@Override
         					public void run() {
@@ -412,7 +416,9 @@ public class NetworkManager extends Object
         					}
         				};
         				handler.post(gameFoundRunnable);
+					}
 				} catch (IOException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -420,15 +426,6 @@ public class NetworkManager extends Object
 		};	
 	}
 	
-	public static String readFromInput(BufferedReader br) throws IOException {
-		String line = null;
-		StringBuilder sb = new StringBuilder("");
-        	while ((line = br.readLine()) != null) {
-        		Log.d(TAG, "Received: " + line);
-        		sb.append(line);
-			}
-        	return sb.toString();
-	}
 	
 	public static interface OnIPFoundListener {
 		public void onIPFound(String IP, int port);
