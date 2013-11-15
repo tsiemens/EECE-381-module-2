@@ -319,6 +319,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					else
 					{
 						boolean wasHit = mPlayerBoard.playerShotAttempt(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						if(wasHit)
+							NIOS2NetworkManager.sendHit(false, obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						else 
+							NIOS2NetworkManager.sendMiss(false, obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+
 						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit), true);
 					}
 					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();

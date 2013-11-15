@@ -19,6 +19,7 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.group10.battleship.BattleshipApplication;
+import com.group10.battleship.PrefsManager;
 
 
 @SuppressWarnings("deprecation")
@@ -360,6 +361,7 @@ public class NetworkManager extends Object
 	
 	public void send(String message, boolean toAndroid)
 	{
+		if(!toAndroid && !PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_USE_NIOS, false)) return;
 		SenderThread sendThread = new SenderThread(message, toAndroid);
 		new Thread(sendThread).start();
 	}
@@ -380,7 +382,7 @@ public class NetworkManager extends Object
 			if(sendToAndroid)
 				getAndroidSocketOutput().println(message);
 			else 
-				getNiosSocketOutput().println(message);
+				getNiosSocketOutput().println((char)(message.length()+1) + message);
 		};	
 	}
 	

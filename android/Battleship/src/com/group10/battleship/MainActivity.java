@@ -56,18 +56,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onResume() {
 		super.onResume();
-		// Setting visibility of components. Prefs could have changed
-		PrefsManager pm = PrefsManager.getInstance();
-		if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)
-				|| !pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)) {
-			// This should be the current ip
-			mHostIpTv.setText("current ip here");
-			mStartGameBtn.setVisibility(View.VISIBLE);
-		} else {
-			// This should be the current ip
-			mHostIpTv.setText(R.string.main_menu_nios_ip);
-			mStartGameBtn.setVisibility(View.GONE);
-		}
 	}
 
 	@Override
@@ -94,15 +82,16 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
 				startActivity(new Intent(this, GameActivity.class));
 			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
-				Toast.makeText(this, "Enter a host ip, or turn on local debugging in settings.",
-						Toast.LENGTH_LONG).show();
 				// TODO check for game connection, etc.
 				try {
 					// Set up the NIOS socket & listener
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
-					// Send a game request
-					NIOS2NetworkManager.sendNewGame();
+					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
+					NetworkManager.getInstance().setOnIPFoundListener(this);
+					NetworkManager.getInstance().setOnGameFoundListener(this);
+					NetworkManager.getInstance().setOnNetworkErrorListener(this);
+					NetworkManager.getInstance().setOnNiosSuccessfulSetupListener(this);
 					
 				} catch (Exception e) {
 					Log.d(TAG, "Error making NIOS socket");
@@ -127,16 +116,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			
 			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
 				startActivity(new Intent(this, GameActivity.class));
-			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
-				// TODO check for game connection, etc.
-				try {
-					// Set up the NIOS socket & listener
-					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
-							Integer.parseInt(mHostPortEt.getText().toString()));
-				} catch (Exception e) {
-					Log.d(TAG, "Error making NIOS socket");
-					handleSocketError(e);
-				}
 			} else {
 				// Not using nios
 				Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
