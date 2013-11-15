@@ -31,55 +31,23 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 	unsigned char* data = RS232Handler_receive(&clientID, &length);
 	if (data[0] == 'N') {
 		if (sm->state == WAITING_FOR_PLAYERS) {
-			if (sm->hostClientID == NO_PLAYER_CLIENT_ID) {
-				// This is the first client to contact, so set as host
-				sm->hostClientID = clientID;
-				printf("Sending host confirmation\n");
-				ProtocolHandler_sendSimpleNotification(clientID, 'H');
-			} else if (sm->p2ClientID == NO_PLAYER_CLIENT_ID) {
-				// This is a second player
-				sm->p2ClientID = clientID;
-				if (sm->hostPortIp != NULL) {
-					printf("Sending p2 confirmation\n");
-					ProtocolHandler_sendYouAreP2Notification(clientID,
-							sm->hostPortIp, sm->hostPortIpLength);
-					sm->state = PLAYING;
-				}
-			} else {
-				// A third device is trying to join
-				printf("Rejecting game request\n");
-				ProtocolHandler_sendSimpleNotification(clientID, 'X');
-			}
-		}
-	} else if (data[0] == 'C') {
-		// Host is confirming that it is ready. Get its ip and port
-		sm->hostPortIp = malloc(sizeof(unsigned char) * (length - 1));
-		int i;
-		for (i = 1; i < length; i++) {
-			sm->hostPortIp[i - 1] = data[i];
-		}
-		sm->hostPortIpLength = length - 1;
-
-		if (sm->state == WAITING_FOR_PLAYERS && sm->p2ClientID
-				!= NO_PLAYER_CLIENT_ID) {
-			printf("Sending p2 confirmation\n");
-			ProtocolHandler_sendYouAreP2Notification(sm->p2ClientID,
-					sm->hostPortIp, sm->hostPortIpLength);
+			printf("Sending host confirmation\n");
+			ProtocolHandler_sendSimpleNotification(clientID, 'H');
 			sm->state = PLAYING;
 		}
 	} else if (data[0] == 'M' && sm->state == PLAYING) {
 		// Shot missed
 		if (data[1] == HOST) {
-			sm->hostBoardHitMiss[data[2]][data[3]] = MISSED;
+			sm->gameBoard->hostMiss(sm->gameBoard, data[2], data[3]);;
 		} else {
-			sm->p2BoardHitMiss[data[2]][data[3]] = MISSED;
+			sm->gameBoard->p2Miss(sm->gameBoard, data[2], data[3]);
 		}
 	} else if (data[0] == 'H' && sm->state == PLAYING) {
 		// Shot hit
 		if (data[1] == HOST) {
-			sm->hostBoardHitMiss[data[2]][data[3]] = HIT;
+			sm->gameBoard->hostHit(sm->gameBoard, data[2], data[3]);
 		} else {
-			sm->p2BoardHitMiss[data[2]][data[3]] = HIT;
+			sm->gameBoard->p2Hit(sm->gameBoard, data[2], data[3]);
 		}
 	} else if (data[0] == 'O' && sm->state == PLAYING) {
 		// Game over
@@ -115,7 +83,7 @@ void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c) {
  * @param length -- the length of portip
  */
 void ProtocolHandler_sendYouAreP2Notification(int clientID,
-		unsigned char* portip, int length) {
+	unsigned char* portip, int length) {
 	int newLength = length + 1;
 	unsigned char* msg = malloc(sizeof(unsigned char) * newLength);
 	msg[0] = '2';
@@ -127,6 +95,7 @@ void ProtocolHandler_sendYouAreP2Notification(int clientID,
 	RS232Handler_send((unsigned char) clientID, msg, newLength);
 }
 
+/*
 void ProtocolTest(BSNStateMachine* stateMachine) {
 	int hostID = 1;
 	int clientID = 2;
@@ -139,4 +108,4 @@ void ProtocolTest(BSNStateMachine* stateMachine) {
 	ProtocolHandler_receive(stateMachine);
 	RS232Handler_send(clientID, "N", 1);
 	ProtocolHandler_receive(stateMachine);
-}
+}*/
