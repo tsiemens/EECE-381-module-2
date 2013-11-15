@@ -29,6 +29,7 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 	if (data[0] == 'N') {
 		if (sm->state == WAITING_FOR_PLAYERS) {
 			printf("Host Connected. Starting Game.\n");
+			GameBoard_reset(sm->gameBoard);
 			sm->state = PLAYING;
 		}
 	} else if (data[0] == 'M' && sm->state == PLAYING) {
