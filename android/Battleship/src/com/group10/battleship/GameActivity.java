@@ -97,7 +97,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public void onResume() {
 		super.onResume();
 		Log.d(TAG, "onResume");
-
+		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
 	}
 
@@ -120,8 +120,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 					mi.setTitle(R.string.menu_item_goto_oboard);
 				}
 			} else if (mi.getItemId() == R.id.confirm_item) {
-				if (state == GameState.PLACING_SHIPS || 
-						state == GameState.TAKING_TURN ) {
+				if (state == GameState.PLACING_SHIPS) {
 					mi.setVisible(true);
 				} else {
 					mi.setVisible(false);
@@ -206,6 +205,10 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public void onGameStateChanged() {
 		refreshOptionsMenu();
+		if(Game.getInstance().getState() == GameState.TAKING_TURN)
+			mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+		else if(Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT)
+			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
 	}
 
 }

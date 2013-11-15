@@ -99,6 +99,34 @@ public class Board implements GL20Drawable{
 			
 			setShips(mShips);
 		}
+		else
+		{
+			mShips = new ArrayList<Ship>(5);
+			Ship shipTemp = new Ship(mContext, ShipType.CARRIER);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.BATTLESHIP);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.DESTROYER);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.SUB);
+			mShips.add(shipTemp);
+			shipTemp = new Ship(mContext, ShipType.PATROL);
+			mShips.add(shipTemp);
+			
+		}
+	}
+	
+	public void setShip(int xPos, int yPos, boolean horiz, ShipType type)
+	{
+		
+		for(int i=0; i < mShips.size(); i++)
+		{
+			if(mShips.get(i).getType() == type)
+			{
+				mShips.get(i).setPosIndex(xPos, yPos);
+				mShips.get(i).setHorizontal(horiz);
+			}
+		}
 	}
 	
 	/**
