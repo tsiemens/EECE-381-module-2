@@ -14,8 +14,7 @@
 void ProtocolHandler_receive(BSNStateMachine* sm);
 
 // DE2 to Android:
-void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c);
-void ProtocolHandler_sendYouAreP2Notification(int clientID, unsigned char* portip, int length);
+void ProtocolHandler_sendSimpleNotification(unsigned char c);
 
 void ProtocolTest();
 

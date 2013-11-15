@@ -34,10 +34,9 @@ public class NetworkManager extends Object
 	private static PrintWriter AndroidSocketOutput; 
 	private static BufferedReader AndroidSocketInput;
 	private static PrintWriter NiosSocketOutput; 		// Android to Nios Output Stream
-	private static BufferedReader NiosSocketInput;		// Nios to Android Input Stream
 	
 	// Threads
-	private AndroidReceiverThread receiverThread;
+	private Thread androidReceiverThread;
 	private ServerThread serverThread;
 	
 	// Sockets 
@@ -59,7 +58,6 @@ public class NetworkManager extends Object
 	private OnGameFoundListener onGameFoundListener; 
 	private OnNetworkErrorListener onNetworkErrorListener;
 	private OnAndroidDataReceivedListener onAndroidDataReceivedListener;
-	private OnNiosDataReceivedListener onNiosDataReceivedListener;
 	private OnNiosSuccessfulSetupListener onNiosSuccessfulSetupListener;
 	
 	private Handler handler;
@@ -84,9 +82,12 @@ public class NetworkManager extends Object
 	public void close()
 	{
 		try {
-			clientSocket.close();
-			serverSocket.close();
-			niosSocket.close();
+			if (clientSocket != null)
+				clientSocket.close();
+			if (serverSocket != null)
+				serverSocket.close();
+			if (niosSocket != null)
+				niosSocket.close();
 		} catch (IOException e) {
 			Log.d(TAG, "Error closing socket.");
 			e.printStackTrace();
@@ -102,11 +103,6 @@ public class NetworkManager extends Object
 	public void setOnAndroidDataReceivedListener(OnAndroidDataReceivedListener dataListener)
 	{
 		onAndroidDataReceivedListener = dataListener;
-	}
-	
-	public void setOnNiosDataReceivedListener(OnNiosDataReceivedListener niosListener)
-	{
-		onNiosDataReceivedListener = niosListener;
 	}
 	
 	public void setOnNetworkErrorListener(OnNetworkErrorListener networkListener)
@@ -206,18 +202,6 @@ public class NetworkManager extends Object
 		return NiosSocketOutput; 
 	}
 	
-	public BufferedReader getNiosSocketInput()
-	{
-		if(NiosSocketInput == null)
-			try {
-				NiosSocketInput = new BufferedReader(new InputStreamReader(niosSocket.getInputStream()));
-			} catch (IOException e) {
-				Log.d(TAG, "Error with socket reader");
-				e.printStackTrace();
-			}
-		return NiosSocketInput; 
-	}
-	
 	public PrintWriter getAndroidSocketOutput()
 	{
 		if(AndroidSocketOutput == null)
@@ -262,6 +246,9 @@ public class NetworkManager extends Object
 				try {
 					if(isNios)
 					{
+						if (niosSocket != null) {
+							niosSocket.close();
+						}
 						niosSocket = setupSocket(ipAddress, portNum);
 						Runnable successfulSetup = new Runnable() {
         					@Override
@@ -272,14 +259,17 @@ public class NetworkManager extends Object
         				};
         				handler.post(successfulSetup);
 						Log.d(TAG, "Set up NIOS Socket");
-						new Thread(new NiosReceiverThread()).start();
 					}
 					else 
 					{
+						AndroidSocketInput = null;
+						AndroidSocketOutput = null;
+						if (clientSocket != null) {
+							clientSocket.close();
+						}
 						clientSocket = setupSocket(ipAddress, portNum);
 						
 						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST! 
-//						new Thread(new AndroidReceiverThread()).start();
 						new Thread(new ReceiverThread()).start();
 						Runnable gameFoundRunnable = new Runnable() {
 							@Override
@@ -312,11 +302,13 @@ public class NetworkManager extends Object
 	
 	public class ServerThread implements Runnable
 	{
-
 		@Override
 		public void run() {
 			// Wait for connections
 			try {
+				if (serverSocket != null) {
+					serverSocket.close();
+				}
 				serverSocket = new ServerSocket(0);
 				AndroidHostIP = getLocalIpAddress();
 				AndroidHostPort = serverSocket.getLocalPort(); 
@@ -331,10 +323,14 @@ public class NetworkManager extends Object
 					}
 				}; 
 				handler.post(ipRunnable);
+				AndroidSocketInput = null;
+				AndroidSocketOutput = null;
+				if (clientSocket != null) {
+					clientSocket.close();
+				}
 				clientSocket = serverSocket.accept();
 				
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it finds a client)
-//				new Thread(new AndroidReceiverThread()).start();
 				new Thread(new ReceiverThread()).start();
 				Log.d(TAG, "Connected!");
 				Runnable gameFoundRunnable = new Runnable() {
@@ -382,59 +378,6 @@ public class NetworkManager extends Object
 		};	
 	}
 	
-	public class NiosReceiverThread implements Runnable
-	{
-		@Override
-		public void run() {
-			Log.d(TAG, "Made Nios Receiver thread");
-			while(true)
-			{
-                try {
-                	final String receivedString = readFromInput(getNiosSocketInput());
-                	
-                	Runnable niosDataReceived = new Runnable() {
-    					@Override
-    					public void run() {
-    						if(onNiosDataReceivedListener != null)
-    							onNiosDataReceivedListener.ReceivedNiosData(receivedString);
-    					}
-    				};
-    				handler.post(niosDataReceived);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		};	
-	}
-	
-	public class AndroidReceiverThread implements Runnable
-	{
-
-		@Override
-		public void run() {
-			Log.d(TAG, "Made Receiver thread");
-			Log.d(TAG, "onAndroidDataReceivedListener: " + onAndroidDataReceivedListener);
-			while(true)
-			{
-                try {
-                		final String receivedString = readFromInput(getAndroidSocketInput());
-                		Runnable gameFoundRunnable = new Runnable() {
-        					@Override
-        					public void run() {
-        						if(onAndroidDataReceivedListener != null)
-        							onAndroidDataReceivedListener.ReceivedAndroidData(receivedString);
-        					}
-        				};
-        				handler.post(gameFoundRunnable);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		};	
-	}
-	
 	public class ReceiverThread implements Runnable
 	{
 
@@ -466,15 +409,6 @@ public class NetworkManager extends Object
 		};	
 	}
 	
-	public static String readFromInput(BufferedReader br) throws IOException {
-		String line = null;
-		StringBuilder sb = new StringBuilder("");
-        	while ((line = br.readLine()) != null) {
-        		Log.d(TAG, "Received: " + line);
-        		sb.append(line);
-			}
-        	return sb.toString();
-	}
 	
 	public static interface OnIPFoundListener {
 		public void onIPFound(String IP, int port);
@@ -490,10 +424,6 @@ public class NetworkManager extends Object
 	
 	public static interface OnAndroidDataReceivedListener {
 		public void ReceivedAndroidData(String message);
-	}
-	
-	public static interface OnNiosDataReceivedListener {
-		public void ReceivedNiosData(String message);
 	}
 	
 	public static interface OnNiosSuccessfulSetupListener { 

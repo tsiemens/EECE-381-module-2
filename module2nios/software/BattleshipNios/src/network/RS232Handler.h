@@ -9,7 +9,7 @@
 #define RS232HANDLER_H_
 
 void RS232Handler_init();
-void RS232Handler_send(unsigned char clientID, unsigned char data[], unsigned char length);
-unsigned char* RS232Handler_receive(int* clientID, int* numReceived);
+void RS232Handler_send(unsigned char data[], unsigned char length);
+unsigned char* RS232Handler_receive(int* numReceived);
 
 #endif /* RS232HANDLER_H_ */
