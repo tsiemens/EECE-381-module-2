@@ -34,7 +34,7 @@ void RS232Handler_init()
 /**
  * Sends data to clientID (if not debug)
  */
-void RS232Handler_send(unsigned char clientID, unsigned char data[], unsigned char length)
+void RS232Handler_send(unsigned char data[], unsigned char length)
 {
 	printf("Sending the message to the Middleman\n");
 
@@ -59,12 +59,11 @@ void RS232Handler_send(unsigned char clientID, unsigned char data[], unsigned ch
  * Sets the value at numReceived to the number of bytes read
  * Sets the value at clientID to the client id from which it was received (if not debug)
  */
-unsigned char* RS232Handler_receive(int* clientID, int* numReceived)
+unsigned char* RS232Handler_receive(int* numReceived)
 {
 	unsigned char data;
 	unsigned char parity;
 	unsigned char* message;
-	unsigned char chars[] = {'a','b'};
 	Timer* timer = Timer_init(Timer_alloc(), 3000);
 
 
@@ -72,21 +71,12 @@ unsigned char* RS232Handler_receive(int* clientID, int* numReceived)
 	printf("Waiting for data to come back from the Middleman\n");
 	while (alt_up_rs232_get_used_space_in_read_FIFO(s_rs232Dev) == 0);
 
-	int client = *clientID;
-	if (isDebug == 0){
-		// First byte is the clientID of characters in our message
-		alt_up_rs232_read_data(s_rs232Dev, &data, &parity);
-		client = (int)data;
-		*clientID = client;
-	}
-
-	while (alt_up_rs232_get_used_space_in_read_FIFO(s_rs232Dev) == 0);
 	// Second byte is the clientID of characters in our message
 	alt_up_rs232_read_data(s_rs232Dev, &data, &parity);
 	int num_to_receive = (int)data;
 	message = malloc(sizeof(unsigned char)*num_to_receive);
 
-	printf("About to receive %d characters from (%d):\n", num_to_receive, client);
+	printf("About to receive %d characters from (%d):\n", num_to_receive);
 
 	int i;
 	for (i = 0; i < num_to_receive; i++) {

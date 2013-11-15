@@ -11,7 +11,6 @@
 #include "RS232Handler.h"
 #include "../game/BSNStateMachine.h"
 
-
 /**
  * Receives a message from client, and takes action, changing values and state of sm
  *
@@ -24,15 +23,13 @@
  * game_over = bytes: { 'O', ['1' or '2' for winner], ['1' for forfeit/quit midgame or '0' for not forfeit] }
  */
 
-// TODO: check for data length otherwise request for confirmation??
 void ProtocolHandler_receive(BSNStateMachine* sm) {
 	int length;
-	int clientID = 0;
-	unsigned char* data = RS232Handler_receive(&clientID, &length);
+	unsigned char* data = RS232Handler_receive(&length);
 	if (data[0] == 'N') {
 		if (sm->state == WAITING_FOR_PLAYERS) {
 			printf("Sending host confirmation\n");
-			ProtocolHandler_sendSimpleNotification(clientID, 'H');
+			ProtocolHandler_sendSimpleNotification('H');
 			sm->state = PLAYING;
 		}
 	} else if (data[0] == 'M' && sm->state == PLAYING) {
@@ -60,39 +57,15 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 }
 
 /**
- * Sends message to clientID over RS232, with the message
+ * Sends message to client over RS232, with the message
  * bytes: { c }
  *
- * @param clientID -- the id assigned by middleman
  * @param c -- character to send. Valid characters are the following:
  * 	'H' : Sent to host to tell it that it is host.
- * 	'X' : Sent to client after a host and p2 have already been found.
  */
-void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c) {
+void ProtocolHandler_sendSimpleNotification(unsigned char c) {
 	unsigned char msg = c;
-	RS232Handler_send((unsigned char) clientID, &msg, 1);
-}
-
-/**
- * Sends message to clientID over RS232, with the message
- * bytes: { ‘2’ , portip }
- *
- * @param clientID -- the id assigned by middleman
- * @param portip -- string with the contents:
- * 	[2 byte little endian short for port of host], ip string of host
- * @param length -- the length of portip
- */
-void ProtocolHandler_sendYouAreP2Notification(int clientID,
-	unsigned char* portip, int length) {
-	int newLength = length + 1;
-	unsigned char* msg = malloc(sizeof(unsigned char) * newLength);
-	msg[0] = '2';
-
-	int i;
-	for (i = 1; i < newLength; i++) {
-		msg[i] = portip[i - 1];
-	}
-	RS232Handler_send((unsigned char) clientID, msg, newLength);
+	RS232Handler_send(&msg, 1);
 }
 
 /*
