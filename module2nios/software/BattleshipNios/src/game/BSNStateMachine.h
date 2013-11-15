@@ -39,11 +39,6 @@ typedef struct BSNStateMachine {
 	// The game state
 	SystemState state;
 
-	unsigned char* hostPortIp;
-	int hostPortIpLength;
-	int hostClientID;
-	int p2ClientID;
-
 	SpriteArrayList* boardSprites;
 	int hostBoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH];
 	int p2BoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH];
