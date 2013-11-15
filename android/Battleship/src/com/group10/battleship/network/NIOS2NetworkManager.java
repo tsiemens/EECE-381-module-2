@@ -21,22 +21,25 @@ public class NIOS2NetworkManager {
 
 	// bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1
 	// byte y coord] }
-	public static void sendMiss(int player, int x, int y) {
+	public static void sendMiss(boolean isHost, int x, int y) {
+		int player = (byte) (isHost ? 1 : 2);
 		byte[] data = { (byte) 'M', (byte) player, (byte) x, (byte) y };
 		NetworkManager.getInstance().send(new String(data), false);
 	}
 
 	// bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1
 	// byte y coord] }
-	public static void sendHit(int player, int x, int y) {
+	public static void sendHit(boolean isHost, int x, int y) {
+		int player = (byte) (isHost ? 1 : 2);
 		byte[] data = { (byte) 'H', (byte) player, (byte) x, (byte) y };
 		NetworkManager.getInstance().send(new String(data), false);
 	}
 
 	// bytes: { 'O', ['1' or '2' for winner], ['1’ for forfeit/quit midgame or
 	// ‘0’ for not forfeit] }
-	public static void sendGameOver(int winner, Boolean forfeit) {
-		byte[] data = { (byte) 'O', (byte) winner, (byte) (forfeit ? 1 : 0) };
+	public static void sendGameOver(boolean isHost, Boolean forfeit) {
+		int player = (byte) (isHost ? 1 : 2);
+		byte[] data = { (byte) 'O', (byte) player, (byte) (forfeit ? 1 : 0) };
 		NetworkManager.getInstance().send(new String(data), false);
 	}
 
