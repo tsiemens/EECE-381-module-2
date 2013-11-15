@@ -16,11 +16,6 @@ extern GameBoard* GameBoard_alloc()
 
 extern GameBoard* GameBoard_init(GameBoard* this)
 {
-	this->hostMiss = &GameBoard_hostMiss;
-	this->hostHit = &GameBoard_hostHit;
-	this->p2Miss = &GameBoard_p2Miss;
-	this->p2Hit = &GameBoard_p2Hit;
-
 	GameBoard_reset(this);
 }
 

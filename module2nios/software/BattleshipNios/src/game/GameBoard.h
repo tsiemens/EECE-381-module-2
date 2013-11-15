@@ -41,11 +41,6 @@ typedef struct GameBoard
 {
 	int hostBoard[GAMEBOARD_LENGTH][GAMEBOARD_LENGTH];
 	int p2Board[GAMEBOARD_LENGTH][GAMEBOARD_LENGTH];
-
-	void (*hostHit)(struct GameBoard*, int x, int y);
-	void (*hostMiss)(struct GameBoard*, int x, int y);
-	void (*p2Hit)(struct GameBoard*, int x, int y);
-	void (*p2Miss)(struct GameBoard*, int x, int y);
 } GameBoard;
 
 GameBoard* GameBoard_alloc();

@@ -376,7 +376,7 @@ public class NetworkManager extends Object
 			if(sendToAndroid)
 				getAndroidSocketOutput().println(message);
 			else 
-				getNiosSocketOutput().println(message);
+				getNiosSocketOutput().println((char)(message.length()+1) + message);
 		};	
 	}
 	

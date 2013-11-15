@@ -28,23 +28,22 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 	unsigned char* data = RS232Handler_receive(&length);
 	if (data[0] == 'N') {
 		if (sm->state == WAITING_FOR_PLAYERS) {
-			printf("Sending host confirmation\n");
-			ProtocolHandler_sendSimpleNotification('H');
+			printf("Host Connected. Starting Game.\n");
 			sm->state = PLAYING;
 		}
 	} else if (data[0] == 'M' && sm->state == PLAYING) {
 		// Shot missed
 		if (data[1] == HOST) {
-			sm->gameBoard->hostMiss(sm->gameBoard, data[2], data[3]);;
+			GameBoard_hostMiss(sm->gameBoard, data[2], data[3]);;
 		} else {
-			sm->gameBoard->p2Miss(sm->gameBoard, data[2], data[3]);
+			GameBoard_p2Miss(sm->gameBoard, data[2], data[3]);
 		}
 	} else if (data[0] == 'H' && sm->state == PLAYING) {
 		// Shot hit
 		if (data[1] == HOST) {
-			sm->gameBoard->hostHit(sm->gameBoard, data[2], data[3]);
+			GameBoard_hostHit(sm->gameBoard, data[2], data[3]);
 		} else {
-			sm->gameBoard->p2Hit(sm->gameBoard, data[2], data[3]);
+			GameBoard_p2Hit(sm->gameBoard, data[2], data[3]);
 		}
 	} else if (data[0] == 'O' && sm->state == PLAYING) {
 		// Game over
