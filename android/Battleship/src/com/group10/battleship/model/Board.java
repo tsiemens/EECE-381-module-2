@@ -96,25 +96,6 @@ public class Board implements GL20Drawable{
 			mShips.add(shipTemp);
 			shipTemp = new Ship(mContext, ShipType.PATROL);
 			mShips.add(shipTemp);
-
-			for (int i = 0; i < mShips.size(); i++) {
-				Ship s = mShips.get(i);
-				s.configureBoardConstraints(this);
-				s.setPosIndex(0, i);
-			}
-		} else {
-			// to delete
-			mShips = new ArrayList<Ship>(5);
-			Ship shipTemp = new Ship(mContext, ShipType.CARRIER);
-			mShips.add(shipTemp);
-			shipTemp = new Ship(mContext, ShipType.BATTLESHIP);
-			mShips.add(shipTemp);
-			shipTemp = new Ship(mContext, ShipType.DESTROYER);
-			mShips.add(shipTemp);
-			shipTemp = new Ship(mContext, ShipType.SUB);
-			mShips.add(shipTemp);
-			shipTemp = new Ship(mContext, ShipType.PATROL);
-			mShips.add(shipTemp);
 			
 			setShips(mShips);
 		}

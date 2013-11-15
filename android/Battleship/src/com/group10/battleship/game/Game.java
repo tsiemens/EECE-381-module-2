@@ -40,11 +40,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private boolean isHost;
 
 	private GameState mState;
+	
+	// Temporary coords for last move if player 2s
+	private int[] mLastMove;
 
 	// Ship dragging state
 	private Ship mDraggedShip;
 	// How far away the initial touch was from the ship's 'origin'
 	private int[] mShipDraggingOffset;
+	
+	private GameStateChangedListener mStateListener;
 
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
@@ -60,6 +65,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Game() {
 		mState = GameState.UNINITIALIZED;
 		mShipDraggingOffset = new int[] { 0, 0 };
+		mLastMove = new int[] { -1, -1 };
 		if (!PrefsManager.getInstance().getBoolean(
 				PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
 			NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
@@ -67,6 +73,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	public void start() {
 		mState = GameState.PLACING_SHIPS;
+		if (mStateListener != null)
+			mStateListener.onGameStateChanged();
 		isHost = NetworkManager.getInstance().isHost;
 	}
 
@@ -90,12 +98,18 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	 */
 	public void invalidate() {
 		mState = GameState.UNINITIALIZED;
+		if (mStateListener != null)
+			mStateListener.onGameStateChanged();
 		mPlayerBoard = null;
 		mOpponentBoard = null;
 	}
 
 	public GameState getState() {
 		return mState;
+	}
+	
+	public void setGameStateListener(GameStateChangedListener listener){
+		mStateListener = listener;
 	}
 
 	@Override
@@ -156,24 +170,50 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	public void onFireButtonPressed() {
 		int[] pos = mOpponentBoard.getSelectedTileIndex();
-		boolean hit = mOpponentBoard.playerShotAttempt(pos[0], pos[1]);
-		if (hit)
-			// TODO send Android hit and check if send to nios
-			if (!PrefsManager.getInstance().getBoolean(
-					PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
-				NIOS2NetworkManager.sendHit(isHost, pos[0], pos[1]);
-			else if (!PrefsManager.getInstance().getBoolean(
-					PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
-				NIOS2NetworkManager.sendMiss(isHost, pos[0], pos[1]);
+		if (mOpponentBoard.getTileColour(pos[0], pos[1]) == Board.TILE_COLOR_NORMAL) {
+			if (isHost){ 
+				boolean hit = mOpponentBoard.playerShotAttempt(pos[0], pos[1]);
+				if (hit) {
+					if (PrefsManager.getInstance().getBoolean(
+							PrefsManager.PREF_KEY_USE_NIOS, true)) {
+						NIOS2NetworkManager.sendHit(true, pos[0], pos[1]);
+					}
+				} else {
+					if (PrefsManager.getInstance().getBoolean(
+							PrefsManager.PREF_KEY_USE_NIOS, true)) {
+						NIOS2NetworkManager.sendMiss(true, pos[0], pos[1]);
+					}
+				}
+				try {
+					String msg = ModelParser.getJsonForMove(pos[0], pos[1], ModelParser.getJsonForMoveResponse(hit));
+					NetworkManager.getInstance().send(msg, true);
+				} catch (JSONException e) {
+					Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
+					e.printStackTrace();
+				}
+			} else {
+				try {
+					mLastMove[0] = pos[0];
+					mLastMove[1] = pos[1];
+					String msg = ModelParser.getJsonForMove(pos[0], pos[1], null);
+					NetworkManager.getInstance().send(msg, true);
+				} catch (JSONException e) {
+					Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
+					e.printStackTrace();
+				}
+			}
+			mState = GameState.WAITING_FOR_OPPONENT;
+			if (mStateListener != null)
+				mStateListener.onGameStateChanged();
+		}
 	}
 
 	public void onTouchGLSurface(MotionEvent me, float x, float y) {
 		if (me.getAction() == MotionEvent.ACTION_DOWN) {
 			// Check for selection of enemy tile
 			int[] inx = mOpponentBoard.getTileIndexAtLocation(x, y);
-			if (inx != null) {
+			if (inx != null && mState == GameState.TAKING_TURN) {
 				Log.d(TAG, "Touched down enemy tile: " + inx[0] + "," + inx[1]);
-				// TODO: this should only be permitted during the players turn
 				mOpponentBoard.setSelectedTile(inx[0], inx[1]);
 			}
 
@@ -192,9 +232,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					Log.d(TAG, "Error creating json object for move");
 					e.printStackTrace();
 				}
-				// TODO: this should only be permitted during ship placement
 				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
-				if (selectShip != null) {
+				if (selectShip != null && mState == GameState.PLACING_SHIPS) {
 					mPlayerBoard.selectShip(selectShip);
 					mDraggedShip = selectShip;
 
@@ -238,17 +277,58 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					ModelParser.MOVE_TYPE_VAL)) {
 				// TODO: determine hit/miss, update view with player move, send
 				// to NIOS & other player (if hit/miss)
+				int x = obj.getInt(ModelParser.MOVE_XPOS_KEY);
+				int y = obj.getInt(ModelParser.MOVE_YPOS_KEY);
+				
+				if (isHost) {
+					boolean hit = mPlayerBoard.playerShotAttempt(x, y);
+					if (hit) {
+						if (PrefsManager.getInstance().getBoolean(
+								PrefsManager.PREF_KEY_USE_NIOS, true)) {
+							NIOS2NetworkManager.sendHit(true, x, y);
+						}
+					} else {
+						if (PrefsManager.getInstance().getBoolean(
+								PrefsManager.PREF_KEY_USE_NIOS, true)) {
+							NIOS2NetworkManager.sendMiss(isHost, x, y);
+						}
+					}
+					try {
+						String msg = ModelParser.getJsonForMoveResponse(hit);
+						NetworkManager.getInstance().send(msg, true);
+					} catch (JSONException e) {
+						Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
+						e.printStackTrace();
+					}
+				} else {
+					JSONObject mvresp = obj.getJSONObject(ModelParser.MOVE_RESPONSE_KEY);
+					boolean hit = mvresp.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
+					mPlayerBoard.setTileColour(hit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, x, y);
+					// TODO check if board is destroyed for visual effects
+				}
+				
 				Toast.makeText(
 						mContext,
 						"Move received: "
 								+ obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", "
 								+ obj.getInt(ModelParser.MOVE_YPOS_KEY),
 						Toast.LENGTH_SHORT).show();
+				
+			} else if (obj.getString(ModelParser.TYPE_KEY).equals(
+				ModelParser.MOVE_RESPONSE_TYPE_VAL)) { 
+				// We are receiving confirmation of our last move
+				boolean hit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
+				mOpponentBoard.setTileColour(hit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, mLastMove[0], mLastMove[1]);
+				// TODO check if board is destroyed for visual effects
 			}
 		} catch (JSONException e) {
 			Log.d(TAG, "Error getting json object from json string");
 			e.printStackTrace();
 		}
 
+	}
+	
+	public static interface GameStateChangedListener {
+		public void onGameStateChanged();
 	}
 }
