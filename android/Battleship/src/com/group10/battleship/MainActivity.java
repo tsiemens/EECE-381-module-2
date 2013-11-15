@@ -9,6 +9,7 @@ import com.group10.battleship.network.NetworkManager.OnGameFoundListener;
 import com.group10.battleship.network.NetworkManager.OnIPFoundListener;
 import com.group10.battleship.network.NetworkManager.OnNetworkErrorListener;
 import com.group10.battleship.network.NetworkManager.OnNiosDataReceivedListener;
+import com.group10.battleship.network.NetworkManager.OnNiosSuccessfulSetupListener;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,7 +23,7 @@ import android.widget.Toast;
 
 
 public class MainActivity extends SherlockActivity implements OnClickListener, OnIPFoundListener, OnGameFoundListener, 
-	OnNetworkErrorListener, OnNiosDataReceivedListener {
+	OnNetworkErrorListener, OnNiosDataReceivedListener, OnNiosSuccessfulSetupListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -137,8 +138,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					// Setup nios socket & request for game
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
+					NetworkManager.getInstance().setOnNiosSuccessfulSetupListener(this);
 					NetworkManager.getInstance().setOnNiosDataReceivedListener(this);
-					NIOS2NetworkManager.sendNewGame();
 				} catch (Exception e) {
 					handleSocketError(e);
 				}
@@ -151,7 +152,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()), false); 
 					NetworkManager.getInstance().setOnGameFoundListener(this);
-					NetworkManager.getInstance().setOnGameFoundListener(this);
 				}
 				catch(Exception e)
 				{
@@ -163,7 +163,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				try {
 					NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
 						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-					NetworkManager.getInstance().setOnGameFoundListener(this);
 					NetworkManager.getInstance().setOnGameFoundListener(this);
 				}
 				catch(NumberFormatException e)
@@ -202,6 +201,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public void ReceivedNiosData(String message) {
+//		Toast.makeText(this, "Message from nios: " + message, Toast.LENGTH_LONG).show();
+		Log.d(TAG, "MESSAGE FROM NIOS: '" + message + "'");
 		if(message.equals("H")) // Received host confirmation
 		{
 			try {
@@ -225,6 +226,10 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		else if(message.equals("X")) { 
 			Toast.makeText(this, "A game is aleady in progress", Toast.LENGTH_LONG).show();
 		}
+		else 
+		{
+			Log.d(TAG, "Couldn't detect type of NIOS message");
+		}
 	}
 	
 	// Show toast with error message & log the stack trace
@@ -232,6 +237,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	{
 		Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
 		e.printStackTrace();
+	}
+
+	@Override
+	public void SetupNiosSuccessfully() 
+	{
+		NIOS2NetworkManager.sendNewGame();
+		Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
 	}
 
 }

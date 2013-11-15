@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.group10.battleship.BattleshipApplication;
+import com.group10.battleship.PrefsManager;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
@@ -51,7 +52,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Game() {
 		mState = GameState.UNITIALIZED;
 		mShipDraggingOffset = new int[]{0, 0};
-		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
+		if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+			NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 	
 	public void start() {
@@ -152,7 +154,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
 			if (inx != null) {
 				Log.d(TAG, "Touched down player tile: "+inx[0]+","+inx[1]);
-				NetworkManager.getInstance().send("Touched down player tile: "+inx[0]+","+inx[1], true);
+				
+				if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+					NetworkManager.getInstance().send("Touched down player tile: "+inx[0]+","+inx[1], true);
+				
 				// TODO: this should only be permitted during ship placement
 				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
 				if (selectShip != null) {

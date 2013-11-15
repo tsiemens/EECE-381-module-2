@@ -60,6 +60,7 @@ public class NetworkManager extends Object
 	private OnNetworkErrorListener onNetworkErrorListener;
 	private OnAndroidDataReceivedListener onAndroidDataReceivedListener;
 	private OnNiosDataReceivedListener onNiosDataReceivedListener;
+	private OnNiosSuccessfulSetupListener onNiosSuccessfulSetupListener;
 	
 	private Handler handler;
 	
@@ -85,6 +86,7 @@ public class NetworkManager extends Object
 		try {
 			clientSocket.close();
 			serverSocket.close();
+			niosSocket.close();
 		} catch (IOException e) {
 			Log.d(TAG, "Error closing socket.");
 			e.printStackTrace();
@@ -93,7 +95,10 @@ public class NetworkManager extends Object
 	}
 	
 	/* Mutators */
-	
+	public void setOnNiosSuccessfulSetupListener (OnNiosSuccessfulSetupListener niosSetupListener)
+	{
+		onNiosSuccessfulSetupListener = niosSetupListener;
+	}
 	public void setOnAndroidDataReceivedListener(OnAndroidDataReceivedListener dataListener)
 	{
 		onAndroidDataReceivedListener = dataListener;
@@ -189,7 +194,7 @@ public class NetworkManager extends Object
 	
 	public PrintWriter getNiosSocketOutput()
 	{
-		if(AndroidSocketOutput == null)
+		if(NiosSocketOutput == null)
 		{
 			try {
 				NiosSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(niosSocket.getOutputStream())), true);
@@ -198,19 +203,19 @@ public class NetworkManager extends Object
 				e.printStackTrace();
 			}
 		}
-		return AndroidSocketOutput; 
+		return NiosSocketOutput; 
 	}
 	
 	public BufferedReader getNiosSocketInput()
 	{
-		if(AndroidSocketInput == null)
+		if(NiosSocketInput == null)
 			try {
 				NiosSocketInput = new BufferedReader(new InputStreamReader(niosSocket.getInputStream()));
 			} catch (IOException e) {
 				Log.d(TAG, "Error with socket reader");
 				e.printStackTrace();
 			}
-		return AndroidSocketInput; 
+		return NiosSocketInput; 
 	}
 	
 	public PrintWriter getAndroidSocketOutput()
@@ -256,7 +261,19 @@ public class NetworkManager extends Object
 		public void run() {
 				try {
 					if(isNios)
+					{
 						niosSocket = setupSocket(ipAddress, portNum);
+						Runnable successfulSetup = new Runnable() {
+        					@Override
+        					public void run() {
+        						if(onNiosSuccessfulSetupListener != null)
+        							onNiosSuccessfulSetupListener.SetupNiosSuccessfully();
+        					}
+        				};
+        				handler.post(successfulSetup);
+						Log.d(TAG, "Set up NIOS Socket");
+						new Thread(new NiosReceiverThread()).start();
+					}
 					else 
 					{
 						clientSocket = setupSocket(ipAddress, portNum);
@@ -365,22 +382,22 @@ public class NetworkManager extends Object
 	
 	public class NiosReceiverThread implements Runnable
 	{
-
 		@Override
 		public void run() {
-			Log.d(TAG, "Made Receiver thread");
+			Log.d(TAG, "Made Nios Receiver thread");
 			while(true)
 			{
                 try {
                 	final String receivedString = readFromInput(getNiosSocketInput());
-                	Runnable gameFoundRunnable = new Runnable() {
+                	
+                	Runnable niosDataReceived = new Runnable() {
     					@Override
     					public void run() {
     						if(onNiosDataReceivedListener != null)
     							onNiosDataReceivedListener.ReceivedNiosData(receivedString);
     					}
     				};
-    				handler.post(gameFoundRunnable);
+    				handler.post(niosDataReceived);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -417,6 +434,7 @@ public class NetworkManager extends Object
 	
 	public static String readFromInput(BufferedReader br) throws IOException {
 		String line = null;
+		Log.d(TAG, "waiting for nios message");
 		StringBuilder sb = new StringBuilder("");
         	while ((line = br.readLine()) != null) {
         		Log.d(TAG, "Received: " + line);
@@ -445,17 +463,13 @@ public class NetworkManager extends Object
 		public void ReceivedNiosData(String message);
 	}
 	
+	public static interface OnNiosSuccessfulSetupListener { 
+		public void SetupNiosSuccessfully();
+	}
+	
 	private static String getLocalIpAddress()
 	{
 		WifiManager wifiManager = (WifiManager) BattleshipApplication.getAppContext().getSystemService(Context.WIFI_SERVICE);
 		return Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-	}
-
-	
+	}	
 }
-
-
-
-
-
-
