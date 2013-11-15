@@ -27,34 +27,39 @@
 #define HOST_FORFEIT 3
 #define P2_FORFEIT 4
 
-typedef enum {WAITING_FOR_PLAYERS, PLAYING, GAME_OVER, FORFEIT } SystemState; // TODO add other states
+#define GAME_BOARD_LENGTH 10
+#define MISSED 1
+#define HIT 2
 
-typedef struct BSNStateMachine
-{
+typedef enum {
+	WAITING_FOR_PLAYERS, PLAYING, GAME_OVER, FORFEIT
+} SystemState; // TODO add other states
+
+typedef struct BSNStateMachine {
 	// The game state
 	SystemState state;
 
 	unsigned char* hostPortIp;
 	int hostPortIpLength;
-	short hostConfirmed;
 	int hostClientID;
 	int p2ClientID;
 
 	SpriteArrayList* boardSprites;
-
-	GameBoard* gameBoard;
+	int hostBoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH];
+	int p2BoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH];
 
 	int winner;
+
+	GameBoard* gameBoard;
 
 } BSNStateMachine;
 
 BSNStateMachine* BSNStateMachine_alloc();
-BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this);
-void BSNStateMachine_performFrameLogic(BSNStateMachine* this);
-void BSNStateMachine_PerformLogic(BSNStateMachine* this);
+BSNStateMachine* BSNStateMachine_init(BSNStateMachine * this);
+void BSNStateMachine_performFrameLogic(BSNStateMachine * this);
+void BSNStateMachine_PerformLogic(BSNStateMachine * this);
 
-void BSNStateMachine_StartPerformLogic(BSNStateMachine* this);
+void BSNStateMachine_StartPerformLogic(BSNStateMachine * this);
 
 #endif /* BSNSTATEMACHINE_H_ */
-
 

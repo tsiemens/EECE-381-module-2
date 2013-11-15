@@ -19,6 +19,17 @@
         android:text="@string/main_menu_start_game"
         android:textAlignment="center"/>
     
+    <Button 
+        android:id="@+id/btn_find_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_start_game"
+        android:layout_marginTop="40dp"
+        android:padding="20dp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/main_menu_find_game"
+        android:textAlignment="center"/>
+    
     <LinearLayout
         android:id="@+id/ll_host_ip"
         android:layout_width="wrap_content"
@@ -48,8 +59,9 @@
             android:inputType="number"
             android:hint="@string/host_port_none" />
     </LinearLayout>
-
+    
     <TextView
+        android:id="@+id/tv_host_ip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/ll_host_ip"

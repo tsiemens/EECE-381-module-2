@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 public class PrefsManager {
 	
 	public static final String PREF_KEY_LOCAL_DEBUG = "pref_local_debug";
+	public static final String PREF_KEY_USE_NIOS = "pref_use_nios";
 	
 	private static PrefsManager sInstance;
 	

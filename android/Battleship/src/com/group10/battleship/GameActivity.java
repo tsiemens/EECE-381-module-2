@@ -13,12 +13,14 @@ import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
 import com.group10.battleship.graphics.TexturedRect;
 import com.group10.battleship.model.Board;
+import com.group10.battleship.network.NetworkManager;
 
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
@@ -143,13 +145,18 @@ public class GameActivity extends SherlockActivity implements OnTouchListener, A
 		y = mGLRenderer.getTop() - (y * gly);
 		
 		Game.getInstance().onTouchGLSurface(me, x, y);
-		
 		return true;
 	}
 
 	@Override
 	public void onAnimationEnd(Animation arg0) {
-		supportInvalidateOptionsMenu();		
+		Runnable r = new Runnable() {
+			
+			@Override
+			public void run() {
+					GameActivity.this.supportInvalidateOptionsMenu();					}
+		}; 
+		runOnUiThread(r);
 	}
 
 	@Override

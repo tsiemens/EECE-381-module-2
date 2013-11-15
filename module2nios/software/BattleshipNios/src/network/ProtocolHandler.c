@@ -17,35 +17,32 @@
  *
  * Compatible messages are the following. Action taken depends on state of sm.
  *
- * new_game = bytes: { ‘G’, [2 byte little endian short short for port], ip string }
- * confirm_host_server_started = bytes { ‘C‘ } // sent after you_are_host and before
+ * new_game = bytes: { ‘N’}
+ * confirm_host_server_started = bytes { ‘C‘ [2 byte little endian short short for port], ip string} // sent after you_are_host
  * shot_missed = bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
  * shot_hit = bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
- * game_over = bytes: { 'O', ['1' or '2' for winner or '3' (host) or '4' (p2) for forfeit/quit midgame] }
+ * game_over = bytes: { 'O', ['1' or '2' for winner], ['1' for forfeit/quit midgame or '0' for not forfeit] }
  */
-void ProtocolHandler_receive(BSNStateMachine* sm)
-{
+
+// TODO: check for data length otherwise request for confirmation??
+void ProtocolHandler_receive(BSNStateMachine* sm) {
 	int length;
 	int clientID = 0;
 	unsigned char* data = RS232Handler_receive(&clientID, &length);
-	if (data[0] == 'G'){
-		if (sm->state == WAITING_FOR_PLAYERS){
-			if (sm->hostPortIp == NULL){
+	if (data[0] == 'N') {
+		if (sm->state == WAITING_FOR_PLAYERS) {
+			if (sm->hostClientID == NO_PLAYER_CLIENT_ID) {
 				// This is the first client to contact, so set as host
-				sm->hostPortIp = malloc(sizeof(unsigned char)* (length-1));
-				int i;
-				for (i=1; i<length; i++)
-				sm->hostPortIp[i-1] = data[i];
-				sm->hostPortIpLength = length-1;
 				sm->hostClientID = clientID;
 				printf("Sending host confirmation\n");
 				ProtocolHandler_sendSimpleNotification(clientID, 'H');
-			} else if (sm->p2ClientID == NO_PLAYER_CLIENT_ID){
+			} else if (sm->p2ClientID == NO_PLAYER_CLIENT_ID) {
 				// This is a second player
 				sm->p2ClientID = clientID;
-				if (sm->hostConfirmed != 0 && sm->hostPortIp != NULL){
+				if (sm->hostPortIp != NULL) {
 					printf("Sending p2 confirmation\n");
-					ProtocolHandler_sendYouAreP2Notification(clientID, sm->hostPortIp, sm->hostPortIpLength);
+					ProtocolHandler_sendYouAreP2Notification(clientID,
+							sm->hostPortIp, sm->hostPortIpLength);
 					sm->state = PLAYING;
 				}
 			} else {
@@ -54,32 +51,43 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
 				ProtocolHandler_sendSimpleNotification(clientID, 'X');
 			}
 		}
-	} else if (data[0] == 'C'){
-		// Host is confirming that it is ready
-		sm->hostConfirmed = 1;
-		if (sm->state == WAITING_FOR_PLAYERS && sm->p2ClientID != NO_PLAYER_CLIENT_ID) {
+	} else if (data[0] == 'C') {
+		// Host is confirming that it is ready. Get its ip and port
+		sm->hostPortIp = malloc(sizeof(unsigned char) * (length - 1));
+		int i;
+		for (i = 1; i < length; i++) {
+			sm->hostPortIp[i - 1] = data[i];
+		}
+		sm->hostPortIpLength = length - 1;
+
+		if (sm->state == WAITING_FOR_PLAYERS && sm->p2ClientID
+				!= NO_PLAYER_CLIENT_ID) {
 			printf("Sending p2 confirmation\n");
-			ProtocolHandler_sendYouAreP2Notification(sm->p2ClientID, sm->hostPortIp, sm->hostPortIpLength);
+			ProtocolHandler_sendYouAreP2Notification(sm->p2ClientID,
+					sm->hostPortIp, sm->hostPortIpLength);
 			sm->state = PLAYING;
 		}
-	} else if (data[0] == 'M' && sm->state == PLAYING){
+	} else if (data[0] == 'M' && sm->state == PLAYING) {
 		// Shot missed
 		if (data[1] == HOST) {
-			sm->gameBoard->hostMiss(sm->gameBoard, data[2], data[3]);
+			sm->hostBoardHitMiss[data[2]][data[3]] = MISSED;
 		} else {
-			sm->gameBoard->p2Miss(sm->gameBoard, data[2], data[3]);
+			sm->p2BoardHitMiss[data[2]][data[3]] = MISSED;
 		}
-	} else if (data[0] == 'H' && sm->state == PLAYING){
+	} else if (data[0] == 'H' && sm->state == PLAYING) {
 		// Shot hit
 		if (data[1] == HOST) {
-			sm->gameBoard->hostHit(sm->gameBoard, data[2], data[3]);
+			sm->hostBoardHitMiss[data[2]][data[3]] = HIT;
 		} else {
-			sm->gameBoard->p2Hit(sm->gameBoard, data[2], data[3]);
+			sm->p2BoardHitMiss[data[2]][data[3]] = HIT;
 		}
-	} else if (data[0] == 'O' && sm->state == PLAYING){
+	} else if (data[0] == 'O' && sm->state == PLAYING) {
 		// Game over
 		sm->winner = data[1];
-		sm->state = GAME_OVER;
+		if (data[2] == 1)
+			sm->state = FORFEIT;
+		else
+			sm->state = GAME_OVER;
 	}
 }
 
@@ -92,10 +100,9 @@ void ProtocolHandler_receive(BSNStateMachine* sm)
  * 	'H' : Sent to host to tell it that it is host.
  * 	'X' : Sent to client after a host and p2 have already been found.
  */
-void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c)
-{
+void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c) {
 	unsigned char msg = c;
-	RS232Handler_send((unsigned char)clientID, &msg, 1);
+	RS232Handler_send((unsigned char) clientID, &msg, 1);
 }
 
 /**
@@ -107,17 +114,17 @@ void ProtocolHandler_sendSimpleNotification(int clientID, unsigned char c)
  * 	[2 byte little endian short for port of host], ip string of host
  * @param length -- the length of portip
  */
-void ProtocolHandler_sendYouAreP2Notification(int clientID, unsigned char* portip, int length)
-{
-	int newLength = length+1;
-	unsigned char* msg = malloc(sizeof(unsigned char)*newLength);
+void ProtocolHandler_sendYouAreP2Notification(int clientID,
+		unsigned char* portip, int length) {
+	int newLength = length + 1;
+	unsigned char* msg = malloc(sizeof(unsigned char) * newLength);
 	msg[0] = '2';
 
 	int i;
-	for(i = 1; i < newLength; i++){
-		msg[i] = portip[i-1];
+	for (i = 1; i < newLength; i++) {
+		msg[i] = portip[i - 1];
 	}
-	RS232Handler_send((unsigned char)clientID, msg, newLength);
+	RS232Handler_send((unsigned char) clientID, msg, newLength);
 }
 
 void ProtocolTest(BSNStateMachine* stateMachine) {
@@ -125,11 +132,11 @@ void ProtocolTest(BSNStateMachine* stateMachine) {
 	int clientID = 2;
 	int idTemp;
 	int numTemp;
-	RS232Handler_send(hostID, "GPP123.456.7.8", 14);
+	RS232Handler_send(hostID, "N", 1);
 	ProtocolHandler_receive(stateMachine);
 	RS232Handler_receive(&idTemp, &numTemp);
-	RS232Handler_send(hostID, "C", 1);
+	RS232Handler_send(hostID, "CPP123.456.7.8", 14);
 	ProtocolHandler_receive(stateMachine);
-	RS232Handler_send(clientID, "GPP777.777.7.7", 14);
+	RS232Handler_send(clientID, "N", 1);
 	ProtocolHandler_receive(stateMachine);
 }

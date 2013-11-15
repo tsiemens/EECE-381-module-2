@@ -27,6 +27,5 @@ public class BattleshipApplication extends Application{
 		Log.i(TAG, "Terminating application...");
 		super.onTerminate();
 	}
-
 	
 }

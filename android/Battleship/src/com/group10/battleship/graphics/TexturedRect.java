@@ -67,6 +67,8 @@ public class TexturedRect implements GL20Drawable{
 	private int mTextureCoordinateHandle;
 	private int mTextureDataHandle;
 	private int mTextureResId;
+	// to make sure that the texture gets changed on the GL thread
+	private int mNextTexResId;
    
 	private FloatBuffer mVertexBuffer;
 	private ShortBuffer mDrawListBuffer;
@@ -151,16 +153,30 @@ public class TexturedRect implements GL20Drawable{
 	    
 	    //Load the texture
 	    mTextureResId = texResId;
+	    mNextTexResId = 0;
 	    mTextureDataHandle = loadTexture(mActivityContext, texResId);
 	}
 	
 	public void reloadTexture() {
 		mTextureDataHandle = loadTexture(mActivityContext, mTextureResId);
 	}
+	
+	/**
+	 * Changes the texture the next time draw() is called
+	 * @param resid
+	 */
+	public void queueChangeTexture(int resid) {
+		mNextTexResId = resid;
+	}
 
 	@Override
 	public void draw(float[] mvpMatrix)
 	{
+		if (mNextTexResId != 0){
+			mTextureResId = mNextTexResId;
+			reloadTexture();
+			mNextTexResId = 0;
+		}
 	    //Add program to OpenGL ES Environment
 	    GLES20.glUseProgram(sShaderProgramHandle);
 	    
