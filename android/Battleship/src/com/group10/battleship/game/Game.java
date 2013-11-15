@@ -52,7 +52,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Game() {
 		mState = GameState.UNITIALIZED;
 		mShipDraggingOffset = new int[]{0, 0};
-		if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+//		if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
+//		if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
 			NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 	
@@ -194,6 +195,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	@Override
 	public void ReceivedAndroidData(String message) {
+		Log.d(TAG, "Received Data in Game");
 		Toast.makeText(mContext, "I just received: " + message, Toast.LENGTH_SHORT).show();
 	}
 	

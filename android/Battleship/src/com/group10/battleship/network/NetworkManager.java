@@ -412,6 +412,7 @@ public class NetworkManager extends Object
 		@Override
 		public void run() {
 			Log.d(TAG, "Made Receiver thread");
+			Log.d(TAG, "onAndroidDataReceivedListener: " + onAndroidDataReceivedListener);
 			while(true)
 			{
                 try {
@@ -434,7 +435,6 @@ public class NetworkManager extends Object
 	
 	public static String readFromInput(BufferedReader br) throws IOException {
 		String line = null;
-		Log.d(TAG, "waiting for nios message");
 		StringBuilder sb = new StringBuilder("");
         	while ((line = br.readLine()) != null) {
         		Log.d(TAG, "Received: " + line);
