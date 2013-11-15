@@ -279,7 +279,8 @@ public class NetworkManager extends Object
 						clientSocket = setupSocket(ipAddress, portNum);
 						
 						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST! 
-						new Thread(new AndroidReceiverThread()).start();
+//						new Thread(new AndroidReceiverThread()).start();
+						new Thread(new ReceiverThread()).start();
 						Runnable gameFoundRunnable = new Runnable() {
 							@Override
 							public void run() {
@@ -333,7 +334,8 @@ public class NetworkManager extends Object
 				clientSocket = serverSocket.accept();
 				
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it finds a client)
-				new Thread(new AndroidReceiverThread()).start();
+//				new Thread(new AndroidReceiverThread()).start();
+				new Thread(new ReceiverThread()).start();
 				Log.d(TAG, "Connected!");
 				Runnable gameFoundRunnable = new Runnable() {
 					@Override
@@ -426,6 +428,37 @@ public class NetworkManager extends Object
         				};
         				handler.post(gameFoundRunnable);
 				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		};	
+	}
+	
+	public class ReceiverThread implements Runnable
+	{
+
+		@Override
+		public void run() {
+			Log.d(TAG, "Made Receiver thread");
+			while(true)
+			{
+				String line = null;
+                try {
+                	while ((line = getAndroidSocketInput().readLine()) != null) {
+                		Log.d(TAG, "Received: " + line);
+                		final String receivedString = line;
+                		Runnable gameFoundRunnable = new Runnable() {
+        					@Override
+        					public void run() {
+        						if(onAndroidDataReceivedListener != null)
+        							onAndroidDataReceivedListener.ReceivedAndroidData(receivedString);
+        					}
+        				};
+        				handler.post(gameFoundRunnable);
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

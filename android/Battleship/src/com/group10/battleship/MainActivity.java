@@ -89,15 +89,33 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onClick(View view) {
 		PrefsManager pm = PrefsManager.getInstance();
-//		HOST SETUP
 		if (view == mStartGameBtn) {
 			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
 				startActivity(new Intent(this, GameActivity.class));
-			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)) {
-				Toast.makeText(
-						this,
-						"Enter a host ip, or turn on local debugging in settings.",
+			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
+				Toast.makeText(this, "Enter a host ip, or turn on local debugging in settings.",
 						Toast.LENGTH_LONG).show();
+				// TODO check for game connection, etc.
+			} else {
+				// Not using nios
+				try {
+					//	HOST SETUP
+					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
+					NetworkManager.getInstance().setOnIPFoundListener(this);
+					NetworkManager.getInstance().setOnGameFoundListener(this);
+					NetworkManager.getInstance().setOnNetworkErrorListener(this);
+				} catch (Exception e) {
+					Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					e.printStackTrace();
+				} 
+			}
+		}
+		else if (view == mFindGameBtn) 
+		{
+			
+			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
+				startActivity(new Intent(this, GameActivity.class));
+			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
 				// TODO check for game connection, etc.
 				try {
 					// Set up the NIOS socket & listener
@@ -111,56 +129,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					Log.d(TAG, "Error making NIOS socket");
 					handleSocketError(e);
 				}
-				
 			} else {
 				// Not using nios
-				try {
-					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-					NetworkManager.getInstance().setOnIPFoundListener(this);
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-					NetworkManager.getInstance()
-							.setOnNetworkErrorListener(this);
-				} catch (Exception e) {
-					handleSocketError(e);
-				} 
-			}
-		} 
-//		CLIENT SETUP
-		else if (view == mFindGameBtn) {
-			Toast.makeText(this, "Finding game...",
-					Toast.LENGTH_SHORT).show();
-			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) 
-			{
-				startActivity(new Intent(this, GameActivity.class));
-			} 
-			else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
-				try {
-					// Setup nios socket & request for game
-					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
-							Integer.parseInt(mHostPortEt.getText().toString()));
-					NetworkManager.getInstance().setOnNiosSuccessfulSetupListener(this);
-					NetworkManager.getInstance().setOnNiosDataReceivedListener(this);
-				} catch (Exception e) {
-					handleSocketError(e);
-				}
-			}
-
-			else if (view == mFindGameBtn) {
 				Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
 				try {
 					//	CLIENT SETUP
-					NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
-							Integer.parseInt(mHostPortEt.getText().toString()), false); 
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-				}
-				catch(Exception e)
-				{
-					handleSocketError(e);
-				}
-			}
-			else
-			{
-				try {
 					NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
 						Integer.parseInt(mHostPortEt.getText().toString()), false); 
 					NetworkManager.getInstance().setOnGameFoundListener(this);
@@ -169,16 +142,16 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				{
 					Toast.makeText(this, "No Port specified", Toast.LENGTH_LONG).show();
 				} catch (Exception e) {
-					handleSocketError(e);
+					Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					e.printStackTrace();
 				}
 			}
+			
 		}
 	}
 
-
 	@Override
 	public void onIPFound(String IP, int port) {
-		// TODO Auto-generated method stub
 		mHostIpTv.setText("IP: "
 				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort());
@@ -187,7 +160,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public void onGameFound() {
-		// TODO Auto-generated method stub
 		Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show();
 		startActivity(new Intent(this, GameActivity.class));
 	}
@@ -201,7 +173,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public void ReceivedNiosData(String message) {
-//		Toast.makeText(this, "Message from nios: " + message, Toast.LENGTH_LONG).show();
 		Log.d(TAG, "MESSAGE FROM NIOS: '" + message + "'");
 		if(message.equals("H")) // Received host confirmation
 		{
@@ -217,7 +188,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		else if(message.equals("2")) // Received Client/Player confirmation
 		{
 			try {
-				// TODO: Get the IP & port from the message: message.getIP() / message.getPort() 
 				NetworkManager.getInstance().setupAndroidSocket("NiosReturnMessage.getIP()", 1234, false);
 			} catch (Exception e) {
 				handleSocketError(e);
