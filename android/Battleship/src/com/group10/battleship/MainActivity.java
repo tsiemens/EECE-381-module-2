@@ -8,7 +8,6 @@ import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnGameFoundListener;
 import com.group10.battleship.network.NetworkManager.OnIPFoundListener;
 import com.group10.battleship.network.NetworkManager.OnNetworkErrorListener;
-import com.group10.battleship.network.NetworkManager.OnNiosDataReceivedListener;
 import com.group10.battleship.network.NetworkManager.OnNiosSuccessfulSetupListener;
 
 import android.content.Intent;
@@ -23,7 +22,7 @@ import android.widget.Toast;
 
 
 public class MainActivity extends SherlockActivity implements OnClickListener, OnIPFoundListener, OnGameFoundListener, 
-	OnNetworkErrorListener, OnNiosDataReceivedListener, OnNiosSuccessfulSetupListener {
+	OnNetworkErrorListener, OnNiosSuccessfulSetupListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -103,7 +102,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					// Set up the NIOS socket & listener
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
-					NetworkManager.getInstance().setOnNiosDataReceivedListener(this);
 					// Send a game request
 					NIOS2NetworkManager.sendNewGame();
 					
@@ -139,7 +137,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
 					NetworkManager.getInstance().setOnNiosSuccessfulSetupListener(this);
-					NetworkManager.getInstance().setOnNiosDataReceivedListener(this);
 				} catch (Exception e) {
 					handleSocketError(e);
 				}
@@ -197,39 +194,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		Toast.makeText(this, "Error: Could not find game", Toast.LENGTH_LONG)
 				.show();
 
-	}
-
-	@Override
-	public void ReceivedNiosData(String message) {
-//		Toast.makeText(this, "Message from nios: " + message, Toast.LENGTH_LONG).show();
-		Log.d(TAG, "MESSAGE FROM NIOS: '" + message + "'");
-		if(message.equals("H")) // Received host confirmation
-		{
-			try {
-				// Set up host & send confirmation & IP/port to NIOS
-				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-				NIOS2NetworkManager.sendConfirmationHostStarted(NetworkManager.getInstance().getAndroidHostIP(), 
-						NetworkManager.getInstance().getAndroidHostPort());
-			} catch (Exception e) {
-				handleSocketError(e);
-			}
-		}
-		else if(message.equals("2")) // Received Client/Player confirmation
-		{
-			try {
-				// TODO: Get the IP & port from the message: message.getIP() / message.getPort() 
-				NetworkManager.getInstance().setupAndroidSocket("NiosReturnMessage.getIP()", 1234, false);
-			} catch (Exception e) {
-				handleSocketError(e);
-			}
-		}
-		else if(message.equals("X")) { 
-			Toast.makeText(this, "A game is aleady in progress", Toast.LENGTH_LONG).show();
-		}
-		else 
-		{
-			Log.d(TAG, "Couldn't detect type of NIOS message");
-		}
 	}
 	
 	// Show toast with error message & log the stack trace
