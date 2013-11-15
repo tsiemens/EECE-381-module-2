@@ -31,12 +31,12 @@ public class NetworkManager extends Object
 	public boolean isHost = false;
 	
 	// IO Streams
-	private static PrintWriter AndroidSocketOutput; 
-	private static BufferedReader AndroidSocketInput;
-	private static PrintWriter NiosSocketOutput; 		// Android to Nios Output Stream
+	private PrintWriter AndroidSocketOutput; 
+	private BufferedReader AndroidSocketInput;
+	private PrintWriter NiosSocketOutput; 		// Android to Nios Output Stream
+	private int androidSocketVersion = 0; 
 	
 	// Threads
-	private Thread androidReceiverThread;
 	private ServerThread serverThread;
 	
 	// Sockets 
@@ -262,6 +262,7 @@ public class NetworkManager extends Object
 					}
 					else 
 					{
+						androidSocketVersion++;
 						AndroidSocketInput = null;
 						AndroidSocketOutput = null;
 						if (clientSocket != null) {
@@ -324,6 +325,7 @@ public class NetworkManager extends Object
 					}
 				}; 
 				handler.post(ipRunnable);
+				androidSocketVersion++;
 				AndroidSocketInput = null;
 				AndroidSocketOutput = null;
 				if (clientSocket != null) {
@@ -381,6 +383,11 @@ public class NetworkManager extends Object
 	
 	public class AndroidReceiverThread implements Runnable
 	{
+		private int currentSocketVersion;
+		
+		public AndroidReceiverThread() {
+			currentSocketVersion = androidSocketVersion;
+		}
 
 		@Override
 		public void run() {
@@ -388,6 +395,12 @@ public class NetworkManager extends Object
 			Log.d(TAG, "onAndroidDataReceivedListener: " + onAndroidDataReceivedListener);
 			while(true)
 			{
+				// If the socket has changed, then there is another duplicate thread.
+				// Kill this one
+				if (androidSocketVersion != currentSocketVersion) {
+					return;
+				}
+				
                 try {
                 		final String receivedString = readFromInput(getAndroidSocketInput());
                 		Runnable gameFoundRunnable = new Runnable() {
