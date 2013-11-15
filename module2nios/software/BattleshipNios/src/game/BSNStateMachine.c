@@ -19,10 +19,6 @@ BSNStateMachine* BSNStateMachine_alloc() {
 BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this) {
 	this->state = WAITING_FOR_PLAYERS;
 
-	this->hostPortIp = NULL;
-	this->hostClientID = NO_PLAYER_CLIENT_ID;
-	this->p2ClientID = NO_PLAYER_CLIENT_ID;
-
 	this->gameBoard = GameBoard_init(GameBoard_alloc());
 	this->boardSprites = SpriteArrayList_init(SpriteArrayList_alloc(), 2);
 
@@ -32,12 +28,6 @@ BSNStateMachine* BSNStateMachine_init(BSNStateMachine* this) {
 void BSNStateMachine_performFrameLogic(BSNStateMachine* this)
 {
 	BSNStateMachine_PerformLogic(this);
-
-	//DELETE: testing
-	GameBoard_hostMiss(this, rand()%10, rand()%10);
-	GameBoard_hostHit(this, rand()%10, rand()%10);
-	GameBoard_p2Miss(this, rand()%10, rand()%10);
-	GameBoard_p2Hit(this, rand()%10, rand()%10);
 
 	if(this->state == WAITING_FOR_PLAYERS || this->state == PLAYING)
 	{
