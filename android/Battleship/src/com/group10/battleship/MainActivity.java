@@ -3,6 +3,7 @@ package com.group10.battleship;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.game.Game;
 import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnGameFoundListener;
@@ -162,7 +163,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		mHostIpTv.setText("IP: "
 				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort());
-
 	}
 
 	@Override

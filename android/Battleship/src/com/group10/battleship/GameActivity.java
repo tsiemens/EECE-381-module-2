@@ -129,6 +129,10 @@ public class GameActivity extends SherlockActivity implements OnTouchListener, A
 		} else if (item.getItemId() == R.id.rotate_item) {
 			Game.getInstance().onRotateButtonPressed();
 		}
+		else if (item.getItemId() == R.id.confirm_item)
+		{
+			Game.getInstance().onConfirmBoardPressed();
+		}
 		return true;
 	}
 

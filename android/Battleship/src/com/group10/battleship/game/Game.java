@@ -3,6 +3,7 @@ package com.group10.battleship.game;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -146,6 +147,21 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 	}
 	
+	public void onConfirmBoardPressed()
+	{
+			
+			try {
+				if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false) && 
+						!NetworkManager.getInstance().getIsHost())
+				{
+					Log.d(TAG, "Sending board");
+					NetworkManager.getInstance().send(ModelParser.getJsonForBoard(mPlayerBoard.getShips()), true);
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+	}
+	
 	public void onTouchGLSurface(MotionEvent me, float x, float y) {
 		if (me.getAction() == MotionEvent.ACTION_DOWN) {
 			// Check for selection of enemy tile
@@ -204,18 +220,38 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	@Override
 	public void ReceivedAndroidData(String message) {
-		Log.d(TAG, "Received Android Data in Listener");
-		try {
-			JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
-			if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_TYPE_VAL))
-			{
-				// TODO: determine hit/miss, update view with player move, send to NIOS & other player (if hit/miss)
-				Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
-			}
-		} catch (JSONException e) {
-			Log.d(TAG, "Error getting json object from json string");
-			e.printStackTrace();		
-	}
+		if(!(message.charAt(0) == '{')) { return; } // catch non-JSON messages
+		else { 
+			try {
+				JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
+				if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_TYPE_VAL))
+				{
+					// TODO: determine hit/miss, update view with player move, send to NIOS & other player (if hit/miss)
+					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
+				}
+				else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL))
+				{
+					// TODO: do things with it 
+					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
+					Log.d(TAG, "opponent ships" + shipArr);
+					Toast.makeText(mContext, "Host received game board", Toast.LENGTH_SHORT).show();
+					if(mOpponentBoard.getShips() == null)
+					{
+						for(int i=0; i < shipArr.length(); i++)
+						{
+							JSONObject ship = (JSONObject)shipArr.get(i);
+							Log.d(TAG, "json ship: " + ship);
+							Log.d(TAG, "saved ship: " + mOpponentBoard.getShips().get(i));
+							mOpponentBoard.getShips().get(i).setPosIndex(0, 0);
+							mOpponentBoard.getShips().get(i).setHorizontal(true);
+						}	
+					}
+				}
+			} catch (JSONException e) {
+				Log.d(TAG, "Error getting json object from json string");
+				e.printStackTrace();		
+		}
+		}
 
 	}
 }

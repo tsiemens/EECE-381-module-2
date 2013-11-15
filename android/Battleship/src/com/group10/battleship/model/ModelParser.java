@@ -1,5 +1,6 @@
 package com.group10.battleship.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -95,6 +96,7 @@ public class ModelParser {
 		yield.put(TYPE_KEY, YIELD_TURN_TYPE_VAL);
 		return yield.toString();
 	}
+
 	
 	private static String getShipTypeFromEnum(ShipType st)
 	{

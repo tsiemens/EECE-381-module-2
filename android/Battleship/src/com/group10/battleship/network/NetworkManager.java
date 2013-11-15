@@ -19,7 +19,6 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.group10.battleship.BattleshipApplication;
-import com.group10.battleship.PrefsManager;
 
 
 @SuppressWarnings("deprecation")
@@ -167,6 +166,10 @@ public class NetworkManager extends Object
 	
 	
 	/* Accessors */
+	public boolean getIsHost()
+	{
+		return isHost;
+	}
 	
 	public String getAndroidHostIP()
 	{
