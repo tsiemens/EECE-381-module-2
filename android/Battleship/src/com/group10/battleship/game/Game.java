@@ -2,7 +2,9 @@ package com.group10.battleship.game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -12,11 +14,12 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
-import com.group10.battleship.BattleshipApplication;
 import com.group10.battleship.PrefsManager;
+import com.group10.battleship.R;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
+import com.group10.battleship.graphics.TexturedRect;
 import com.group10.battleship.model.Board;
 import com.group10.battleship.model.ModelParser;
 import com.group10.battleship.model.Ship;
@@ -36,9 +39,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
-
+	private TexturedRect mBackground;
+	
 	private boolean isHost;
-
+	private boolean hasReceivedOpponentBoard = false;
+	private boolean willYieldTurn = false;
+	
 	private GameState mState;
 	
 	// Temporary coords for last move if player 2s
@@ -63,7 +69,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	private Game() {
-		mState = GameState.UNINITIALIZED;
+		setState(GameState.UNINITIALIZED);
 		mShipDraggingOffset = new int[] { 0, 0 };
 		mLastMove = new int[] { -1, -1 };
 		if (!PrefsManager.getInstance().getBoolean(
@@ -72,9 +78,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void start() {
-		mState = GameState.PLACING_SHIPS;
-		if (mStateListener != null)
-			mStateListener.onGameStateChanged();
+		setState(GameState.PLACING_SHIPS);
+		willYieldTurn = new Random().nextBoolean();
 		isHost = NetworkManager.getInstance().isHost;
 	}
 
@@ -97,9 +102,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	 * and configureBoard() must be called after this.
 	 */
 	public void invalidate() {
-		mState = GameState.UNINITIALIZED;
-		if (mStateListener != null)
-			mStateListener.onGameStateChanged();
+		setState(GameState.UNINITIALIZED);
 		mPlayerBoard = null;
 		mOpponentBoard = null;
 	}
@@ -153,7 +156,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			mDrawList.remove(mOpponentBoard);
 			mOpponentBoard = b;
 		}
-
+		
+		if (mBackground == null) {
+			mBackground = new TexturedRect(mContext, R.drawable.gamebackground);
+			mBackground.setPosition(-1f, 3f);
+			mBackground.setSize(2f, 4f);
+		} else {
+			mDrawList.remove(mBackground);
+		}
+		
+		mDrawList.add(mBackground);
 		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
 
@@ -167,7 +179,38 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 		}
 	}
-
+	
+	public void onConfirmBoardPressed()
+	{
+			try {
+				if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) 
+				{
+					if(!NetworkManager.getInstance().getIsHost()){
+						Log.d(TAG, "Sending board");
+						NetworkManager.getInstance().send(ModelParser.getJsonForBoard(mPlayerBoard.getShips()), true);
+						setState(GameState.WAITING_FOR_OPPONENT);
+					}
+					// if host already received client board & is pressing to confirm own
+					else if(hasReceivedOpponentBoard)
+					{
+						if(willYieldTurn)
+						{
+							setState(GameState.WAITING_FOR_OPPONENT);
+							NetworkManager.getInstance().send(ModelParser.getJsonForYield(), true);
+						}
+						else
+							setState(GameState.TAKING_TURN);
+					}
+					else 
+					{
+						setState(GameState.WAITING_FOR_OPPONENT);
+					}
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+	}
+	
 	public void onFireButtonPressed() {
 		int[] pos = mOpponentBoard.getSelectedTileIndex();
 		if (mOpponentBoard.getTileColour(pos[0], pos[1]) == Board.TILE_COLOR_NORMAL) {
@@ -202,9 +245,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					e.printStackTrace();
 				}
 			}
-			mState = GameState.WAITING_FOR_OPPONENT;
-			if (mStateListener != null)
-				mStateListener.onGameStateChanged();
+			setState(GameState.WAITING_FOR_OPPONENT);
 		}
 	}
 
@@ -213,25 +254,15 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			// Check for selection of enemy tile
 			int[] inx = mOpponentBoard.getTileIndexAtLocation(x, y);
 			if (inx != null && mState == GameState.TAKING_TURN) {
-				Log.d(TAG, "Touched down enemy tile: " + inx[0] + "," + inx[1]);
-				mOpponentBoard.setSelectedTile(inx[0], inx[1]);
-			}
+                Log.d(TAG, "Touched down enemy tile: " + inx[0] + "," + inx[1]);
+                mOpponentBoard.setSelectedTile(inx[0], inx[1]);
+        }
 
 			// Check for selecting ship
 			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
 			if (inx != null) {
 				Log.d(TAG, "Touched down player tile: " + inx[0] + "," + inx[1]);
 
-				try {
-					if (!PrefsManager.getInstance().getBoolean(
-							PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
-						NetworkManager.getInstance().send(
-								ModelParser.getJsonForMove(inx[0], inx[1], ""),
-								true);
-				} catch (JSONException e) {
-					Log.d(TAG, "Error creating json object for move");
-					e.printStackTrace();
-				}
 				Ship selectShip = mPlayerBoard.getShipAtIndex(inx[0], inx[1]);
 				if (selectShip != null && mState == GameState.PLACING_SHIPS) {
 					mPlayerBoard.selectShip(selectShip);
@@ -271,64 +302,75 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void ReceivedAndroidData(String message) {
-		try {
-			JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
-			if (obj.getString(ModelParser.TYPE_KEY).equals(
-					ModelParser.MOVE_TYPE_VAL)) {
-				// TODO: determine hit/miss, update view with player move, send
-				// to NIOS & other player (if hit/miss)
-				int x = obj.getInt(ModelParser.MOVE_XPOS_KEY);
-				int y = obj.getInt(ModelParser.MOVE_YPOS_KEY);
-				
-				if (isHost) {
-					boolean hit = mPlayerBoard.playerShotAttempt(x, y);
-					if (hit) {
-						if (PrefsManager.getInstance().getBoolean(
-								PrefsManager.PREF_KEY_USE_NIOS, true)) {
-							NIOS2NetworkManager.sendHit(true, x, y);
-						}
-					} else {
-						if (PrefsManager.getInstance().getBoolean(
-								PrefsManager.PREF_KEY_USE_NIOS, true)) {
-							NIOS2NetworkManager.sendMiss(isHost, x, y);
-						}
+		if(!(message.charAt(0) == '{')) { return; } // catch non-JSON messages
+		else { 
+			try {
+				JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
+				if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_TYPE_VAL))
+				{
+					// TODO: determine hit/miss, update view with player move, send to NIOS & other player (if hit/miss)
+					setState(GameState.TAKING_TURN);
+					if(!isHost)
+					{
+						JSONObject responseObj = (JSONObject) new JSONTokener(obj.getString(ModelParser.MOVE_RESPONSE_KEY)).nextValue();
+						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
+						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
 					}
-					try {
-						String msg = ModelParser.getJsonForMoveResponse(hit);
-						NetworkManager.getInstance().send(msg, true);
-					} catch (JSONException e) {
-						Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
-						e.printStackTrace();
+					else
+					{
+						boolean wasHit = mPlayerBoard.playerShotAttempt(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit), true);
 					}
-				} else {
-					JSONObject mvresp = obj.getJSONObject(ModelParser.MOVE_RESPONSE_KEY);
-					boolean hit = mvresp.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-					mPlayerBoard.setTileColour(hit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, x, y);
-					// TODO check if board is destroyed for visual effects
+					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
 				}
-				
-				Toast.makeText(
-						mContext,
-						"Move received: "
-								+ obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", "
-								+ obj.getInt(ModelParser.MOVE_YPOS_KEY),
-						Toast.LENGTH_SHORT).show();
-				
-			} else if (obj.getString(ModelParser.TYPE_KEY).equals(
-				ModelParser.MOVE_RESPONSE_TYPE_VAL)) { 
-				// We are receiving confirmation of our last move
-				boolean hit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-				mOpponentBoard.setTileColour(hit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, mLastMove[0], mLastMove[1]);
-				// TODO check if board is destroyed for visual effects
-			}
-		} catch (JSONException e) {
-			Log.d(TAG, "Error getting json object from json string");
-			e.printStackTrace();
+				else if (obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_RESPONSE_TYPE_VAL))
+				{
+					setState(GameState.TAKING_TURN);
+					boolean wasHit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
+					mOpponentBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, mLastMove[0], mLastMove[1]);
+				}
+				else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL))
+				{
+					// TODO: do things with it 
+					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
+					Toast.makeText(mContext, "Host received game board", Toast.LENGTH_SHORT).show();
+					hasReceivedOpponentBoard = true;
+					for(int i=0; i < shipArr.length(); i++)
+							{
+								JSONObject ship = (JSONObject)shipArr.get(i);
+								mOpponentBoard.setShip(ship.getInt(ModelParser.SHIP_XPOS_KEY), 
+										ship.getInt(ModelParser.SHIP_YPOS_KEY), 
+										ship.getBoolean(ModelParser.SHIP_HORIZ_KEY), 
+										ModelParser.getShipTypeFromString(ship.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
+							}	
+					if(mState == GameState.WAITING_FOR_OPPONENT){
+						if(!willYieldTurn)
+							setState(GameState.TAKING_TURN);
+						else 
+							NetworkManager.getInstance().send(ModelParser.getJsonForYield(), true);
+					}
+				}
+				else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.YIELD_TURN_TYPE_VAL))
+				{
+					setState(GameState.TAKING_TURN);
+				}
+			} catch (JSONException e) {
+				Log.d(TAG, "Error getting json object from json string");
+				e.printStackTrace();		
+		}
 		}
 
 	}
 	
 	public static interface GameStateChangedListener {
 		public void onGameStateChanged();
+	}
+	
+	private void setState(GameState state)
+	{
+		mState = state; 
+		if(mStateListener != null)
+			mStateListener.onGameStateChanged();
+
 	}
 }

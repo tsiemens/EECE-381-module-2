@@ -97,7 +97,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public void onResume() {
 		super.onResume();
 		Log.d(TAG, "onResume");
-
+		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
 	}
 
@@ -105,6 +105,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getSupportMenuInflater().inflate(R.menu.game, menu);
+		GameState state = Game.getInstance().getState();
 
 		MenuItem mi;
 		for (int i = 0; i < menu.size(); i++) {
@@ -117,6 +118,24 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 				} else {
 					mi.setIcon(R.drawable.ic_find_previous_holo_light);
 					mi.setTitle(R.string.menu_item_goto_oboard);
+				}
+			} else if (mi.getItemId() == R.id.confirm_item) {
+				if (state == GameState.PLACING_SHIPS) {
+					mi.setVisible(true);
+				} else {
+					mi.setVisible(false);
+				}	
+			} else if (mi.getItemId() == R.id.fire_item) {
+				if ( state == GameState.TAKING_TURN ) {
+					mi.setVisible(true);
+				} else {
+					mi.setVisible(false);
+				}
+			} else if (mi.getItemId() == R.id.rotate_item) {
+				if (state == GameState.PLACING_SHIPS ) {
+					mi.setVisible(true);
+				} else {
+					mi.setVisible(false);
 				}
 			}
 		}
@@ -136,6 +155,10 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			Game.getInstance().onRotateButtonPressed();
 		} else if (item.getItemId() == R.id.fire_item) {
 			Game.getInstance().onFireButtonPressed();
+		}
+		else if (item.getItemId() == R.id.confirm_item)
+		{
+			Game.getInstance().onConfirmBoardPressed();
 		}
 		return true;
 	}
@@ -182,6 +205,10 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public void onGameStateChanged() {
 		refreshOptionsMenu();
+		if(Game.getInstance().getState() == GameState.TAKING_TURN)
+			mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+		else if(Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT)
+			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
 	}
 
 }
