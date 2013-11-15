@@ -15,9 +15,11 @@ import android.widget.Toast;
 
 import com.group10.battleship.BattleshipApplication;
 import com.group10.battleship.PrefsManager;
+import com.group10.battleship.R;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
+import com.group10.battleship.graphics.TexturedRect;
 import com.group10.battleship.model.Board;
 import com.group10.battleship.model.ModelParser;
 import com.group10.battleship.model.Ship;
@@ -37,7 +39,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
-
+	private TexturedRect mBackground;
+	
 	private boolean isHost;
 
 	private GameState mState;
@@ -154,7 +157,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			mDrawList.remove(mOpponentBoard);
 			mOpponentBoard = b;
 		}
-
+		
+		if (mBackground == null) {
+			mBackground = new TexturedRect(mContext, R.drawable.gamebackground);
+			mBackground.setPosition(-1f, 3f);
+			mBackground.setSize(2f, 4f);
+		} else {
+			mDrawList.remove(mBackground);
+		}
+		
+		mDrawList.add(mBackground);
 		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
 
