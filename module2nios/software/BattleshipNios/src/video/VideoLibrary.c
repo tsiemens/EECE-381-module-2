@@ -64,7 +64,6 @@ CharBuffer* Char_New()
 	// Initialize Char Buffer
 	this->char_buffer = Char_openDevice(CHAR_BUFFER_NAME); //**Couldn't find the constant in system.h
 	Char_init(this->char_buffer);
-
 	return this;
 }
 
@@ -74,6 +73,14 @@ CharBuffer* Char_New()
 void Video_drawPixel(VideoBuffer *video_buffer, unsigned int color,  unsigned int x, unsigned int y)
 {
 	draw_pixel_fast(video_buffer -> pixel_buffer, color, x, y, BACKGROUND);
+}
+
+/*
+ * Draws pixel to Video Buffer. Abstracts messy HAL naming.
+ */
+void Video_drawPixelForeground(VideoBuffer *video_buffer, unsigned int color,  unsigned int x, unsigned int y)
+{
+	draw_pixel_fast(video_buffer -> pixel_buffer, color, x, y, FOREGROUND);
 }
 
 /*
@@ -187,6 +194,10 @@ void Video_drawRect(VideoBuffer *video_buffer, int x0, int y0, int x1, int y1, i
 	alt_up_pixel_buffer_dma_draw_rectangle(video_buffer->pixel_buffer, x0, y0, x1, y1, color, backbuffer);
 }
 
+void Video_drawBox(VideoBuffer *video_buffer, int x0, int y0, int x1, int y1, int color, int backbuffer)
+{
+	alt_up_pixel_buffer_dma_draw_box(video_buffer->pixel_buffer, x0, y0, x1, y1, color, backbuffer);
+}
 void Char_clearScreen(CharBuffer* char_buffer)
 {
 	alt_up_char_buffer_clear(char_buffer->char_buffer);

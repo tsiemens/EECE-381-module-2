@@ -160,6 +160,7 @@ C_SRCS += src/video/VideoLibrary.c
 C_SRCS += src/game/BSNStateMachine.c
 C_SRCS += src/network/RS232Handler.c
 C_SRCS += src/network/ProtocolHandler.c
+C_SRCS += src/game/GameBoard.c
 CXX_SRCS :=
 ASM_SRCS :=
 

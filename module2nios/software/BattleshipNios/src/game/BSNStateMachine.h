@@ -8,6 +8,7 @@
 #ifndef BSNSTATEMACHINE_H_
 #define BSNSTATEMACHINE_H_
 
+#include "GameBoard.h"
 #include "../util/Timer.h"
 #include "../sprite/SpriteFactory.h"
 #include "../video/VideoHandler.h"
@@ -18,10 +19,13 @@
 #include "../sprite/AlphaSprite.h"
 #include "../sprite/SpriteParser.h"
 
+
 #define NO_PLAYER_CLIENT_ID -1
 
 #define HOST 1
 #define P2 2
+#define HOST_FORFEIT 3
+#define P2_FORFEIT 4
 
 #define GAME_BOARD_LENGTH 10
 #define MISSED 1
@@ -45,6 +49,8 @@ typedef struct BSNStateMachine {
 	int p2BoardHitMiss[GAME_BOARD_LENGTH][GAME_BOARD_LENGTH];
 
 	int winner;
+
+	GameBoard* gameBoard;
 
 } BSNStateMachine;
 
