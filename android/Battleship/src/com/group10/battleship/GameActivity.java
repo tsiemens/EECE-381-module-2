@@ -1,32 +1,21 @@
 package com.group10.battleship;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.game.Game.GameStateChangedListener;
-import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
-import com.group10.battleship.graphics.GL20Renderer.RendererListener;
-import com.group10.battleship.graphics.TexturedRect;
-import com.group10.battleship.model.Board;
-import com.group10.battleship.network.NetworkManager;
 
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.TouchDelegate;
 import android.view.View;
-import android.view.View.OnGenericMotionListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -155,9 +144,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			Game.getInstance().onRotateButtonPressed();
 		} else if (item.getItemId() == R.id.fire_item) {
 			Game.getInstance().onFireButtonPressed();
-		}
-		else if (item.getItemId() == R.id.confirm_item)
-		{
+		} else if (item.getItemId() == R.id.confirm_item) {
 			Game.getInstance().onConfirmBoardPressed();
 		}
 		return true;
