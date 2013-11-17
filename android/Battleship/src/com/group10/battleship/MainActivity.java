@@ -133,7 +133,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onNiosSocketSetupError() {
 		Toast.makeText(this, "Error: Could not find NIOS", Toast.LENGTH_LONG).show();
-		e.printStackTrace();
 	}
 
 	@Override
@@ -152,7 +151,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onAndroidSocketSetupError() {
 		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
-		e.printStackTrace();
 	}
 
 }
