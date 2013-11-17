@@ -19,8 +19,6 @@ import android.text.format.Formatter;
 import android.util.Log;
 
 import com.group10.battleship.BattleshipApplication;
-import com.group10.battleship.PrefsManager;
-
 
 @SuppressWarnings("deprecation")
 public class NetworkManager extends Object
@@ -95,21 +93,14 @@ public class NetworkManager extends Object
 	}
 	
 //	SOCKET SETUP
-	private void setHost(boolean isHostBool) {
-		mIsHost = isHostBool;
-	}
-	
-	public void setupHost() {
-			new Thread(new ServerSocketSetupRunnable()).start(); // waits for a connection & sets the client socket when it finds one	
-	}
 	
 	public void setupAndroidSocket(String ip, int port, boolean isHostBool) throws UnknownHostException, IOException
 	{
-		setHost(isHostBool);
+		mIsHost = isHostBool;
 		if(mIsHost)
 		{
 			Log.d(TAG, "Setting up host");
-			setupHost();
+			new Thread(new ServerSocketSetupRunnable()).start(); // waits for a connection & sets the client socket when it finds one	
 		}
 		else 
 		{
@@ -119,7 +110,6 @@ public class NetworkManager extends Object
 			SetupSocketRunnable socketSetupThread = new SetupSocketRunnable(ip, port, false);
 			new Thread(socketSetupThread).start();
 		}
-		
 	}
 	
 	public void setupNiosSocket(String ip, int port) throws UnknownHostException, IOException
@@ -202,7 +192,6 @@ public class NetworkManager extends Object
 	
 //	Send: Sends a message using a new send message runnable
 	public void send(String message, boolean toAndroid) {
-		if(!toAndroid && !PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_USE_NIOS, false)) return;
 		SendMessageRunnable sendThread = new SendMessageRunnable(message, toAndroid);
 		new Thread(sendThread).start();
 	}

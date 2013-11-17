@@ -81,7 +81,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public void start() {
 		setState(GameState.PLACING_SHIPS);
 		willYieldTurn = new Random().nextBoolean();
-		isHost = NetworkManager.getInstance().isHost;
+		isHost = NetworkManager.getInstance().getIsHost();
 	}
 
 	/**
