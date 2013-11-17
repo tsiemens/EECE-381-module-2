@@ -26,69 +26,54 @@ import com.group10.battleship.PrefsManager;
 public class NetworkManager extends Object
 {
 	private static final String TAG = NetworkManager.class.getSimpleName();
-	// SHARED: 
 	private static NetworkManager NetworkManagerInstance;
-	public boolean isHost = false;
+	public boolean mIsHost = false;
 	
-	// IO Streams
-	private PrintWriter AndroidSocketOutput; 
-	private BufferedReader AndroidSocketInput;
-	private PrintWriter NiosSocketOutput; 		// Android to Nios Output Stream
-	private int androidSocketVersion = 0; 
+//	IO Streams
+	private PrintWriter mAndroidSocketOutput; 
+	private BufferedReader mAndroidSocketInput;
+	private PrintWriter mNiosSocketOutput; 		// Android to Nios Output Stream
+	private int mAndroidSocketVersion = 0; 
 	
-	// Threads
-	private ServerThread serverThread;
-	
-	// Sockets 
-	private Socket clientSocket; 
+//	Sockets 
+	private Socket mClientSocket; 
 		// Can be both the client socket for the server and the socket for the client (depending on isHost)
-	private Socket niosSocket;
-	// HOST:
-	private ServerSocket serverSocket; 
-
-	// Nios
-	private String NiosHostIP = "";
-	private int NiosHostPort;
-	// Android 
-	private String AndroidHostIP= ""; 
-	private int AndroidHostPort;
+	private Socket mNiosSocket;
+	private ServerSocket mServerSocket; 
+//	IP & Ports 
+	private String mNiosHostIP = "";
+	private int mNiosHostPort;
+	private String mAndroidHostIP= ""; 
+	private int mAndroidHostPort;
 	
 	// Listeners
-	private OnIPFoundListener onIPFoundListener; 
-	private OnGameFoundListener onGameFoundListener; 
-	private OnNetworkErrorListener onNetworkErrorListener;
-	private OnAndroidDataReceivedListener onAndroidDataReceivedListener;
-	private OnNiosSuccessfulSetupListener onNiosSuccessfulSetupListener;
+		private OnAndroidSocketSetupListener onAndroidSocketSetupListener; 
+		private OnNiosSocketSetupListener onNiosSocketSetupListener;
+		private OnAndroidDataReceivedListener onAndroidDataReceivedListener;
 	
-	private Handler handler;
+	private Handler mHandler;
 	
-	/* Return the NetworkManager instance*/ 
-	public static NetworkManager getInstance()
-	{
+//	Private Constructor for Singleton
+	private NetworkManager() {
+		mHandler = new Handler(BattleshipApplication.getAppContext().getMainLooper());
+	}
+	
+//	Return the NetworkManager instance
+	public static NetworkManager getInstance() {
 		if(NetworkManagerInstance == null)
 			NetworkManagerInstance = new NetworkManager(); 
 		return NetworkManagerInstance;
+	}
 		
-	}
-	
-	/* Private Constructor for Singleton */
-	private NetworkManager()
-	{
-		handler = new Handler(BattleshipApplication.getAppContext().getMainLooper());
-	}
-	
-	/* Set-up/Teardown */
-	
-	public void close()
-	{
+	public void close() {
 		try {
-			androidSocketVersion++;
-			if (clientSocket != null)
-				clientSocket.close();
-			if (serverSocket != null)
-				serverSocket.close();
-			if (niosSocket != null)
-				niosSocket.close();
+			mAndroidSocketVersion++;
+			if (mClientSocket != null)
+				mClientSocket.close();
+			if (mServerSocket != null)
+				mServerSocket.close();
+			if (mNiosSocket != null)
+				mNiosSocket.close();
 		} catch (IOException e) {
 			Log.d(TAG, "Error closing socket.");
 			e.printStackTrace();
@@ -96,47 +81,32 @@ public class NetworkManager extends Object
 		
 	}
 	
-	/* Mutators */
-	public void setOnNiosSuccessfulSetupListener (OnNiosSuccessfulSetupListener niosSetupListener)
-	{
-		onNiosSuccessfulSetupListener = niosSetupListener;
-	}
-	public void setOnAndroidDataReceivedListener(OnAndroidDataReceivedListener dataListener)
-	{
-		onAndroidDataReceivedListener = dataListener;
+//	SETUP LISTENERS
+	public void setOnAndroidSocketSetupListener (OnAndroidSocketSetupListener listener) {
+		onAndroidSocketSetupListener = listener;
 	}
 	
-	public void setOnNetworkErrorListener(OnNetworkErrorListener networkListener)
-	{
-		onNetworkErrorListener = networkListener;
+	public void setOnNiosSocketSetupListener (OnNiosSocketSetupListener listener) {
+		onNiosSocketSetupListener = listener;
 	}
 	
-	public void setOnGameFoundListener(OnGameFoundListener gameListener)
-	{
-		onGameFoundListener = gameListener;
+	public void setOnAndroidDataReceivedListener (OnAndroidDataReceivedListener listener) {
+		onAndroidDataReceivedListener = listener;
 	}
 	
-	public void setOnIPFoundListener(OnIPFoundListener ipListener)
-	{
-		onIPFoundListener = ipListener;
+//	SOCKET SETUP
+	private void setHost(boolean isHostBool) {
+		mIsHost = isHostBool;
 	}
 	
-	
-	private void setHost(boolean isHostBool)
-	{
-		isHost = isHostBool;
-	}
-	
-	public void setupHost()
-	{
-			serverThread = new ServerThread();
-			new Thread(serverThread).start(); // waits for a connection & sets the client socket when it finds one	
+	public void setupHost() {
+			new Thread(new ServerSocketSetupRunnable()).start(); // waits for a connection & sets the client socket when it finds one	
 	}
 	
 	public void setupAndroidSocket(String ip, int port, boolean isHostBool) throws UnknownHostException, IOException
 	{
 		setHost(isHostBool);
-		if(isHost)
+		if(mIsHost)
 		{
 			Log.d(TAG, "Setting up host");
 			setupHost();
@@ -144,9 +114,9 @@ public class NetworkManager extends Object
 		else 
 		{
 			Log.d(TAG, "Setting up client");
-			AndroidHostIP = ip;
-			AndroidHostPort = port;
-			SetupSocketThread socketSetupThread = new SetupSocketThread(ip, port, false);
+			mAndroidHostIP = ip;
+			mAndroidHostPort = port;
+			SetupSocketRunnable socketSetupThread = new SetupSocketRunnable(ip, port, false);
 			new Thread(socketSetupThread).start();
 		}
 		
@@ -154,9 +124,9 @@ public class NetworkManager extends Object
 	
 	public void setupNiosSocket(String ip, int port) throws UnknownHostException, IOException
 	{
-		NiosHostIP = ip; 
-		NiosHostPort = port;
-		SetupSocketThread socketThread = new SetupSocketThread(ip, port, true);
+		mNiosHostIP = ip; 
+		mNiosHostPort = port;
+		SetupSocketRunnable socketThread = new SetupSocketRunnable(mNiosHostIP, mNiosHostPort, true);
 		new Thread(socketThread).start();
 	}
 	
@@ -166,81 +136,86 @@ public class NetworkManager extends Object
 		return new Socket(inet, port);
 	}
 	
-	
-	/* Accessors */
-	public boolean getIsHost()
-	{
-		return isHost;
+//	ACCESSORS	
+	public boolean getIsHost() {
+		return mIsHost;
 	}
 	
-	public String getAndroidHostIP()
-	{
-		return AndroidHostIP;
+	public String getAndroidHostIP() {
+		return mAndroidHostIP;
 	}
 	
-	public int getAndroidHostPort()
-	{
-		return AndroidHostPort;
+	public int getAndroidHostPort() {
+		return mAndroidHostPort;
 	}
 	
-	public Socket getClientSocket()
-	{
-		return clientSocket;
+	public Socket getClientSocket() {
+		return mClientSocket;
 	}
 	
-	public ServerSocket getServerSocket()
-	{
-		return serverSocket;
+	public ServerSocket getServerSocket() {
+		return mServerSocket;
 	}
 	
-	public PrintWriter getNiosSocketOutput()
-	{
-		if(NiosSocketOutput == null)
+//	getNiosSocketOutput: Returns the NIOS socket output stream
+//	 					 Initializes an output stream if null
+	public PrintWriter getNiosSocketOutput() {
+		if(mNiosSocketOutput == null)
 		{
 			try {
-				NiosSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(niosSocket.getOutputStream())), true);
+				mNiosSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(mNiosSocket.getOutputStream())), true);
 			} catch (IOException e) {
 				Log.d(TAG, "Error with socket writer");
 				e.printStackTrace();
 			}
 		}
-		return NiosSocketOutput; 
+		return mNiosSocketOutput; 
 	}
 	
-	public PrintWriter getAndroidSocketOutput()
-	{
-		if(AndroidSocketOutput == null)
+//	getAndroidSocketOutput: Returns an Android socket output stream
+//							Initializes an output stream if null
+	public PrintWriter getAndroidSocketOutput() {
+		if(mAndroidSocketOutput == null)
 		{
 			try {
-				AndroidSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream())), true);
+				mAndroidSocketOutput =  new PrintWriter(new BufferedWriter(new OutputStreamWriter(mClientSocket.getOutputStream())), true);
 			} catch (IOException e) {
 				Log.d(TAG, "Error with socket writer");
 				e.printStackTrace();
 			}
 		}
-		return AndroidSocketOutput; 
+		return mAndroidSocketOutput; 
 	}
 	
-	public BufferedReader getAndroidSocketInput()
-	{
-		if(AndroidSocketInput == null)
+//	getAndroidSocketInput: Returns an Android input stream
+//						   Initializes an input stream if null
+	public BufferedReader getAndroidSocketInput() {
+		if(mAndroidSocketInput == null)
 			try {
-				AndroidSocketInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				mAndroidSocketInput = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream()));
 			} catch (IOException e) {
 				Log.d(TAG, "Error with socket reader");
 				e.printStackTrace();
 			}
-		return AndroidSocketInput; 
+		return mAndroidSocketInput; 
 	}
 	
-	public class SetupSocketThread implements Runnable
-	{
+//	Send: Sends a message using a new send message runnable
+	public void send(String message, boolean toAndroid) {
+		if(!toAndroid && !PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_USE_NIOS, false)) return;
+		SendMessageRunnable sendThread = new SendMessageRunnable(message, toAndroid);
+		new Thread(sendThread).start();
+	}
+	
+//	RUNNABLES
+//	SocketSetupRunnable: Sets up a socket (Android client / NIOS socket
+//	 					 Notifies listeners that the setup was successful/is connected
+	public class SetupSocketRunnable implements Runnable {
 		String ipAddress; 
 		int portNum; 
 		boolean isNios;
 		
-		SetupSocketThread(String ip, int port, boolean isNiosBool)
-		{
+		SetupSocketRunnable(String ip, int port, boolean isNiosBool) {
 			ipAddress = ip; 
 			portNum = port;
 			isNios = isNiosBool;
@@ -251,41 +226,41 @@ public class NetworkManager extends Object
 				try {
 					if(isNios)
 					{
-						if (niosSocket != null) {
-							niosSocket.close();
+						if (mNiosSocket != null) {
+							mNiosSocket.close();
 						}
-						niosSocket = setupSocket(ipAddress, portNum);
+						mNiosSocket = setupSocket(ipAddress, portNum);
 						Runnable successfulSetup = new Runnable() {
         					@Override
         					public void run() {
-        						if(onNiosSuccessfulSetupListener != null)
-        							onNiosSuccessfulSetupListener.SetupNiosSuccessfully();
+        						if(onNiosSocketSetupListener != null)
+        							onNiosSocketSetupListener.onSuccessfulNiosSetup();
         					}
         				};
-        				handler.post(successfulSetup);
+        				mHandler.post(successfulSetup);
 						Log.d(TAG, "Set up NIOS Socket");
 					}
 					else 
 					{
-						androidSocketVersion++;
-						AndroidSocketInput = null;
-						AndroidSocketOutput = null;
-						if (clientSocket != null) {
-							clientSocket.close();
+						mAndroidSocketVersion++;
+						mAndroidSocketInput = null;
+						mAndroidSocketOutput = null;
+						if (mClientSocket != null) {
+							mClientSocket.close();
 						}
-						clientSocket = setupSocket(ipAddress, portNum);
+						mClientSocket = setupSocket(ipAddress, portNum);
 						
 						// CLIENT WAS SUCCESSFULLY CONNECTED TO THE HOST! 
-						new Thread(new ReceiverThread()).start();
+						new Thread(new ReceiveMessageRunnable()).start();
 						Runnable gameFoundRunnable = new Runnable() {
 							@Override
 							public void run() {
-								if(onGameFoundListener != null)
-									onGameFoundListener.onGameFound();
+								if(onAndroidSocketSetupListener != null)
+									onAndroidSocketSetupListener.onGameFound();
 								
 							}
 						};
-						handler.post(gameFoundRunnable);
+						mHandler.post(gameFoundRunnable);
 					}
 				} catch (UnknownHostException e) {
 					Log.d(TAG, "Unknown Host");
@@ -295,83 +270,74 @@ public class NetworkManager extends Object
 					Runnable socketErrorRunnable = new Runnable() {
 						@Override
 						public void run() {
-							if(onNetworkErrorListener != null)
-								onNetworkErrorListener.onClientSocketError();
+							if(onAndroidSocketSetupListener != null)
+								onAndroidSocketSetupListener.onAndroidSocketSetupError();
 						}
 					};
-					handler.post(socketErrorRunnable);
+					mHandler.post(socketErrorRunnable);
 					e.printStackTrace();
 				}
 		}
 		
 	}
-	
-	public class ServerThread implements Runnable
-	{
+//	ServerSocketSetupRunnable: Sets up the server socket & blocks until a client connects, 
+//	   						   then notifies listener that is has been connected to a client
+	public class ServerSocketSetupRunnable implements Runnable {
 		@Override
 		public void run() {
 			// Wait for connections
 			try {
-				if (serverSocket != null) {
-					serverSocket.close();
+				if (mServerSocket != null) {
+					mServerSocket.close();
 				}
-				serverSocket = new ServerSocket(0);
-				AndroidHostIP = getLocalIpAddress();
-				AndroidHostPort = serverSocket.getLocalPort(); 
+				mServerSocket = new ServerSocket(0);
+				mAndroidHostIP = getLocalIpAddress();
+				mAndroidHostPort = mServerSocket.getLocalPort(); 
 				Runnable ipRunnable = new Runnable() {
 					
 					@Override
 					public void run() {
-						if(onIPFoundListener != null)
+						if(onAndroidSocketSetupListener != null)
 						{
-							onIPFoundListener.onIPFound(getAndroidHostIP(), getAndroidHostPort());
+							onAndroidSocketSetupListener.onFoundIPAddress(getAndroidHostIP(), getAndroidHostPort());
 						}
 					}
 				}; 
-				handler.post(ipRunnable);
-				androidSocketVersion++;
-				AndroidSocketInput = null;
-				AndroidSocketOutput = null;
-				if (clientSocket != null) {
-					clientSocket.close();
+				mHandler.post(ipRunnable);
+				mAndroidSocketVersion++;
+				mAndroidSocketInput = null;
+				mAndroidSocketOutput = null;
+				if (mClientSocket != null) {
+					mClientSocket.close();
 				}
-				clientSocket = serverSocket.accept();
+				mClientSocket = mServerSocket.accept();
 				
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it finds a client)
-				new Thread(new ReceiverThread()).start();
+				new Thread(new ReceiveMessageRunnable()).start();
 				Log.d(TAG, "Connected!");
 				Runnable gameFoundRunnable = new Runnable() {
 					@Override
 					public void run() {
-						if(onGameFoundListener != null)
-							onGameFoundListener.onGameFound();
+						if(onAndroidSocketSetupListener != null)
+							onAndroidSocketSetupListener.onGameFound();
 						
 					}
 				};
-				handler.post(gameFoundRunnable);
+				mHandler.post(gameFoundRunnable);
 				
 			} catch (IOException e) {
 				Log.d(TAG, "Thread Error");
 				e.printStackTrace();
 			}
-			
-			
 		};	
 	}
 	
-	public void send(String message, boolean toAndroid)
-	{
-		if(!toAndroid && !PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_USE_NIOS, false)) return;
-		SenderThread sendThread = new SenderThread(message, toAndroid);
-		new Thread(sendThread).start();
-	}
-	
-	public class SenderThread implements Runnable
-	{
+//	SendMessageRunnable: New Runnable to send a message, either to an Android device or the NIOS
+//						 Is created every time a message needs to be sent & is discarded after every message
+	public class SendMessageRunnable implements Runnable {
 		String message;
 		boolean sendToAndroid;
-		public SenderThread(String msg, boolean toAndroid)
-		{
+		public SendMessageRunnable(String msg, boolean toAndroid) {
 			message = msg;
 			sendToAndroid = toAndroid;
 		}
@@ -385,13 +351,13 @@ public class NetworkManager extends Object
 				getNiosSocketOutput().println((char)(message.length()+1) + message);
 		};	
 	}
-	
-	public class ReceiverThread implements Runnable
-	{
+//	ReceiveMessageRunnable: Receive message thread (always alive, one per client/NIOS socket)
+//							Is created when connection is made
+	public class ReceiveMessageRunnable implements Runnable {
 		private int currentSocketVersion;
 		
-		public ReceiverThread() {
-			currentSocketVersion = androidSocketVersion;
+		public ReceiveMessageRunnable() {
+			currentSocketVersion = mAndroidSocketVersion;
 		}
 
 		@Override
@@ -402,7 +368,7 @@ public class NetworkManager extends Object
 				String line = null;
 				// If the socket has changed, then there is another duplicate thread.
 				// Kill this one
-				if (androidSocketVersion != currentSocketVersion) {
+				if (mAndroidSocketVersion != currentSocketVersion) {
 					return;
 				}
 				
@@ -417,7 +383,7 @@ public class NetworkManager extends Object
         							onAndroidDataReceivedListener.ReceivedAndroidData(receivedString);
         					}
         				};
-        				handler.post(gameFoundRunnable);
+        				mHandler.post(gameFoundRunnable);
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -428,29 +394,22 @@ public class NetworkManager extends Object
 		};	
 	}
 	
-	
-	public static interface OnIPFoundListener {
-		public void onIPFound(String IP, int port);
-	}
-	
-	public static interface OnGameFoundListener {
+	public static interface OnAndroidSocketSetupListener {
+		public void onFoundIPAddress(String ip, int port); 
 		public void onGameFound();
+		public void onAndroidSocketSetupError();
 	}
 	
-	public static interface OnNetworkErrorListener {
-		public void onClientSocketError(); 
+	public static interface OnNiosSocketSetupListener {
+		public void onSuccessfulNiosSetup();
+		public void onNiosSocketSetupError(); 
 	}
 	
 	public static interface OnAndroidDataReceivedListener {
 		public void ReceivedAndroidData(String message);
 	}
 	
-	public static interface OnNiosSuccessfulSetupListener { 
-		public void SetupNiosSuccessfully();
-	}
-	
-	private static String getLocalIpAddress()
-	{
+	private static String getLocalIpAddress() {
 		WifiManager wifiManager = (WifiManager) BattleshipApplication.getAppContext().getSystemService(Context.WIFI_SERVICE);
 		return Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
 	}	

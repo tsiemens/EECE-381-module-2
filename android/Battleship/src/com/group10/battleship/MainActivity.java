@@ -6,10 +6,8 @@ import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
-import com.group10.battleship.network.NetworkManager.OnGameFoundListener;
-import com.group10.battleship.network.NetworkManager.OnIPFoundListener;
-import com.group10.battleship.network.NetworkManager.OnNetworkErrorListener;
-import com.group10.battleship.network.NetworkManager.OnNiosSuccessfulSetupListener;
+import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
+import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,8 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends SherlockActivity implements OnClickListener, OnIPFoundListener, OnGameFoundListener, 
-	OnNetworkErrorListener, OnNiosSuccessfulSetupListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -88,11 +85,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-					NetworkManager.getInstance().setOnIPFoundListener(this);
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-					NetworkManager.getInstance().setOnNetworkErrorListener(this);
-					NetworkManager.getInstance().setOnNiosSuccessfulSetupListener(this);
-					
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
 				} catch (Exception e) {
 					Log.d(TAG, "Error making NIOS socket");
 					handleSocketError(e);
@@ -102,9 +96,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				try {
 					//	HOST SETUP
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-					NetworkManager.getInstance().setOnIPFoundListener(this);
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-					NetworkManager.getInstance().setOnNetworkErrorListener(this);
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
 				} catch (Exception e) {
 					Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
 					e.printStackTrace();
@@ -123,7 +116,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 					//	CLIENT SETUP
 					NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
 						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-					NetworkManager.getInstance().setOnGameFoundListener(this);
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
 				}
 				catch(NumberFormatException e)
 				{
@@ -137,26 +130,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		}
 	}
 
-	@Override
-	public void onIPFound(String IP, int port) {
-		mHostIpTv.setText("IP: "
-				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort());
-	}
-
-	@Override
-	public void onGameFound() {
-		Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show();
-		startActivity(new Intent(this, GameActivity.class));
-	}
-
-	@Override
-	public void onClientSocketError() {
-		Toast.makeText(this, "Error: Could not find game", Toast.LENGTH_LONG)
-				.show();
-
-	}
-
 	// Show toast with error message & log the stack trace
 	private void handleSocketError(Exception e)
 	{
@@ -165,10 +138,32 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	}
 
 	@Override
-	public void SetupNiosSuccessfully() 
-	{
+	public void onSuccessfulNiosSetup() {
 		NIOS2NetworkManager.sendNewGame();
-		Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void onNiosSocketSetupError() {
+		Toast.makeText(this, "Error: Could not find NIOS", Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void onFoundIPAddress(String ip, int port) {
+		 mHostIpTv.setText("IP: "
+                 + NetworkManager.getInstance().getAndroidHostIP() + ":"
+                 + NetworkManager.getInstance().getAndroidHostPort());
+	}
+
+	@Override
+	public void onGameFound() {
+		Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show();
+        startActivity(new Intent(this, GameActivity.class));
+	}
+
+	@Override
+	public void onAndroidSocketSetupError() {
+		Toast.makeText(this, "Error: Could not find game", Toast.LENGTH_LONG).show();	
 	}
 
 }
