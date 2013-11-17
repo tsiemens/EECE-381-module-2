@@ -4,12 +4,15 @@ import android.content.Context;
 import android.graphics.Color;
 
 import com.group10.battleship.R;
+import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.TexturedRect;
 
-public class Ship extends TexturedRect{
+public class Ship implements GL20Drawable{
 	
 	public static int SELECTED_COLOR = Color.parseColor("#ff00ffff");
 	public static int SHIP_COLOR = Color.parseColor("#ff999999");
+	
+	private TexturedRect mTexRect;
 	
 	private ShipType mType;
 	
@@ -20,16 +23,33 @@ public class Ship extends TexturedRect{
 	private float[] mBoardLoc;
 	private float mGridSize;
 
+	/**
+	 * Creates new ship of type, with a graphical component.
+	 * @param activityContext
+	 * @param type
+	 */
 	public Ship(Context activityContext, ShipType type) {
-		super(activityContext, type.drawableResId());
+		this(type);
+		initializeGLDrawable(activityContext);
+		setSelected(false);
+	}
+	
+	/**
+	 * Creates new ship of type. Has no graphical element
+	 * @param type
+	 */
+	public Ship(ShipType type) {
 		mType = type;
 		// Place the ship at board 0, 0 to start
 		mGridIndex = new int[] {0, 0};
 		mBoardLoc = new float[] {0, 0};
 		mIsHorizontal = true;
-		setSelected(false);
 	}
 
+	/**
+	 * Configures the ship and drawable (if initialized) so it can appear correctly on the board
+	 * @param board
+	 */
 	public void configureBoardConstraints(Board board) {
 		float[] bpos = board.getPosition();
 		mBoardLoc[0] = bpos[0] + board.getTileOffset();
@@ -40,31 +60,46 @@ public class Ship extends TexturedRect{
 		setHorizontal(mIsHorizontal);
 	}
 	
+	/**
+	 * Initializes the drawable component of the ship.
+	 * @param context
+	 */
+	public void initializeGLDrawable(Context context) {
+		mTexRect = new TexturedRect(context, mType.drawableResId());
+	}
+	
 	public void setHorizontal(boolean horiz) {
 		mIsHorizontal = horiz;
-		if (mIsHorizontal) {
-			setSize(mType.size() * mGridSize, mGridSize);
-			setTexRotation(0);
-		} else {
-			setSize(mGridSize, mType.size() * mGridSize);
-			setTexRotation(270);
+		if (mTexRect != null) {
+			if (mIsHorizontal) {
+				mTexRect.setSize(mType.size() * mGridSize, mGridSize);
+				mTexRect.setTexRotation(0);
+			} else {
+				mTexRect.setSize(mGridSize, mType.size() * mGridSize);
+				mTexRect.setTexRotation(270);
+			}
 		}
 	}
 	
 	public boolean isHorizontal() { return mIsHorizontal; }
 	
 	public void setSelected(boolean isSelected) {
-		if (isSelected)
-			setColor(SELECTED_COLOR);
-		else
-			setColor(SHIP_COLOR);
+		if (mTexRect != null) {
+			if (isSelected)
+				mTexRect.setColor(SELECTED_COLOR);
+			else
+				mTexRect.setColor(SHIP_COLOR);
+		}
 	}
 	
 	public boolean isSelected() {
-		if (getColor() == SELECTED_COLOR)
-			return true;
-		else
-			return false;
+		if (mTexRect == null) return false;
+		else {
+			if (mTexRect.getColor() == SELECTED_COLOR)
+				return true;
+			else
+				return false; 
+		}
 	}
 	
 	public boolean isOnGridTile(int x, int y) {
@@ -128,7 +163,9 @@ public class Ship extends TexturedRect{
 	public void setPosIndex(int x, int y) {
 		mGridIndex[0] = x;
 		mGridIndex[1] = y;
-		setPosition(mBoardLoc[0] + (x * mGridSize), mBoardLoc[1] - (y * mGridSize));
+		if (mTexRect != null) {
+			mTexRect.setPosition(mBoardLoc[0] + (x * mGridSize), mBoardLoc[1] - (y * mGridSize));
+		}
 	}
 	
 	public int[] getPosIndex() { return mGridIndex.clone(); }
@@ -171,6 +208,13 @@ public class Ship extends TexturedRect{
 			default:
 				return 0;
 			}
+		}
+	}
+
+	@Override
+	public void draw(float[] mvpMatrix) {
+		if (mTexRect != null) {
+			mTexRect.draw(mvpMatrix);
 		}
 	}
 }

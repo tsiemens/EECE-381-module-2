@@ -28,8 +28,7 @@ public class Board implements GL20Drawable{
 	private TexturedRect mAlphaCol;
 	
 	private ArrayList<ArrayList<TexturedRect>> mTileRows;
-	// In format of { Col, Row }
-	private int[] mSelectedTileIndex;
+	private BoardCoord mSelectedTileIndex;
 	private TexturedRect mSelectionTile;
 	
 	private boolean mIsPlayerBoard = false;
@@ -78,7 +77,7 @@ public class Board implements GL20Drawable{
 			}
 		}
 		
-		mSelectedTileIndex = new int[]{-1, -1};
+		mSelectedTileIndex = new BoardCoord(-1, -1);
 		mSelectionTile = new TexturedRect(mContext, R.drawable.white_pix);
 		mSelectionTile.setColor(TILE_COLOR_SELECTION);
 		mSelectionTile.setSize(tileGridSize, tileGridSize);
@@ -142,9 +141,9 @@ public class Board implements GL20Drawable{
 		}
 		this.setIsPlayerBoard(board.isPlayerBoard());
 		
-		int [] sel = board.getSelectedTileIndex();
+		BoardCoord sel = board.getSelectedTileIndex();
 		if (sel != null) {
-			setSelectedTile(sel[0], sel[1]);
+			setSelectedTile(sel);
 		}
 		
 		List<Ship> ships = board.getShips();
@@ -169,7 +168,7 @@ public class Board implements GL20Drawable{
 		mNumberRow.draw(mvpMatrix);
 		mAlphaCol.draw(mvpMatrix);
 		
-		if (isTileIndexValid(mSelectedTileIndex[0], mSelectedTileIndex[1])) {
+		if (isTileIndexValid(mSelectedTileIndex.x, mSelectedTileIndex.y)) {
 			mSelectionTile.draw(mvpMatrix);
 		}
 		
@@ -337,10 +336,10 @@ public class Board implements GL20Drawable{
 	 */
 	public void setSelectedTile(int col, int row) {
 		if (!isTileIndexValid(col, row)) {
-			mSelectedTileIndex[0] = -1;
+			mSelectedTileIndex.x = -1;
 		} else {
-			mSelectedTileIndex[0] = col;
-			mSelectedTileIndex[1] = row;
+			mSelectedTileIndex.x = col;
+			mSelectedTileIndex.y = row;
 
 			float tileGridSize = getTileGridSize();
 			mSelectionTile.setPosition( mTopLeftX + ((col + 1)*tileGridSize), 
@@ -348,18 +347,21 @@ public class Board implements GL20Drawable{
 		}
 	}
 	
-	public int[] getSelectedTileIndex() {
-		int[] inx = null;
-		if (isTileIndexValid(mSelectedTileIndex[0], mSelectedTileIndex[1])) {
-			inx = new int[]{mSelectedTileIndex[0], mSelectedTileIndex[1]};
+	public void setSelectedTile(BoardCoord bc) {
+		setSelectedTile(bc.x, bc.y);
+	}
+	
+	public BoardCoord getSelectedTileIndex() {
+		BoardCoord coord = null;
+		if (isTileIndexValid(mSelectedTileIndex.x, mSelectedTileIndex.y)) {
+			coord = new BoardCoord(mSelectedTileIndex);
 		}
-		return inx;
+		return coord;
 	}
 	
 	/**
 	 * Gets a tile to the specified colour
 	 * Usually, will be TILE_COLOR_NORMAL, TILE_COLOR_MISS, TILE_COLOR_HIT
-	 * @param color
 	 */
 	public int getTileColour(int col, int row) {
 		return mTileRows.get(row).get(col).getColor();
@@ -371,7 +373,7 @@ public class Board implements GL20Drawable{
 	 * @param y
 	 * @return { col, row } or null if outside the board
 	 */
-	public int[] getTileIndexAtLocation(float x, float y) {
+	public BoardCoord getTileIndexAtLocation(float x, float y) {
 		double col = ((((x - mTopLeftX) - getTileOffset())/(mSideLength-getTileGridSize())) * BOARD_SIZE);
 		double row = ((((mTopLeftY - y) - getTileOffset())/(mSideLength-getTileGridSize())) * BOARD_SIZE);
 		
@@ -379,7 +381,7 @@ public class Board implements GL20Drawable{
 			return null;
 		}
 		
-		return new int [] { (int)col, (int)row };
+		return new BoardCoord((int)col, (int)row);
 	}
 	
 	public float getTileOffset() {
@@ -401,5 +403,26 @@ public class Board implements GL20Drawable{
 	
 	public static boolean isTileIndexValid(int col, int row) {
 		return  !(col >= BOARD_SIZE || col < 0 || row >= BOARD_SIZE || row < 0);
+	}
+	
+	public static boolean isTileIndexValid(BoardCoord bc) {
+		return isTileIndexValid(bc.x, bc.y);
+	}
+	
+	/**
+	 * A holder class for coordinates. 
+	 */
+	public static class BoardCoord {
+		public int x;
+		public int y;
+		
+		public BoardCoord(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+		
+		public BoardCoord(BoardCoord bc) {
+			this(bc.x, bc.y);
+		}
 	}
 }
