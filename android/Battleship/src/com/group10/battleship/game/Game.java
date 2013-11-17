@@ -81,7 +81,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public void start() {
 		setState(GameState.PLACING_SHIPS);
 		willYieldTurn = new Random().nextBoolean();
-		isHost = NetworkManager.getInstance().getIsHost();
+		isHost = NetworkManager.getInstance().isHost();
 	}
 
 	/**
@@ -185,7 +185,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		try {
 			if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) 
 			{
-				if(!NetworkManager.getInstance().getIsHost()) {
+				if(!NetworkManager.getInstance().isHost()) {
 					// Is player 2
 					Log.d(TAG, "Sending board");
 					NetworkManager.getInstance().send(ModelParser.getJsonForBoard(mPlayerBoard.getShips()), true);
