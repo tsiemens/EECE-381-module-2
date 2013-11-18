@@ -1,15 +1,16 @@
 package com.group10.battleship;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
-import com.group10.battleship.network.NetworkManager.OnGameFoundListener;
-import com.group10.battleship.network.NetworkManager.OnIPFoundListener;
-import com.group10.battleship.network.NetworkManager.OnNetworkErrorListener;
-import com.group10.battleship.network.NetworkManager.OnNiosSuccessfulSetupListener;
+import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
+import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,8 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends SherlockActivity implements OnClickListener, OnIPFoundListener, OnGameFoundListener, 
-	OnNetworkErrorListener, OnNiosSuccessfulSetupListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -77,68 +77,66 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onClick(View view) {
 		PrefsManager pm = PrefsManager.getInstance();
-		
-		if (view == mStartGameBtn) {
-			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
-				startActivity(new Intent(this, GameActivity.class));
-			} else if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true)){
-				// TODO check for game connection, etc.
-				try {
-					// Set up the NIOS socket & listener
+		if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
+			startActivity(new Intent(this, GameActivity.class));
+		}
+		// Host
+		else if(view == mStartGameBtn)
+		{
+			Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
+			try {
+				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
+				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
+				// If using nios, also set up the nios 
+				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
+				{
 					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
 							Integer.parseInt(mHostPortEt.getText().toString()));
-					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-					NetworkManager.getInstance().setOnIPFoundListener(this);
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-					NetworkManager.getInstance().setOnNetworkErrorListener(this);
-					NetworkManager.getInstance().setOnNiosSuccessfulSetupListener(this);
-					
-				} catch (Exception e) {
-					Log.d(TAG, "Error making NIOS socket");
-					handleSocketError(e);
+					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
 				}
-			} else {
-				// Not using nios
-				try {
-					//	HOST SETUP
-					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-					NetworkManager.getInstance().setOnIPFoundListener(this);
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-					NetworkManager.getInstance().setOnNetworkErrorListener(this);
-				} catch (Exception e) {
-					Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-					e.printStackTrace();
-				} 
-			}
+			} catch (Exception e) {
+				handleSocketError(e);
+				e.printStackTrace();
+			} 
 		}
-		else if (view == mFindGameBtn) 
+		// Client
+		else if(view == mFindGameBtn)
 		{
-			
-			if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
-				startActivity(new Intent(this, GameActivity.class));
-			} else {
-				// Not using nios
-				Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
-				try {
-					//	CLIENT SETUP
-					NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
+			Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
+			try {
+				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
 						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-					NetworkManager.getInstance().setOnGameFoundListener(this);
-				}
-				catch(NumberFormatException e)
-				{
-					Toast.makeText(this, "No Port specified", Toast.LENGTH_LONG).show();
-				} catch (Exception e) {
-					Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-					e.printStackTrace();
-				}
-			}
-			
+				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+			} catch(NumberFormatException e)
+			{
+				Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+				e.printStackTrace();
+			} catch (Exception e) {
+				handleSocketError(e);
+			} 
 		}
 	}
 
+	// Show toast with error message & log the stack trace
+	private void handleSocketError(Exception e)
+	{
+		Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+		e.printStackTrace();
+	}
+
 	@Override
-	public void onIPFound(String IP, int port) {
+	public void onSuccessfulNiosSetup() {
+		NIOS2NetworkManager.sendNewGame();
+		Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void onNiosSocketSetupError() {
+		Toast.makeText(this, "Error: Could not find NIOS", Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void onFoundIPAddress(String ip, int port) {
 		mHostIpTv.setText("IP: "
 				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort());
@@ -151,24 +149,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	}
 
 	@Override
-	public void onClientSocketError() {
-		Toast.makeText(this, "Error: Could not find game", Toast.LENGTH_LONG)
-				.show();
-
-	}
-
-	// Show toast with error message & log the stack trace
-	private void handleSocketError(Exception e)
-	{
-		Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-		e.printStackTrace();
-	}
-
-	@Override
-	public void SetupNiosSuccessfully() 
-	{
-		NIOS2NetworkManager.sendNewGame();
-		Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
+	public void onAndroidSocketSetupError() {
+		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
 	}
 
 }
