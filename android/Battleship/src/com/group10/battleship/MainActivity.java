@@ -7,6 +7,7 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.game.Game;
+import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
@@ -78,6 +79,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	public void onClick(View view) {
 		PrefsManager pm = PrefsManager.getInstance();
 		if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
+			// TODO: change this later to be when starting in single player
+			Game game = Game.getInstance();
+			if (game.getState() != GameState.UNINITIALIZED) {
+				// Game was in progress before, so we have to restart it.
+				game.invalidate();
+			}
+			game.start(false);
 			startActivity(new Intent(this, GameActivity.class));
 		}
 		// Host
@@ -145,6 +153,12 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onGameFound() {
 		Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show();
+		Game game = Game.getInstance();
+		if (game.getState() != GameState.UNINITIALIZED) {
+			// Game was in progress before, so we have to restart it.
+			game.invalidate();
+		}
+		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
 

@@ -63,14 +63,13 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		mGLRenderer.setAnimationListener(this);
 
 		Game game = Game.getInstance();
-		game.configure(this, mGLRenderer);
-
-		game.setGameStateListener(this);
-
 		if (game.getState() == GameState.UNINITIALIZED) {
-			// No game was in progress, so we have to start it.
-			game.start();
+			// This should not happen in theory, since the game should be started by the MainActivity
+			finish();
 		}
+		
+		game.configure(this, mGLRenderer);
+		game.setGameStateListener(this);
 
 		supportInvalidateOptionsMenu();
 	}

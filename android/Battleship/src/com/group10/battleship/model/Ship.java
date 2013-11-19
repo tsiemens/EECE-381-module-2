@@ -6,6 +6,7 @@ import android.graphics.Color;
 import com.group10.battleship.R;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.TexturedRect;
+import com.group10.battleship.model.Board.BoardCoord;
 
 public class Ship implements GL20Drawable{
 	
@@ -18,7 +19,7 @@ public class Ship implements GL20Drawable{
 	
 	private boolean mIsHorizontal;
 	// In format of { Col, Row }
-	private int[] mGridIndex;
+	private BoardCoord mGridIndex;
 	// In format of { x, y }
 	private float[] mBoardLoc;
 	private float mGridSize;
@@ -41,7 +42,7 @@ public class Ship implements GL20Drawable{
 	public Ship(ShipType type) {
 		mType = type;
 		// Place the ship at board 0, 0 to start
-		mGridIndex = new int[] {0, 0};
+		mGridIndex = new BoardCoord(0, 0);
 		mBoardLoc = new float[] {0, 0};
 		mIsHorizontal = true;
 	}
@@ -56,7 +57,7 @@ public class Ship implements GL20Drawable{
 		mBoardLoc[1] = bpos[1] - board.getTileOffset();
 		mGridSize = board.getTileGridSize();
 		// Place the ship at board 0, 0 to start
-		setPosIndex(mGridIndex[0], mGridIndex[1]);
+		setPosIndex(mGridIndex.x, mGridIndex.y);
 		setHorizontal(mIsHorizontal);
 	}
 	
@@ -103,10 +104,10 @@ public class Ship implements GL20Drawable{
 	}
 	
 	public boolean isOnGridTile(int x, int y) {
-		if (mIsHorizontal && mGridIndex[1] == y) {
-			return (x >= mGridIndex[0] && x < (mGridIndex[0] + mType.size()) );
-		} else if (!mIsHorizontal && mGridIndex[0] == x) {
-			return (y >= mGridIndex[1] && y < (mGridIndex[1] + mType.size()) );
+		if (mIsHorizontal && mGridIndex.y == y) {
+			return (x >= mGridIndex.x && x < (mGridIndex.x + mType.size()) );
+		} else if (!mIsHorizontal && mGridIndex.x == x) {
+			return (y >= mGridIndex.y && y < (mGridIndex.y + mType.size()) );
 		}
 		return false;
 	}
@@ -124,8 +125,8 @@ public class Ship implements GL20Drawable{
 	}
 	
 	public boolean wouldIntersectShipAfterRotate(Ship ship) {
-		int x = mGridIndex[0];
-		int y = mGridIndex[1];
+		int x = mGridIndex.x;
+		int y = mGridIndex.y;
 		for (int i = 0; i < mType.size(); i++) {
 			if (ship.isOnGridTile(x, y)) {
 				return true;
@@ -149,26 +150,26 @@ public class Ship implements GL20Drawable{
 	}
 	
 	public boolean wouldBeOnGridAfterRotate(){
-		if (mGridIndex[0] >= Board.BOARD_SIZE || mGridIndex[0] < 0 
-			|| mGridIndex[1] >= Board.BOARD_SIZE || mGridIndex[1] < 0)
+		if (mGridIndex.x >= Board.BOARD_SIZE || mGridIndex.x < 0 
+			|| mGridIndex.y >= Board.BOARD_SIZE || mGridIndex.y < 0)
 			return false;
-		if (mIsHorizontal && (mGridIndex[1] + mType.size()) <= Board.BOARD_SIZE)
+		if (mIsHorizontal && (mGridIndex.y + mType.size()) <= Board.BOARD_SIZE)
 			return true;
-		else if (!mIsHorizontal && (mGridIndex[0] + mType.size()) <= Board.BOARD_SIZE)
+		else if (!mIsHorizontal && (mGridIndex.x + mType.size()) <= Board.BOARD_SIZE)
 			return true;
 		else
 			return false;
 	}
 	
 	public void setPosIndex(int x, int y) {
-		mGridIndex[0] = x;
-		mGridIndex[1] = y;
+		mGridIndex.x = x;
+		mGridIndex.y = y;
 		if (mTexRect != null) {
 			mTexRect.setPosition(mBoardLoc[0] + (x * mGridSize), mBoardLoc[1] - (y * mGridSize));
 		}
 	}
 	
-	public int[] getPosIndex() { return mGridIndex.clone(); }
+	public BoardCoord getPosIndex() { return new BoardCoord(mGridIndex.x, mGridIndex.y); }
 	
 	public ShipType getType() { return mType;}
 	
