@@ -12,6 +12,7 @@
 SpriteArrayList** SpriteFactory_generateNewBoard();
 char intToChar(int val);
 
+#define ALPHA_STATUS_SPRITE_ID 1
 
 /****************CHAR AND PIXEL CONVERSIONS****************/
 #define CHAR_TO_PIXEL_HEIGHT ((float)SCREEN_HEIGHT/CHARBUFFER_HEIGHT)
@@ -20,6 +21,7 @@ char intToChar(int val);
 #define PIXEL_TO_CHAR_WIDTH ((float)CHARBUFFER_WIDTH/SCREEN_WIDTH)
 
 /**************** GENERAL DEFINITIONS****************/
+#define GAMEBOARD_TOP_CHAR_PADDING 10
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
