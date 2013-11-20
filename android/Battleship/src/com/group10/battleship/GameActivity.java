@@ -9,7 +9,9 @@ import com.group10.battleship.game.Game.GameStateChangedListener;
 import com.group10.battleship.graphics.GL20Renderer;
 
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -145,8 +147,15 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			Game.getInstance().onFireButtonPressed();
 		} else if (item.getItemId() == R.id.confirm_item) {
 			Game.getInstance().onConfirmBoardPressed();
+		} else if (item.getItemId() == R.id.quit_item) {
+			showExitConfirmationDialog();
 		}
 		return true;
+	}
+
+	@Override
+	public void onBackPressed() {
+		showExitConfirmationDialog();
 	}
 
 	@Override
@@ -196,5 +205,19 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		else if(Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT)
 			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
 	}
-
+	
+	private void showExitConfirmationDialog() {
+		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+		dialogBuilder.setMessage(R.string.dialog_quit_conf_message);
+		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+		dialogBuilder.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Game.getInstance().forfeit();
+				GameActivity.this.finish();
+			}
+		});
+		dialogBuilder.show();
+	}
 }
