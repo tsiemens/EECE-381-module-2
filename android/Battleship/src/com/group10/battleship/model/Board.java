@@ -153,8 +153,8 @@ public class Board implements GL20Drawable{
 				for (Ship myShip : mShips) {
 					if (myShip.getType().equals(s.getType())) {
 						myShip.setHorizontal(s.isHorizontal());
-						int [] pos = s.getPosIndex();
-						myShip.setPosIndex(pos[0], pos[1]);
+						BoardCoord pos = s.getPosIndex();
+						myShip.setPosIndex(pos.x, pos.y);
 						myShip.setSelected(s.isSelected());
 						break;
 					}

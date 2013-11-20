@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
+import com.group10.battleship.game.ai.BattleshipAI;
+import com.group10.battleship.game.ai.RandomAI;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
@@ -43,6 +45,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private TexturedRect mBackground;
 	
 	private boolean isHost;
+	private boolean mIsMultiplayer;
+	
 	private boolean hasReceivedOpponentBoard = false;
 	private boolean willYieldTurn = false;
 	
@@ -57,6 +61,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private int[] mShipDraggingOffset;
 	
 	private GameStateChangedListener mStateListener;
+	
+	private BattleshipAI mSingleplayerAI;
 
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
@@ -73,15 +79,20 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		setState(GameState.UNINITIALIZED);
 		mShipDraggingOffset = new int[] { 0, 0 };
 		mLastMove = new BoardCoord(-1, -1);
-		if (!PrefsManager.getInstance().getBoolean(
-				PrefsManager.PREF_KEY_LOCAL_DEBUG, false))
-			NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
+		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 
-	public void start() {
+	public void start(boolean isMultiplayer) {
 		setState(GameState.PLACING_SHIPS);
+		mIsMultiplayer = isMultiplayer;
 		willYieldTurn = new Random().nextBoolean();
-		isHost = NetworkManager.getInstance().isHost();
+		if (isMultiplayer) {
+			isHost = NetworkManager.getInstance().isHost();
+		} else {
+			// TODO detect difficulty somehow
+			mSingleplayerAI = new RandomAI();
+			isHost = true;
+		}
 	}
 
 	/**
@@ -105,6 +116,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		setState(GameState.UNINITIALIZED);
 		mPlayerBoard = null;
 		mOpponentBoard = null;
+	}
+	
+	public boolean isMultiplayer() {
+		return mIsMultiplayer;
 	}
 
 	public GameState getState() {
@@ -183,26 +198,31 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public void onConfirmBoardPressed()
 	{
 		try {
-			if(!PrefsManager.getInstance().getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) 
-			{
-				if(!NetworkManager.getInstance().isHost()) {
-					// Is player 2
-					Log.d(TAG, "Sending board");
-					NetworkManager.getInstance().send(ModelParser.getJsonForBoard(mPlayerBoard.getShips()), true);
+			if (!isMultiplayer()) {
+				mSingleplayerAI.arrangeShips(mOpponentBoard);
+				if(willYieldTurn) {
 					setState(GameState.WAITING_FOR_OPPONENT);
-				} else if(hasReceivedOpponentBoard) {
-					// if host already received client board & is pressing to confirm own
-					if(willYieldTurn) {
-						setState(GameState.WAITING_FOR_OPPONENT);
-						NetworkManager.getInstance().send(ModelParser.getJsonForYield(), true);
-					} else {
-						setState(GameState.TAKING_TURN);
-					}
 				} else {
-					// Host is confirming board, but still waiting for other player to confirm.
-					setState(GameState.WAITING_FOR_OPPONENT);
+					setState(GameState.TAKING_TURN);
 				}
+			} else if(!NetworkManager.getInstance().isHost()) {
+				// Is player 2
+				Log.d(TAG, "Sending board");
+				NetworkManager.getInstance().send(ModelParser.getJsonForBoard(mPlayerBoard.getShips()), true);
+				setState(GameState.WAITING_FOR_OPPONENT);
+			} else if(hasReceivedOpponentBoard) {
+				// if host already received client board & is pressing to confirm own
+				if(willYieldTurn) {
+					setState(GameState.WAITING_FOR_OPPONENT);
+					NetworkManager.getInstance().send(ModelParser.getJsonForYield(), true);
+				} else {
+					setState(GameState.TAKING_TURN);
+				}
+			} else {
+				// Host is confirming board, but still waiting for other player to confirm.
+				setState(GameState.WAITING_FOR_OPPONENT);
 			}
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -212,20 +232,17 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		BoardCoord pos = mOpponentBoard.getSelectedTileIndex();
 		// Don't do anything if tile has already been acted on.
 		if (mOpponentBoard.getTileColour(pos.x, pos.y) == Board.TILE_COLOR_NORMAL) {
-			if (isHost) { 
-				boolean hit = mOpponentBoard.playerShotAttempt(pos.x, pos.y);
-				if (hit) {
-					NIOS2NetworkManager.sendHit(true, pos.x, pos.y);
-				} else {
-					NIOS2NetworkManager.sendMiss(true, pos.x, pos.y);
-				}
+			if (isHost || !isMultiplayer()) { 
+				boolean hit = processMoveOnBoard(pos.x, pos.y, true);
 				
-				try {
-					String msg = ModelParser.getJsonForMove(pos.x, pos.y, ModelParser.getJsonForMoveResponse(hit));
-					NetworkManager.getInstance().send(msg, true);
-				} catch (JSONException e) {
-					Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
-					e.printStackTrace();
+				if (isMultiplayer()){
+					try {
+						String msg = ModelParser.getJsonForMove(pos.x, pos.y, ModelParser.getJsonForMoveResponse(hit));
+						NetworkManager.getInstance().send(msg, true);
+					} catch (JSONException e) {
+						Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
+						e.printStackTrace();
+					}
 				}
 			} else {
 				try {
@@ -262,9 +279,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					mDraggedShip = selectShip;
 
 					mShipDraggingOffset[0] = inx.x
-							- selectShip.getPosIndex()[0];
+							- selectShip.getPosIndex().x;
 					mShipDraggingOffset[1] = inx.y
-							- selectShip.getPosIndex()[1];
+							- selectShip.getPosIndex().y;
 				}
 			}
 		} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
@@ -279,9 +296,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					inx.x = inx.x - mShipDraggingOffset[0];
 					inx.y = inx.y - mShipDraggingOffset[1];
 
-					int[] dragShipPos = mDraggedShip.getPosIndex();
+					BoardCoord dragShipPos = mDraggedShip.getPosIndex();
 					// Only bother moving the ship, if it has moved
-					if ((dragShipPos[0] != inx.x || dragShipPos[1] != inx.y)
+					if ((dragShipPos.x != inx.x || dragShipPos.y != inx.y)
 							&& mPlayerBoard.verifyNewShipPos(inx.x, inx.y,
 									mDraggedShip)) {
 						mDraggedShip.setPosIndex(inx.x, inx.y);
@@ -309,13 +326,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
 					} else {
 						// Host must process the move, and return if it hit/missed
-						boolean wasHit = mPlayerBoard.playerShotAttempt(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
-								obj.getInt(ModelParser.MOVE_YPOS_KEY));
-						if(wasHit) {
-							NIOS2NetworkManager.sendHit(false, obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
-						} else { 
-							NIOS2NetworkManager.sendMiss(false, obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
-						}
+						boolean wasHit = processMoveOnBoard(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
+								obj.getInt(ModelParser.MOVE_YPOS_KEY), false);
 						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit), true);
 					}
 					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
@@ -361,15 +373,59 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	}
 	
+	/**
+	 * Processes a move attempt taken on the board
+	 * Sends message to nios appropriately
+	 * @param x
+	 * @param y
+	 * @return true if the move hit, false if missed
+	 */
+	private boolean processMoveOnBoard(int x, int y, boolean isHostsMove) {
+		Board board;
+		if (isHostsMove) board = mOpponentBoard;
+		else board = mPlayerBoard;
+		
+		boolean wasHit = board.playerShotAttempt(x, y);
+		if(wasHit) {
+			NIOS2NetworkManager.sendHit(isHostsMove, x, y);
+		} else { 
+			NIOS2NetworkManager.sendMiss(isHostsMove, x, y);
+		}
+		return wasHit;
+	}
+	
 	public static interface GameStateChangedListener {
 		public void onGameStateChanged();
 	}
 	
 	private void setState(GameState state)
 	{
-		mState = state; 
+		mState = state;
 		if(mStateListener != null)
 			mStateListener.onGameStateChanged();
-
+		
+		if (!isMultiplayer() && state == GameState.WAITING_FOR_OPPONENT) {
+			performAIMove();
+			setState(GameState.TAKING_TURN);
+		}
+	}
+	
+	private void performAIMove() {
+		BoardCoord pos;
+		// Ask AI for move until it responds with a valid one.
+		do {
+			pos = mSingleplayerAI.getNextMove();
+			if (pos == null) {
+				Log.e(TAG, "move requested of AI after all spaces taken.");
+				break;
+			}
+		} while(pos != null && mPlayerBoard.getTileColour(pos.x, pos.y) != Board.TILE_COLOR_NORMAL);
+		
+		if (pos != null) {
+			boolean hit = processMoveOnBoard(pos.x, pos.y, false);
+			mSingleplayerAI.respondToLastMove(hit);
+		} else {
+			Log.e(TAG, "move requested of AI after all spaces taken.");
+		}
 	}
 }

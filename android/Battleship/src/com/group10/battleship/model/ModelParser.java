@@ -50,8 +50,8 @@ public class ModelParser {
 			JSONObject ship = new JSONObject();
 			ship.put(TYPE_KEY, SHIP_TYPE_VAL);
 			ship.put(SHIP_TYPE_TYPE_KEY, getShipTypeFromEnum(ships.get(i).getType()));
-			ship.put(SHIP_XPOS_KEY, ships.get(i).getPosIndex()[0]);
-			ship.put(SHIP_YPOS_KEY, ships.get(i).getPosIndex()[1]);
+			ship.put(SHIP_XPOS_KEY, ships.get(i).getPosIndex().x);
+			ship.put(SHIP_YPOS_KEY, ships.get(i).getPosIndex().y);
 			ship.put(SHIP_HORIZ_KEY, ships.get(i).isHorizontal());
 			shipArr.put(ship);
 		}
