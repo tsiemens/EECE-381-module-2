@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.network.NIOS2NetworkManager;
@@ -14,6 +15,8 @@ import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListene
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -51,12 +54,20 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		mHostPortEt = (EditText) findViewById(R.id.et_host_port);
 
 		mHostIpTv = (TextView) findViewById(R.id.tv_host_ip);
-
+		
+		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
+		SoundManager.getInstance().playLoop(R.raw.menu_music, 0.3f);
+	}
+	
+	@Override
+	public void onPause() {
+		SoundManager.getInstance().stopLoop(R.raw.menu_music);
+		super.onPause();
 	}
 
 	@Override
