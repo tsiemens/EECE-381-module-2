@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <SwitchPreference
-        android:key="pref_local_debug"
-        android:persistent="true"
-        android:title="@string/pref_title_local_debug"
-        android:defaultValue="false" />
     
-    <CheckBoxPreference
+    <SwitchPreference
         android:key="pref_use_nios"
         android:persistent="true"
         android:title="@string/pref_title_use_nios"
         android:defaultValue="true" />
+    
+    <EditTextPreference 
+        android:key="pref_middleman_ip"
+        android:title="@string/pref_title_middleman_ip"
+        android:dependency="pref_use_nios" />
+    
+    <EditTextPreference 
+        android:key="pref_middleman_port"
+        android:title="@string/pref_title_middleman_port"
+        android:dependency="pref_use_nios" />
+    
 </PreferenceScreen>

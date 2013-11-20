@@ -13,28 +13,29 @@ import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnCheckedChangeListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	private Button mStartGameBtn;
-	private Button mFindGameBtn;
-
-	private EditText mHostIpEt;
-	private EditText mHostPortEt;
-
-	private TextView mHostIpTv;
+	
+	private RadioGroup mGameModeGroup;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -44,14 +45,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		mStartGameBtn = (Button) findViewById(R.id.btn_start_game);
 		mStartGameBtn.setOnClickListener(this);
 
-		mFindGameBtn = (Button) findViewById(R.id.btn_find_game);
-		mFindGameBtn.setOnClickListener(this);
-
-		mHostIpEt = (EditText) findViewById(R.id.et_host_ip);
-		mHostPortEt = (EditText) findViewById(R.id.et_host_port);
-
-		mHostIpTv = (TextView) findViewById(R.id.tv_host_ip);
-
+		mGameModeGroup = (RadioGroup) findViewById(R.id.radioGroup1);
+		mGameModeGroup.setOnCheckedChangeListener(this);
 	}
 
 	@Override
@@ -78,8 +73,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onClick(View view) {
 		PrefsManager pm = PrefsManager.getInstance();
-		if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
-			// TODO: change this later to be when starting in single player
+		if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_single) {
 			Game game = Game.getInstance();
 			if (game.getState() != GameState.UNINITIALIZED) {
 				// Game was in progress before, so we have to restart it.
@@ -88,9 +82,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			game.start(false);
 			startActivity(new Intent(this, GameActivity.class));
 		}
-		// Host
-		else if(view == mStartGameBtn)
-		{
+		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_host){
 			Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 			try {
 				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
@@ -107,21 +99,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				e.printStackTrace();
 			} 
 		}
-		// Client
-		else if(view == mFindGameBtn)
-		{
-			Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
-			try {
-				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
-						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
-			} catch(NumberFormatException e)
-			{
-				Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-				e.printStackTrace();
-			} catch (Exception e) {
-				handleSocketError(e);
-			} 
+		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_guest){
+			showGuestDialog();
 		}
 	}
 
@@ -165,6 +144,41 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onAndroidSocketSetupError() {
 		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void onCheckedChanged(RadioGroup parent, int checkedID) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void showGuestDialog(){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		LayoutInflater inflater = this.getLayoutInflater();
+
+	    // Inflate and set the layout for the dialog
+	    // Pass null as the parent view because its going in the dialog layout
+	    builder.setView(inflater.inflate(R.layout.dialog_guest_findgame, null))
+	    // Add action buttons
+	           .setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
+	               @Override
+	               public void onClick(DialogInterface dialog, int id) {
+	            	   Toast.makeText(MainActivity.this, "Finding game...", Toast.LENGTH_SHORT).show();
+	       			try {
+	       				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
+	       						Integer.parseInt(mHostPortEt.getText().toString()), false); 
+	       				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+	       			} catch(NumberFormatException e)
+	       			{
+	       				Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+	       				e.printStackTrace();
+	       			} catch (Exception e) {
+	       				handleSocketError(e);
+	       			} 
+	               }
+	           })
+	           .setNegativeButton(R.string.dialog_cancel, null);
+	    builder.show();
 	}
 
 }

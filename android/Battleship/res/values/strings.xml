@@ -15,16 +15,22 @@
     <string name="main_menu_find_game">Find Game</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
     
-    <string name="host_ip_none">No IP set</string>
+    <string name="host_ip_hint">Enter Host IP</string>
     <string name="host_ip_separator">:</string>
-    <string name="host_port_none">No port set</string>
+    <string name="host_port_hint">Enter Host Port</string>
     
     <string name="prefs_activity_title">Settings</string>
     <string name="pref_title_local_debug">Local Debug Mode</string>
     <string name="pref_title_use_nios">Use Nios/Middleman</string>
-    
+
     <string name="dialog_confirm">OK</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
+
+    <string name="pref_title_middleman_ip">Middleman IP</string>
+    <string name="pref_title_middleman_port">Middleman Port</string>
+    <string name="btn_guest">Guest</string>
+    <string name="btn_host">Host</string>
+    <string name="btn_one_player">1-P</string>
 
 </resources>
