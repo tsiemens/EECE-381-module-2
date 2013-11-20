@@ -399,7 +399,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	private void setState(GameState state)
 	{
-		Log.d(TAG, "Changing state from " + mState + " to " + state);
 		mState = state;
 		if(mStateListener != null)
 			mStateListener.onGameStateChanged();
