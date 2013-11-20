@@ -263,7 +263,8 @@ public class NetworkManager extends Object {
 	// ServerSocketSetupTask: Sets up the server socket & blocks until a
 	// client connects,
 	// then notifies listener that is has been connected to a client
-	public class ServerSocketSetupTask extends AsyncTask<Void, Void, Void> {
+	private class ServerSocketSetupTask extends AsyncTask<Void, Void, Void> {
+
 		@Override
 		protected Void doInBackground(Void... params) {
 			// Wait for connections
@@ -275,12 +276,24 @@ public class NetworkManager extends Object {
 				mAndroidHostIP = getLocalIpAddress();
 				mAndroidHostPort = mServerSocket.getLocalPort();
 
+				Runnable ipRunnable = new Runnable() {
+					@Override
+					public void run() {
+						if (onAndroidSocketSetupListener != null) {
+							onAndroidSocketSetupListener.onFoundIPAddress(
+									getAndroidHostIP(), getAndroidHostPort());
+						}
+					}
+				};
+				mHandler.post(ipRunnable);
+
 				mAndroidSocketVersion++;
 				mAndroidSocketInput = null;
 				mAndroidSocketOutput = null;
 				if (mClientSocket != null) {
 					mClientSocket.close();
 				}
+
 				mClientSocket = mServerSocket.accept();
 
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it
@@ -294,11 +307,9 @@ public class NetworkManager extends Object {
 			}
 			return null;
 		}
-
-		protected void onPostExecute() {
+		
+		protected void onPostExecute(Void params) {
 			if (onAndroidSocketSetupListener != null) {
-				onAndroidSocketSetupListener.onFoundIPAddress(
-						getAndroidHostIP(), getAndroidHostPort());
 				onAndroidSocketSetupListener.onGameFound();
 			}
 		}
