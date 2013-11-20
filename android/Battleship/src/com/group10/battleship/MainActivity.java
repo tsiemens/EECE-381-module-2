@@ -90,9 +90,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				// If using nios, also set up the nios 
 				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
 				{
-					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
-							Integer.parseInt(mHostPortEt.getText().toString()));
-					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+					String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
+					int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
+					Log.d(TAG, ip+":"+port);
+					if (ip != null && port != -1) {
+						NetworkManager.getInstance().setupNiosSocket(ip, port);
+						NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+					}
 				}
 			} catch (Exception e) {
 				handleSocketError(e);
@@ -124,9 +128,10 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
-		mHostIpTv.setText("IP: "
-				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort());
+		// TODO show dialog with ip
+//		mHostIpTv.setText("IP: "
+//				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
+//				+ NetworkManager.getInstance().getAndroidHostPort());
 	}
 
 	@Override
@@ -165,12 +170,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	               public void onClick(DialogInterface dialog, int id) {
 	            	   Toast.makeText(MainActivity.this, "Finding game...", Toast.LENGTH_SHORT).show();
 	       			try {
-	       				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
-	       						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-	       				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+	       				// TODO get host ip
+//	       				NetworkManager.getInstance().setupAndroidSocket(dialog. mHostIpEt.getText().toString(), 
+//	       						Integer.parseInt(mHostPortEt.getText().toString()), false); 
+//	       				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
 	       			} catch(NumberFormatException e)
 	       			{
-	       				Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+	       				Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
 	       				e.printStackTrace();
 	       			} catch (Exception e) {
 	       				handleSocketError(e);

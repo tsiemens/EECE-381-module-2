@@ -12,7 +12,7 @@
         android:title="@string/pref_title_middleman_ip"
         android:dependency="pref_use_nios" />
     
-    <EditTextPreference 
+    <com.group10.battleship.prefs.EditTextIntPreference 
         android:key="pref_middleman_port"
         android:title="@string/pref_title_middleman_port"
         android:dependency="pref_use_nios" />

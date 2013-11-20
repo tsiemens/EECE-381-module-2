@@ -47,4 +47,26 @@ public class PrefsManager {
 	{
 		return mPrefs.getBoolean(key, defVal);
 	}
+	
+	public boolean putInt(String key, int val)
+	{
+		mEditor.putInt(key, val);
+		return mEditor.commit();
+	}
+	
+	public int getInt(String key, int defVal)
+	{
+		return mPrefs.getInt(key, defVal);
+	}
+	
+	public boolean putString(String key, String val)
+	{
+		mEditor.putString(key, val);
+		return mEditor.commit();
+	}
+	
+	public String getString(String key, String defVal)
+	{
+		return mPrefs.getString(key, defVal);
+	}
 }
