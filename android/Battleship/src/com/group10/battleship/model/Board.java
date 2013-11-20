@@ -17,6 +17,7 @@ public class Board implements GL20Drawable{
 	public static final int TILE_COLOR_NORMAL = Color.parseColor("#aa4285f4");
 	public static final int TILE_COLOR_MISS = Color.parseColor("#aaeeeeee");
 	public static final int TILE_COLOR_HIT = Color.parseColor("#aadb4437");
+	public static final int TILE_COLOR_SUNK = Color.parseColor("#aa545454");
 	public static final int TILE_COLOR_SELECTION = Color.parseColor("#aaff7800");
 	
 	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff55ff59");
@@ -198,8 +199,18 @@ public class Board implements GL20Drawable{
 	
 	public boolean playerShotAttempt(int x, int y) {
 		// notify player if already fired
-		if (getShipAtIndex(x,y) != null) { 
-			setTileColour(TILE_COLOR_HIT, x, y);
+		Ship ship = getShipAtIndex(x,y);
+		
+		if (ship != null) {
+			if(ship.addHit()) {
+				BoardCoord[] coords = ship.getShipCoords();
+				
+				for( int i = 0; i < coords.length; i++) {
+					setTileColour(TILE_COLOR_SUNK, coords[i].x, coords[i].y);
+				}
+			} else {
+				setTileColour(TILE_COLOR_HIT, x, y);
+			}
 			return true;
 		} else {
 			setTileColour(TILE_COLOR_MISS, x, y);
