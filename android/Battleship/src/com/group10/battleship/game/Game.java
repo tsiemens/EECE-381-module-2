@@ -197,6 +197,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	public void onConfirmBoardPressed()
 	{
+		// deselect the highlighted ship
+		if(mPlayerBoard.getSelectedShip() != null) mPlayerBoard.getSelectedShip().setSelected(false);
 		try {
 			if (!isMultiplayer()) {
 				mSingleplayerAI.arrangeShips(mOpponentBoard);
@@ -322,10 +324,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						// Guest is given host's move and if it hit or missed
 						JSONObject responseObj = (JSONObject) new JSONTokener(obj.getString(ModelParser.MOVE_RESPONSE_KEY)).nextValue();
 						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-//						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
-//								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
-						
-						mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
+								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						if(wasHit)
+							mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
 						
 					} else {
 						// Host must process the move, and return if it hit/missed
@@ -341,7 +343,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					boolean wasHit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
 					mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
 							mLastMove.x, mLastMove.y);
-					setState(GameState.TAKING_TURN);
+					if(wasHit)
+						mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL)) {
 					// Host is receiving the guest's board data
 					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
