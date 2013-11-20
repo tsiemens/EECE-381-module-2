@@ -66,7 +66,7 @@ public class TexturedRect implements GL20Drawable{
 	private int mTextureUniformHandle;
 	private int mTextureCoordinateHandle;
 	private int mTextureDataHandle;
-	public int mTextureResId;
+	private int mTextureResId;
 	// to make sure that the texture gets changed on the GL thread
 	private int mNextTexResId;
    
