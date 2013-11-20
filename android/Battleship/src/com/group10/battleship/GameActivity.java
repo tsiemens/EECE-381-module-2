@@ -3,6 +3,7 @@ package com.group10.battleship;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.game.Game.GameStateChangedListener;
@@ -77,6 +78,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public void onPause() {
 		Log.d(TAG, "onPause");
+		SoundManager.getInstance().stopLoop(R.raw.game_music);
 		mGLSurfaceView.onPause();
 		super.onPause();
 	}
@@ -87,6 +89,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		Log.d(TAG, "onResume");
 		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
+		SoundManager.getInstance().playLoop(R.raw.game_music, 0.3f);
 	}
 
 	@Override
