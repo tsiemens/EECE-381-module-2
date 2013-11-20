@@ -19,6 +19,17 @@ char intToChar(int val)
 	}
 }
 
+AlphaSprite* SpriteFactory_generateGameStatusSprite()
+{
+	AlphaSprite* this = AlphaSprite_init(AlphaSprite_alloc());
+	this->baseSprite.yPos = GAMEBOARD_TOP_CHAR_PADDING - 2;
+	this->baseSprite.xPos = 25;
+	this->baseSprite.spriteId = ALPHA_STATUS_SPRITE_ID;
+	this->string = "Status: Waiting for host";
+
+	return this;
+}
+
 /**
  * Generates an array of SpriteArrayList for the board
  * The array should be size 10, and each element in the array is a new row.

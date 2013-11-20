@@ -66,7 +66,6 @@ unsigned char* RS232Handler_receive(int* numReceived)
 	unsigned char* message;
 	Timer* timer = Timer_init(Timer_alloc(), 3000);
 
-
 	// Receive the message from the Middleman
 	printf("Waiting for data to come back from the Middleman\n");
 	while (alt_up_rs232_get_used_space_in_read_FIFO(s_rs232Dev) == 0);
@@ -76,7 +75,7 @@ unsigned char* RS232Handler_receive(int* numReceived)
 	int num_to_receive = (int)data;
 	message = malloc(sizeof(unsigned char)*num_to_receive);
 
-	printf("About to receive %d characters from (%d):\n", num_to_receive);
+	printf("About to receive %d characters from client:\n", num_to_receive);
 
 	int i;
 	for (i = 0; i < num_to_receive; i++) {

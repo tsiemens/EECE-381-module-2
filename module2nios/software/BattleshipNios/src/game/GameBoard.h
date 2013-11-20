@@ -17,11 +17,10 @@
 #define GAMEBOARD_LEFT_PADDING (23) //Set to exactly half the screen
 #define GAMEBOARD_LENGTH 10
 
-#define GAMEBOARD_TOP_PADDING GAMEBOARD_COL_HEIGHT/2
+#define GAMEBOARD_TOP_PADDING GAMEBOARD_COL_HEIGHT*5.5
+#define GAMEBOARD_TOP_CHAR_PADDING PIXEL_TO_CHAR_HEIGHT*GAMEBOARD_COL_HEIGHT*5
 #define GAMEBOARD_LEFT_PADDING2 (20)
 #define GAMEBOARD_LEFT_CHAR_PADDING ((PIXEL_TO_CHAR_WIDTH*(GAMEBOARD_LEFT_PADDING2+GAMEBOARD_COL_WIDTH))-2)
-
-#define GAMEBOARD_
 
 #define GAMEBOARD_HOST_COLOR 0xC986
 #define GAMEBOARD_P2_COLOR 0x333F
@@ -41,11 +40,6 @@ typedef struct GameBoard
 {
 	int hostBoard[GAMEBOARD_LENGTH][GAMEBOARD_LENGTH];
 	int p2Board[GAMEBOARD_LENGTH][GAMEBOARD_LENGTH];
-
-	void (*hostHit)(struct GameBoard*, int x, int y);
-	void (*hostMiss)(struct GameBoard*, int x, int y);
-	void (*p2Hit)(struct GameBoard*, int x, int y);
-	void (*p2Miss)(struct GameBoard*, int x, int y);
 } GameBoard;
 
 GameBoard* GameBoard_alloc();

@@ -16,11 +16,6 @@ extern GameBoard* GameBoard_alloc()
 
 extern GameBoard* GameBoard_init(GameBoard* this)
 {
-	this->hostMiss = &GameBoard_hostMiss;
-	this->hostHit = &GameBoard_hostHit;
-	this->p2Miss = &GameBoard_p2Miss;
-	this->p2Hit = &GameBoard_p2Hit;
-
 	GameBoard_reset(this);
 }
 
@@ -75,17 +70,17 @@ GameBoard_drawAlpha()
 	{
 		//Print the letters on the left side
 		if(i < GAMEBOARD_LENGTH)
-			printString(letter, PIXEL_TO_CHAR_WIDTH*(GAMEBOARD_LEFT_PADDING)-1, (PIXEL_TO_CHAR_HEIGHT*GAMEBOARD_COL_HEIGHT)+(3*i));
+			printString(letter, PIXEL_TO_CHAR_WIDTH*(GAMEBOARD_LEFT_PADDING)-1, (PIXEL_TO_CHAR_HEIGHT*GAMEBOARD_COL_HEIGHT)+(3*i)+GAMEBOARD_TOP_CHAR_PADDING);
 
 		//Print the numbers on the top and bottom
 		if(i == GAMEBOARD_LENGTH-1 || i == GAMEBOARD_LENGTH*2) {
-			printString("10", (GAMEBOARD_LEFT_CHAR_PADDING+3*i) ,0);
+			printString("10", (GAMEBOARD_LEFT_CHAR_PADDING+3*i) , GAMEBOARD_TOP_CHAR_PADDING);
 
 		} else if(i == GAMEBOARD_LENGTH) {
 			number[0] = '0';
 		}
 		else if(i < GAMEBOARD_LENGTH*2) {
-			printString(number, (GAMEBOARD_LEFT_CHAR_PADDING+3*i) ,0);
+			printString(number, (GAMEBOARD_LEFT_CHAR_PADDING+3*i) , GAMEBOARD_TOP_CHAR_PADDING);
 		}
 
 		letter[0]++;
