@@ -22,5 +22,9 @@
     <string name="prefs_activity_title">Settings</string>
     <string name="pref_title_local_debug">Local Debug Mode</string>
     <string name="pref_title_use_nios">Use Nios/Middleman</string>
+    
+    <string name="dialog_confirm">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
 
 </resources>

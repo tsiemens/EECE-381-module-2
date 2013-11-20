@@ -118,6 +118,22 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		mOpponentBoard = null;
 	}
 	
+	public void forfeit() {
+		if (isMultiplayer()) {
+			try {
+				NetworkManager.getInstance().send(ModelParser.getJsonForGameOver(true), true);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if (isHost) {
+			NIOS2NetworkManager.sendGameOver(false, true);
+		}
+		
+		invalidate();
+	}
+	
 	public boolean isMultiplayer() {
 		return mIsMultiplayer;
 	}
