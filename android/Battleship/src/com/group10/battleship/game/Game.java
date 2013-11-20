@@ -338,7 +338,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					boolean wasHit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
 					mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
 							mLastMove.x, mLastMove.y);
-					setState(GameState.TAKING_TURN);
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL)) {
 					// Host is receiving the guest's board data
 					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
@@ -400,6 +399,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	private void setState(GameState state)
 	{
+		Log.d(TAG, "Changing state from " + mState + " to " + state);
 		mState = state;
 		if(mStateListener != null)
 			mStateListener.onGameStateChanged();
