@@ -322,8 +322,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						// Guest is given host's move and if it hit or missed
 						JSONObject responseObj = (JSONObject) new JSONTokener(obj.getString(ModelParser.MOVE_RESPONSE_KEY)).nextValue();
 						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
-								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+//						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
+//								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						
+						mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						
 					} else {
 						// Host must process the move, and return if it hit/missed
 						boolean wasHit = processMoveOnBoard(obj.getInt(ModelParser.MOVE_XPOS_KEY), 

@@ -38,6 +38,7 @@ public class Board implements GL20Drawable{
 	private float mSideLength;
 	
 	private List<Ship> mShips;
+	private List<TexturedRect> mHitTiles;
 	
 	public Board(Context context, float sideLength, float x, float y, boolean isPlayerBoard) {
 		mContext = context;
@@ -81,6 +82,7 @@ public class Board implements GL20Drawable{
 		mSelectionTile = new TexturedRect(mContext, R.drawable.white_pix);
 		mSelectionTile.setColor(TILE_COLOR_SELECTION);
 		mSelectionTile.setSize(tileGridSize, tileGridSize);
+		mHitTiles = new ArrayList<TexturedRect>();
 		
 		if (mIsPlayerBoard) {
 			// Initialize the player's ships
@@ -161,6 +163,15 @@ public class Board implements GL20Drawable{
 				}
 			}
 		}
+		
+		List<TexturedRect> hitTiles = board.getHitTiles();
+		if (hitTiles != null && mHitTiles != null)
+		{
+			for(TexturedRect t : hitTiles)
+			{
+//				t.reloadTexture();
+			}
+		}
 	}
 	
 	@Override
@@ -178,9 +189,18 @@ public class Board implements GL20Drawable{
 			}
 		}
 		
-		if (isPlayerBoard() && mShips != null) {
-			for (Ship s : mShips) {
-				s.draw(mvpMatrix);
+		if (isPlayerBoard()) {
+			if(mShips != null)
+			{
+				for (Ship s : mShips) {
+					s.draw(mvpMatrix);
+				}
+			}
+			if(mHitTiles != null)
+			{
+				for (TexturedRect t : mHitTiles) { 
+					t.draw(mvpMatrix);
+				}
 			}
 		}
 	}
@@ -196,10 +216,15 @@ public class Board implements GL20Drawable{
 		}
 	}
 	
+	/**
+	 * Determines if there is a ship at the tile location & sets the tile to show either hit/miss
+	 * @param col, row
+	 */
 	public boolean playerShotAttempt(int x, int y) {
 		// notify player if already fired
 		if (getShipAtIndex(x,y) != null) { 
-			setTileColour(TILE_COLOR_HIT, x, y);
+//			setTileColour(TILE_COLOR_HIT, x, y);
+			setHitTile(x, y);
 			return true;
 		} else {
 			setTileColour(TILE_COLOR_MISS, x, y);
@@ -212,6 +237,8 @@ public class Board implements GL20Drawable{
 	}
 	
 	public List<Ship> getShips() { return mShips; }
+	
+	public List<TexturedRect> getHitTiles() { return mHitTiles; }
 	
 	public void setShips(List<Ship> ss) {
 		mShips = ss;
@@ -327,6 +354,23 @@ public class Board implements GL20Drawable{
 	public void setTileColour(int colour, int col, int row) {
 		mTileRows.get(row).get(col).setColor(colour);
 	}
+	/**
+	 * Adds a hit tile to the array of hit tiles
+	 * @param col, row
+	 */
+	public void setHitTile(int col, int row)
+	{
+		Log.d("Board", "setting hit tile");
+		float tileGridSize = getTileGridSize();
+		float tilePadding = getTilePadding();
+		float tileSize = tileGridSize - (2 * tilePadding);
+		TexturedRect hitTile = new TexturedRect(mContext, R.drawable.hit2);
+		hitTile.setPosition( mTopLeftX + ((col + 1)*tileGridSize), mTopLeftY - ((row + 1)*tileGridSize));
+		hitTile.setSize(tileSize, tileSize);
+		mHitTiles.add(hitTile);
+	}
+	
+	
 	
 	/**
 	 * Selects the currently selected tile. If the index is invalid (< 0 or >= BOARD_SIZE),
