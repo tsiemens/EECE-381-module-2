@@ -203,11 +203,7 @@ public class Board implements GL20Drawable{
 		
 		if (ship != null) {
 			if(ship.addHit()) {
-				BoardCoord[] coords = ship.getShipCoords();
-				
-				for( int i = 0; i < coords.length; i++) {
-					setTileColour(TILE_COLOR_SUNK, coords[i].x, coords[i].y);
-				}
+				sinkShipAt(x, y);
 			} else {
 				setTileColour(TILE_COLOR_HIT, x, y);
 			}
@@ -218,8 +214,40 @@ public class Board implements GL20Drawable{
 		}
 	}
 	
+	/**
+	 * Used to sink ship at a given location by changing the tile colors.
+	 * 
+	 * @param x coordinate of shot
+	 * @param y coordinate of shot
+	 * @return false if there is no ship at the coordinate given.
+	 */
+	public boolean sinkShipAt(int x, int y) {
+		Ship ship = getShipAtIndex(x,y);
+		
+		if (ship != null) {
+			BoardCoord[] coords = ship.getShipCoords();
+		
+			for( int i = 0; i < coords.length; i++) {
+				setTileColour(TILE_COLOR_SUNK, coords[i].x, coords[i].y);
+			}
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public boolean isPlayerBoard(){
 		return mIsPlayerBoard;
+	}
+	
+	public boolean isAllSunk() {
+		for(int i = 0; i < mShips.size(); i++) {
+			if(mShips.get(i).isSunk() == false)
+				return false;
+		}
+		
+		return true;
 	}
 	
 	public List<Ship> getShips() { return mShips; }

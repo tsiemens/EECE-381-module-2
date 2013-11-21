@@ -204,6 +204,31 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
 		else if(Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT)
 			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+		else if(Game.getInstance().getState() == GameState.GAME_OVER_WIN)
+			showGameoverDialog(true);
+		else if(Game.getInstance().getState() == GameState.GAME_OVER_LOSS)
+			showGameoverDialog(false);
+			
+			
+	}
+	
+	private void showGameoverDialog(boolean won) {
+		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+		
+		if (won)
+			dialogBuilder.setMessage(R.string.dialog_win_message);
+		else
+			dialogBuilder.setMessage(R.string.dialog_loss_message);
+		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+		dialogBuilder.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Game.getInstance().forfeit();
+				GameActivity.this.finish();
+			}
+		});
+		dialogBuilder.show();
 	}
 	
 	private void showExitConfirmationDialog() {

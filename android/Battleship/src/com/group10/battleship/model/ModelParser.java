@@ -21,6 +21,7 @@ public class ModelParser {
 	public static String MOVE_RESPONSE_KEY  = "response";
 	public static String MOVE_RESPONSE_TYPE_VAL = "moveresponse";
 	public static String MOVE_RESPONSE_HIT_KEY = "hit";
+	public static String MOVE_RESPONSE_SUNK_KEY = "sunk";
 	public static String GAME_OVER_TYPE_VAL = "gameover";
 	public static String GAME_OVER_WIN_KEY = "youwin";
 	
@@ -72,11 +73,12 @@ public class ModelParser {
 		return json; 
 	}
 	
-	public static String getJsonForMoveResponse(boolean wasHit) throws JSONException
+	public static String getJsonForMoveResponse(boolean wasHit, boolean wasSunk) throws JSONException
 	{
 		JSONObject obj = new JSONObject(); 
 		obj.put(TYPE_KEY , MOVE_RESPONSE_TYPE_VAL);
 		obj.put(MOVE_RESPONSE_HIT_KEY, wasHit);
+		obj.put(MOVE_RESPONSE_SUNK_KEY, wasSunk);
 		String json = obj.toString(); 
 		return json; 
 	}
