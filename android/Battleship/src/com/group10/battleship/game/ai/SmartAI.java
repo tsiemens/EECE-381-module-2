@@ -1,5 +1,6 @@
 package com.group10.battleship.game.ai;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -14,12 +15,14 @@ public class SmartAI implements BattleshipAI {
 	private Random mRand;
 	private int mLastX;
 	private int mLastY;
-	private int mNextX;
-	private int mNextY;
+	private List<Integer> mNextX;
+	private List<Integer> mNextY;
 	
 	public SmartAI() {
 		mBoardStates = new TileState[10][10];
 		mBoardHeuristics = new int[10][10];
+		mNextX = new ArrayList<Integer>();
+		mNextY = new ArrayList<Integer>();
 		mRand = new Random();
 		
 		for(int x = 0; x < 10; x++) {
@@ -32,18 +35,27 @@ public class SmartAI implements BattleshipAI {
 	@Override
 	public BoardCoord getNextMove() {
 		calculateHeuristics();
-		BoardCoord coord = new BoardCoord(mNextX, mNextY);
-		mLastX = mNextX;
-		mLastY = mNextY;
+		
+		int randIndex = Math.abs(mRand.nextInt())%mNextX.size();
+		
+		
+		int x = mNextX.get(randIndex);
+		int y = mNextY.get(randIndex);
+		
+		BoardCoord coord = new BoardCoord(x, y);
+		mLastX = x;
+		mLastY = y;
 		return coord;
 	}
 
 	@Override
 	public void respondToLastMove(boolean hit, Ship sunk) {
-		if (sunk != null && sunk.isSunk()) {
-			BoardCoord[] coords = sunk.getShipCoords();
-			for (int i = 0; i < sunk.getShipCoords().length; i++) {
-				this.mBoardStates[coords[i].x][coords[i].y] = TileState.SUNK;
+		if (sunk != null) {
+			if (sunk.isSunk()) {
+				BoardCoord[] coords = sunk.getShipCoords();
+				for (int i = 0; i < sunk.getShipCoords().length; i++) {
+					this.mBoardStates[coords[i].x][coords[i].y] = TileState.SUNK;
+				}
 			}
 		} else if (hit) {
 			this.mBoardStates[mLastX][mLastY] = TileState.HIT;
@@ -70,33 +82,38 @@ public class SmartAI implements BattleshipAI {
 								mBoardHeuristics[x][y] += 5 - i;
 							else if (mBoardStates[leftNeighbor][y] == TileState.HIT)
 								mBoardHeuristics[x][y] += (20 - i*4);
-						} else mBoardHeuristics[x][y] += 5 - i;
+						} else mBoardHeuristics[x][y] += 3 - i;
 						
 						if (rightNeighbor < 10) {
 							if (mBoardStates[rightNeighbor][y] == TileState.EMPTY)
 								mBoardHeuristics[x][y] += 5 - i;
 							else if (mBoardStates[rightNeighbor][y] == TileState.HIT)
 								mBoardHeuristics[x][y] += (20 - i*4);
-						} else mBoardHeuristics[x][y] += 5 - i;
+						} else mBoardHeuristics[x][y] += 3 - i;
 						
 						if (topNeighbor >= 0) {
 							if (mBoardStates[x][topNeighbor] == TileState.EMPTY)
 								mBoardHeuristics[x][y] += 5 - i;
 							else if (mBoardStates[x][topNeighbor] == TileState.HIT)
 								mBoardHeuristics[x][y] += (20 - i*4);
-						} else mBoardHeuristics[x][y] += 5 - i;
+						} else mBoardHeuristics[x][y] += 3 - i;
 						
 						if (bottomNeighbor < 10) {
 							if (mBoardStates[x][bottomNeighbor] == TileState.EMPTY)
 								mBoardHeuristics[x][y] += 5 - i;
 							else if (mBoardStates[x][bottomNeighbor] == TileState.HIT)
 								mBoardHeuristics[x][y] += (20 - i*4);
-						} else mBoardHeuristics[x][y] += 5 - i;
+						} else mBoardHeuristics[x][y] += 3 - i;
 						
-						if (mBoardHeuristics[x][y] > maxH) {
+						if (mBoardHeuristics[x][y] == maxH) {
+							mNextX.add(x);
+							mNextY.add(y);
+						} else if (mBoardHeuristics[x][y] > maxH) {
 							maxH = mBoardHeuristics[x][y];
-							mNextX = x;
-							mNextY = y;
+							mNextX.clear();
+							mNextY.clear();
+							mNextX.add(x);
+							mNextY.add(y);
 						}
 					}
 				}
