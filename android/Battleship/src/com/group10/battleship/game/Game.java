@@ -18,6 +18,7 @@ import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
+import com.group10.battleship.game.ai.SmartAI;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
@@ -90,7 +91,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			isHost = NetworkManager.getInstance().isHost();
 		} else {
 			// TODO detect difficulty somehow
-			mSingleplayerAI = new RandomAI();
+			mSingleplayerAI = new SmartAI();
 			isHost = true;
 		}
 	}
@@ -478,10 +479,26 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		} while(pos != null && mPlayerBoard.getTileColour(pos.x, pos.y) != Board.TILE_COLOR_NORMAL);
 		
 		if (pos != null) {
+			Ship target = mPlayerBoard.getShipAtIndex(pos.x, pos.y);
 			boolean hit = processMoveOnBoard(pos.x, pos.y, false);
-			mSingleplayerAI.respondToLastMove(hit);
+			boolean sunk = false;
+			
+			//Give AI the ship if the ship is sunk, 
+			//The coordinates of the sunken ship is public information
+			
+			if (target != null)
+				sunk = target.isSunk();
+			
+			if (sunk)
+				mSingleplayerAI.respondToLastMove(hit, target);
+			else
+				mSingleplayerAI.respondToLastMove(hit, null);
+			
 		} else {
 			Log.e(TAG, "move requested of AI after all spaces taken.");
 		}
+		
+		if (mPlayerBoard.isAllSunk())
+			win(false);
 	}
 }
