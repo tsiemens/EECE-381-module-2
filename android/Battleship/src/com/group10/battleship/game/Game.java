@@ -92,6 +92,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		} else {
 			// TODO detect difficulty somehow
 			mSingleplayerAI = new SmartAI();
+			mSingleplayerAI.setDifficulty(3);
 			isHost = true;
 		}
 	}
@@ -272,7 +273,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				boolean hit = processMoveOnBoard(pos.x, pos.y, true);
 				if (isMultiplayer()){
 					try {
-						boolean sunk = mOpponentBoard.getShipAtIndex(pos.x, pos.y).isSunk();
+						Ship oppShip = mOpponentBoard.getShipAtIndex(pos.x, pos.y);
+						boolean sunk = false;
+						if (oppShip != null)
+							sunk = oppShip.isSunk();
 						String msg = ModelParser.getJsonForMove(pos.x, pos.y, ModelParser.getJsonForMoveResponse(hit, sunk));
 						NetworkManager.getInstance().send(msg, true);
 					} catch (JSONException e) {
@@ -373,8 +377,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						// Host must process the move, and return if it hit/missed
 						boolean wasHit = processMoveOnBoard(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
 								obj.getInt(ModelParser.MOVE_YPOS_KEY), false);
-						boolean wasSunk = mPlayerBoard.getShipAtIndex(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
-								obj.getInt(ModelParser.MOVE_YPOS_KEY)).isSunk();
+						
+						Ship playerShip = mPlayerBoard.getShipAtIndex(obj.getInt(ModelParser.MOVE_XPOS_KEY),
+								obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						boolean wasSunk = false;
+						if (playerShip != null)
+							wasSunk = playerShip.isSunk();
+						
 						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit, wasSunk), true);
 						
 						if(mPlayerBoard.isAllSunk())

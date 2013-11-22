@@ -27,4 +27,10 @@ public interface BattleshipAI {
 	 * @param myBoard
 	 */
 	public void arrangeShips(Board myBoard);
+	
+	/**
+	 * Sets the difficult of the ai
+	 * @param difficulty 1 for easy, 2 for normal, 3 for hard
+	 */
+	public void setDifficulty(int difficulty);
 }
