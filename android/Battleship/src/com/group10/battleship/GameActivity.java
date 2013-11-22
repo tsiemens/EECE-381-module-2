@@ -3,6 +3,8 @@ package com.group10.battleship;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.audio.MusicManager;
+import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.game.Game.GameStateChangedListener;
@@ -15,6 +17,7 @@ import android.content.DialogInterface;
 import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,6 +36,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	private GLSurfaceView mGLSurfaceView;
 	private GL20Renderer mGLRenderer;
+
+	private Handler mHustleHandler = new Handler();
+	private Runnable mHustleRunnable = new hustleRunnable();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -66,19 +72,23 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 		Game game = Game.getInstance();
 		if (game.getState() == GameState.UNINITIALIZED) {
-			// This should not happen in theory, since the game should be started by the MainActivity
+			// This should not happen in theory, since the game should be
+			// started by the MainActivity
 			finish();
 		}
-		
+
 		game.configure(this, mGLRenderer);
 		game.setGameStateListener(this);
 
 		supportInvalidateOptionsMenu();
+		MusicManager.getInstance().stop(Music.MENU);
+		MusicManager.getInstance().play(Music.GAME);
 	}
 
 	@Override
 	public void onPause() {
 		Log.d(TAG, "onPause");
+		MusicManager.getInstance().pause();
 		mGLSurfaceView.onPause();
 		super.onPause();
 	}
@@ -89,6 +99,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		Log.d(TAG, "onResume");
 		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
+		MusicManager.getInstance().resume();
 	}
 
 	@Override
@@ -114,15 +125,15 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 					mi.setVisible(true);
 				} else {
 					mi.setVisible(false);
-				}	
+				}
 			} else if (mi.getItemId() == R.id.fire_item) {
-				if ( state == GameState.TAKING_TURN ) {
+				if (state == GameState.TAKING_TURN) {
 					mi.setVisible(true);
 				} else {
 					mi.setVisible(false);
 				}
 			} else if (mi.getItemId() == R.id.rotate_item) {
-				if (state == GameState.PLACING_SHIPS ) {
+				if (state == GameState.PLACING_SHIPS) {
 					mi.setVisible(true);
 				} else {
 					mi.setVisible(false);
@@ -200,10 +211,35 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public void onGameStateChanged() {
 		refreshOptionsMenu();
-		if(Game.getInstance().getState() == GameState.TAKING_TURN)
+		if (Game.getInstance().getState() == GameState.TAKING_TURN) {
 			mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
-		else if(Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT)
+			initiateHustling();
+		} else if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
+			Log.d("", "waiting for opponent");
 			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+			stopHustling();
+		}
+	}
+
+	private void initiateHustling() {
+		// allow player to decide for 30 seconds before hustling
+		mHustleHandler.postDelayed(mHustleRunnable, 30000);
+	}
+
+	private void stopHustling() {
+		mHustleHandler.removeCallbacks(mHustleRunnable);
+		MusicManager.getInstance().stop(Music.THINKING);
+		MusicManager.getInstance().play(Music.GAME);
+	}
+
+	private class hustleRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			MusicManager.getInstance().stop(Music.GAME);
+			MusicManager.getInstance().play(Music.THINKING);
+		}
+
 	}
 	
 	private void showExitConfirmationDialog() {
