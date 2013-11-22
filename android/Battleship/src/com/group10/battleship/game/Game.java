@@ -19,6 +19,7 @@ import com.group10.battleship.R;
 import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
+import com.group10.battleship.game.ai.SmartAI;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
@@ -93,7 +94,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			isHost = NetworkManager.getInstance().isHost();
 		} else {
 			// TODO detect difficulty somehow
-			mSingleplayerAI = new RandomAI();
+			mSingleplayerAI = new SmartAI();
+			mSingleplayerAI.setDifficulty(3);
 			isHost = true;
 		}
 	}
@@ -135,6 +137,25 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 		
 		invalidate();
+	}
+	
+	public void win(boolean youWon) {
+		if (isMultiplayer() && isHost) {
+			try {
+				NetworkManager.getInstance().send(ModelParser.getJsonForGameOver(!youWon), true);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if (isHost) {
+			NIOS2NetworkManager.sendGameOver(false, true);
+		}
+		
+		if (youWon)
+			setState(GameState.GAME_OVER_WIN);
+		else
+			setState(GameState.GAME_OVER_LOSS);
 	}
 	
 	public boolean isMultiplayer() {
@@ -254,10 +275,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		if (mOpponentBoard.getTileColour(pos.x, pos.y) == Board.TILE_COLOR_NORMAL) {
 			if (isHost || !isMultiplayer()) { 
 				boolean hit = processMoveOnBoard(pos.x, pos.y, true);
-				
 				if (isMultiplayer()){
 					try {
-						String msg = ModelParser.getJsonForMove(pos.x, pos.y, ModelParser.getJsonForMoveResponse(hit));
+						Ship oppShip = mOpponentBoard.getShipAtIndex(pos.x, pos.y);
+						boolean sunk = false;
+						if (oppShip != null)
+							sunk = oppShip.isSunk();
+						String msg = ModelParser.getJsonForMove(pos.x, pos.y, ModelParser.getJsonForMoveResponse(hit, sunk));
 						NetworkManager.getInstance().send(msg, true);
 					} catch (JSONException e) {
 						Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
@@ -277,6 +301,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 			setState(GameState.WAITING_FOR_OPPONENT);
 		}
+		
+		if (mOpponentBoard.isAllSunk())
+			win(true);
 	}
 
 	public void onTouchGLSurface(MotionEvent me, float x, float y) {
@@ -342,16 +369,31 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						// Guest is given host's move and if it hit or missed
 						JSONObject responseObj = (JSONObject) new JSONTokener(obj.getString(ModelParser.MOVE_RESPONSE_KEY)).nextValue();
 						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
-								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
-						if(wasHit)
-							mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						boolean wasSunk = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
 						
+						if (wasSunk) {
+							mPlayerBoard.sinkShipAt(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						} else {
+							mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
+									obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							if(wasHit)
+								mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						}
 					} else {
 						// Host must process the move, and return if it hit/missed
 						boolean wasHit = processMoveOnBoard(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
 								obj.getInt(ModelParser.MOVE_YPOS_KEY), false);
-						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit), true);
+						
+						Ship playerShip = mPlayerBoard.getShipAtIndex(obj.getInt(ModelParser.MOVE_XPOS_KEY),
+								obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						boolean wasSunk = false;
+						if (playerShip != null)
+							wasSunk = playerShip.isSunk();
+						
+						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit, wasSunk), true);
+						
+						if(mPlayerBoard.isAllSunk())
+							win(false);
 					}
 					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
 					setState(GameState.TAKING_TURN);
@@ -359,10 +401,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_RESPONSE_TYPE_VAL)) {
 					// Guest is receiving response to move
 					boolean wasHit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-					mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
-							mLastMove.x, mLastMove.y);
-					if(wasHit)
-						mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
+					boolean wasSunk = obj.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
+					
+					if (wasSunk) {
+						mOpponentBoard.sinkShipAt(mLastMove.x, mLastMove.y);
+					} else {
+						mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
+								mLastMove.x, mLastMove.y);
+						if(wasHit)
+							mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
+					}
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL)) {
 					// Host is receiving the guest's board data
 					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
@@ -389,12 +437,14 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.YIELD_TURN_TYPE_VAL)) {
 					// The guest has been told by host that it gets to move first.
 					setState(GameState.TAKING_TURN);
+				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.GAME_OVER_TYPE_VAL)) {
+					boolean youWin = obj.getBoolean(ModelParser.GAME_OVER_WIN_KEY);
+					win(youWin);
 				}
 			} catch (JSONException e) {
 				Log.e(TAG, "Error getting json object from json string");
 			}
 		}
-
 	}
 	
 	/**
@@ -451,10 +501,26 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		} while(pos != null && mPlayerBoard.getTileColour(pos.x, pos.y) != Board.TILE_COLOR_NORMAL);
 		
 		if (pos != null) {
+			Ship target = mPlayerBoard.getShipAtIndex(pos.x, pos.y);
 			boolean hit = processMoveOnBoard(pos.x, pos.y, false);
-			mSingleplayerAI.respondToLastMove(hit);
+			boolean sunk = false;
+			
+			//Give AI the ship if the ship is sunk, 
+			//The coordinates of the sunken ship is public information
+			
+			if (target != null)
+				sunk = target.isSunk();
+			
+			if (sunk)
+				mSingleplayerAI.respondToLastMove(hit, target);
+			else
+				mSingleplayerAI.respondToLastMove(hit, null);
+			
 		} else {
 			Log.e(TAG, "move requested of AI after all spaces taken.");
 		}
+		
+		if (mPlayerBoard.isAllSunk())
+			win(false);
 	}
 }

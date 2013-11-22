@@ -17,7 +17,10 @@ public class Board implements GL20Drawable {
 	public static final int TILE_COLOR_NORMAL = Color.parseColor("#aa4285f4");
 	public static final int TILE_COLOR_MISS = Color.parseColor("#aaeeeeee");
 	public static final int TILE_COLOR_HIT = Color.parseColor("#aadb4437");
-	public static final int TILE_COLOR_SELECTION = Color.parseColor("#ffff7800");	
+
+	public static final int TILE_COLOR_SUNK = Color.parseColor("#aa545454");
+	public static final int TILE_COLOR_SELECTION = Color.parseColor("#ffff7800");
+	
 	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff68b943");
 	public static final int BORDER_COLOR_OPPONENT = Color.parseColor("#ffce0202");
 	public static final int BOARD_SIZE = 10;
@@ -243,18 +246,57 @@ public class Board implements GL20Drawable {
 	 */
 	public boolean playerShotAttempt(int x, int y) {
 		// notify player if already fired
-		if (getShipAtIndex(x, y) != null) {
-			setTileColour(TILE_COLOR_HIT, x, y);
-			setHitTile(x, y);
+
+		Ship ship = getShipAtIndex(x,y);
+		
+		if (ship != null) {
+			if(ship.addHit()) {
+				sinkShipAt(x, y);
+			} else {
+				setTileColour(TILE_COLOR_HIT, x, y);
+				setHitTile(x, y);
+			}
 			return true;
 		} else {
 			setTileColour(TILE_COLOR_MISS, x, y);
 			return false;
 		}
 	}
-
-	public boolean isPlayerBoard() {
+	
+	/**
+	 * Used to sink ship at a given location by changing the tile colors.
+	 * 
+	 * @param x coordinate of shot
+	 * @param y coordinate of shot
+	 * @return false if there is no ship at the coordinate given.
+	 */
+	public boolean sinkShipAt(int x, int y) {
+		Ship ship = getShipAtIndex(x,y);
+		
+		if (ship != null) {
+			BoardCoord[] coords = ship.getShipCoords();
+		
+			for( int i = 0; i < coords.length; i++) {
+				setTileColour(TILE_COLOR_SUNK, coords[i].x, coords[i].y);
+			}
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean isPlayerBoard(){
 		return mIsPlayerBoard;
+	}
+	
+	public boolean isAllSunk() {
+		for(int i = 0; i < mShips.size(); i++) {
+			if(mShips.get(i).isSunk() == false)
+				return false;
+		}
+		
+		return true;
 	}
 
 	public List<Ship> getShips() {
