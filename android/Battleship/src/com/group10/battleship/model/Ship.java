@@ -10,7 +10,7 @@ import com.group10.battleship.model.Board.BoardCoord;
 
 public class Ship implements GL20Drawable{
 	
-	public static int SELECTED_COLOR = Color.parseColor("#ff00ffff");
+	public static int SELECTED_COLOR = Color.parseColor("#ff99daf2");
 	public static int SHIP_COLOR = Color.parseColor("#ff999999");
 	
 	private TexturedRect mTexRect;

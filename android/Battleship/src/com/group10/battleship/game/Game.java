@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
 import com.group10.battleship.game.ai.SmartAI;
@@ -40,6 +41,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Context mContext;
 
 	private List<GL20Drawable> mDrawList;
+	
+	private SoundManager mSoundManager = SoundManager.getInstance();
 
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
@@ -64,7 +67,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private GameStateChangedListener mStateListener;
 	
 	private BattleshipAI mSingleplayerAI;
-
+	
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
 	}
@@ -188,7 +191,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		float width = renderer.getDefaultRight() - x;
 		float height = y - renderer.getDefaultBottom();
 		float sideLength = (height > width) ? width : height;
-
+		
 		if (mPlayerBoard == null) {
 			mPlayerBoard = new Board(mContext, sideLength, x, y, true);
 		} else {
@@ -220,7 +223,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		mDrawList.add(mBackground);
 		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
-
 	}
 
 	public void onRotateButtonPressed() {
@@ -234,6 +236,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	public void onConfirmBoardPressed()
 	{
+		// deselect the highlighted ship
+		if(mPlayerBoard.getSelectedShip() != null) mPlayerBoard.getSelectedShip().setSelected(false);
 		try {
 			if (!isMultiplayer()) {
 				mSingleplayerAI.arrangeShips(mOpponentBoard);
@@ -372,6 +376,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						} else {
 							mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
 									obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							if(wasHit)
+								mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
 						}
 					} else {
 						// Host must process the move, and return if it hit/missed
@@ -402,6 +408,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					} else {
 						mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
 								mLastMove.x, mLastMove.y);
+						if(wasHit)
+							mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
 					}
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL)) {
 					// Host is receiving the guest's board data
@@ -453,8 +461,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		
 		boolean wasHit = board.playerShotAttempt(x, y);
 		if(wasHit) {
+			mSoundManager.playSFX(R.raw.hit);
 			NIOS2NetworkManager.sendHit(isHostsMove, x, y);
-		} else { 
+		} else if (wasHit) {
+			// TODO: add sinking ship
+			mSoundManager.playSFX(R.raw.ship_explode);
+		} else {
+			mSoundManager.playSFX(R.raw.miss);
 			NIOS2NetworkManager.sendMiss(isHostsMove, x, y);
 		}
 		return wasHit;
