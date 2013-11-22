@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
 import com.group10.battleship.graphics.GL20Drawable;
@@ -63,7 +64,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private GameStateChangedListener mStateListener;
 	
 	private BattleshipAI mSingleplayerAI;
-
+	
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
 	}
@@ -387,8 +388,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		
 		boolean wasHit = board.playerShotAttempt(x, y);
 		if(wasHit) {
+			SoundManager.getInstance().playSFX(R.raw.hit);
 			NIOS2NetworkManager.sendHit(isHostsMove, x, y);
-		} else { 
+		} else if (wasHit) {
+			// TODO: add sinking ship
+			SoundManager.getInstance().playSFX(R.raw.ship_explode);
+		} else {
+			SoundManager.getInstance().playSFX(R.raw.miss);
 			NIOS2NetworkManager.sendMiss(isHostsMove, x, y);
 		}
 		return wasHit;

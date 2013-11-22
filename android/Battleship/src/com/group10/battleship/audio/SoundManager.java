@@ -6,47 +6,50 @@ import com.group10.battleship.R;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.util.Log;
-import android.util.SparseArray;
 import android.util.SparseIntArray;
 
 public class SoundManager {
 
 	private static int MAX_STREAMS = 10;
-	
+
 	private static SoundManager sSoundMangerInstance;
-	
+
 	private SoundPool mSoundPool;
 	private SparseIntArray mSoundIDs;
 	private SparseIntArray mStreamIDs;
-	
+
 	public static SoundManager getInstance() {
 		if (sSoundMangerInstance == null) {
 			sSoundMangerInstance = new SoundManager();
 		}
 		return sSoundMangerInstance;
 	}
-	
+
 	private SoundManager() {
-		Log.d("test", "test1");
 		mSoundPool = new SoundPool(MAX_STREAMS, AudioManager.STREAM_MUSIC, 0);
 		mSoundIDs = new SparseIntArray();
 		mStreamIDs = new SparseIntArray();
 		Context context = BattleshipApplication.getAppContext();
-		
+
 		// Load the sounds we will use
-		int soundID = mSoundPool.load(context, R.raw.game_music, 1);
-		mSoundIDs.append(R.raw.game_music, soundID);
-		mStreamIDs.append(R.raw.game_music, 0);
-		soundID = mSoundPool.load(context, R.raw.menu_music, 1);
-		mSoundIDs.append(R.raw.menu_music, soundID);
-		mStreamIDs.append(R.raw.menu_music, 0);
-		Log.d("test", "test2");
+		// in game music
+		int soundID = mSoundPool.load(context, R.raw.miss, 1);
+		mSoundIDs.append(R.raw.miss, soundID);
+		mStreamIDs.append(R.raw.miss, 0);
+		// hit music
+		soundID = mSoundPool.load(context, R.raw.hit, 1);
+		mSoundIDs.append(R.raw.hit, soundID);
+		mStreamIDs.append(R.raw.hit, 0);
+		// exploding ship music
+		soundID = mSoundPool.load(context, R.raw.ship_explode, 1);
+		mSoundIDs.append(R.raw.ship_explode, soundID);
+		mStreamIDs.append(R.raw.ship_explode, 0);
 	}
 	
 	/**
-	 * Plays the audio as an infinite loop. If already playing,
-	 * stops it, and starts again.
+	 * Plays the audio as an infinite loop. If already playing, stops it, and
+	 * starts again.
+	 * 
 	 * @param resID
 	 */
 	public void playLoop(int resID, float vol) {
@@ -67,9 +70,10 @@ public class SoundManager {
 			mSoundPool.stop(mStreamIDs.get(resID));
 		}
 	}
-	
+
 	/**
 	 * Plays the audio once, possibly overlapping other sound effects
+	 * 
 	 * @param resID
 	 */
 	public void playSFX(int resID) {
