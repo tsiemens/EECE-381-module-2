@@ -40,6 +40,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Context mContext;
 
 	private List<GL20Drawable> mDrawList;
+	
+	private SoundManager mSoundManager = SoundManager.getInstance();
 
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
@@ -388,13 +390,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		
 		boolean wasHit = board.playerShotAttempt(x, y);
 		if(wasHit) {
-			SoundManager.getInstance().playSFX(R.raw.hit);
+			mSoundManager.playSFX(R.raw.hit);
 			NIOS2NetworkManager.sendHit(isHostsMove, x, y);
 		} else if (wasHit) {
 			// TODO: add sinking ship
-			SoundManager.getInstance().playSFX(R.raw.ship_explode);
+			mSoundManager.playSFX(R.raw.ship_explode);
 		} else {
-			SoundManager.getInstance().playSFX(R.raw.miss);
+			mSoundManager.playSFX(R.raw.miss);
 			NIOS2NetworkManager.sendMiss(isHostsMove, x, y);
 		}
 		return wasHit;
