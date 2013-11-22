@@ -151,7 +151,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		float width = renderer.getDefaultRight() - x;
 		float height = y - renderer.getDefaultBottom();
 		float sideLength = (height > width) ? width : height;
-
+		
 		if (mPlayerBoard == null) {
 			mPlayerBoard = new Board(mContext, sideLength, x, y, true);
 		} else {
@@ -183,7 +183,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		mDrawList.add(mBackground);
 		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
-
 	}
 
 	public void onRotateButtonPressed() {

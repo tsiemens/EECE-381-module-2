@@ -118,15 +118,32 @@ public class Board implements GL20Drawable {
 
 		}
 
-		mHitTiles = new ArrayList<TexturedRect>(17);
+		mHitTiles = makeHitTiles();
+	}
+	
+	public List<TexturedRect> makeHitTiles()
+	{
+		float tileSize = getTileGridSize() - (2 * getTilePadding());
+		List<TexturedRect>temp= new ArrayList<TexturedRect>(17);
 		for(int i=0; i < 17; i++)
 		{
 			TexturedRect hitTile = new TexturedRect(mContext, R.drawable.hit);
 			hitTile.setSize(tileSize, tileSize);
-			mHitTiles.add(hitTile);
+			temp.add(hitTile);
 		}
+		return temp;
+	}
+	
+	public void setHitTileList(List<TexturedRect> list)
+	{
+		mHitTiles = list;
 	}
 
+	public List<TexturedRect> getHitTileList()
+	{
+		return mHitTiles;
+	}
+	
 	public void setShip(int xPos, int yPos, boolean horiz, ShipType type) {
 
 		for (int i = 0; i < mShips.size(); i++) {
@@ -173,9 +190,14 @@ public class Board implements GL20Drawable {
 
 		List<TexturedRect> hitTiles = board.getHitTiles();
 		if (hitTiles != null && mHitTiles != null) {
-			for (TexturedRect t : hitTiles) {
-				// t.reloadTexture();
+				hitTiles = makeHitTiles();
+				numHitTiles = board.numHitTiles;
+			for(int i=0; i < numHitTiles; i++)
+			{
+				hitTiles.get(i).setPosition(board.getHitTileList().get(i).getXPos(), board.getHitTileList().get(i).getYPos());
 			}
+			
+			mHitTiles = hitTiles;
 		}
 	}
 
