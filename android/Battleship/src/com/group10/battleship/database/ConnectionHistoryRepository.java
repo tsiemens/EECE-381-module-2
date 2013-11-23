@@ -1,4 +1,4 @@
-package database;
+package com.group10.battleship.database;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -51,8 +51,8 @@ public class ConnectionHistoryRepository {
 		ContentValues cv = new ContentValues(1);
 		cv.put(COL_LASTPLAYED, Calendar.getInstance().getTimeInMillis());
 		DatabaseManager.getInstance().update(TABLE_NAME, cv,
-				COL_NAME+" = "+histItem.name
-				+" AND "+COL_IP+" = "+histItem.ip, null);
+				COL_NAME+" = ? AND "+COL_IP+" = ?", 
+				new String[] {histItem.name, histItem.ip});
 	}
 	
 	/**
@@ -84,7 +84,7 @@ public class ConnectionHistoryRepository {
 			found++;
 			if (found > max) {
 				long newestOldTime = c.getLong(0);
-				dbm.delete(TABLE_NAME, COL_LASTPLAYED+" <= "+newestOldTime, null);
+				dbm.delete(TABLE_NAME, COL_LASTPLAYED+" <= ?", new String[] {String.valueOf(newestOldTime)});
 				break;
 			}
 		}

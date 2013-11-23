@@ -1,4 +1,4 @@
-package database;
+package com.group10.battleship.database;
 
 import com.group10.battleship.BattleshipApplication;
 
@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class DatabaseManager extends SQLiteOpenHelper{
 
@@ -20,13 +21,14 @@ public class DatabaseManager extends SQLiteOpenHelper{
 	
 	public static DatabaseManager getInstance() {
 		if (sInstance == null) {
+			Log.d("test", "creating db instance");
 			sInstance = new DatabaseManager();
 		}
 		return sInstance;
 	}
 	
 	private DatabaseManager() {
-		super (BattleshipApplication.getAppContext(), DB_NAME, null, DB_VERSION);
+		super(BattleshipApplication.getAppContext(), DB_NAME, null, DB_VERSION);
 		mDatabase = getWritableDatabase();
 	}
 	
@@ -37,7 +39,7 @@ public class DatabaseManager extends SQLiteOpenHelper{
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		TableCreator.createTables(mDatabase);
+		TableCreator.createTables(db);
 	}
 
 	@Override
