@@ -14,6 +14,9 @@ public class PrefsManager {
 	public static final String PREF_KEY_LOCAL_DEBUG = "pref_local_debug";
 	public static final String PREF_KEY_USE_NIOS = "pref_use_nios";
 	
+	public static final String KEY_PROFILE_NAME = "pref_profile_name";
+	public static final String KEY_PROFILE_IMAGE_URI = "pref_profile_image";
+	
 	private static PrefsManager sInstance;
 	
 	private SharedPreferences mPrefs;
