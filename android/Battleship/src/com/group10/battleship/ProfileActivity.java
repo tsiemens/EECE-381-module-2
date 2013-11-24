@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.graphics.BitmapUtils;
 
 public class ProfileActivity extends SherlockActivity implements OnClickListener{
 
@@ -176,14 +177,10 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 		if (requestCode == IMAGE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
 			Log.v(TAG, "Found image: "+data.getDataString());
 			try {
-				InputStream stream = getContentResolver().openInputStream(
-						data.getData());
-				mEditModeBitmap = BitmapFactory.decodeStream(stream);
-				stream.close();
+				mEditModeBitmap = BitmapUtils.decodeSampledBitmapFromUri(data.getData(), 
+						mProfileImage.getWidth(), mProfileImage.getHeight());
 				mProfileImage.setImageBitmap(mEditModeBitmap);
 				mEditModeImageUri = data.getData();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
