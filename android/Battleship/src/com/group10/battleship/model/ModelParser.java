@@ -1,5 +1,8 @@
 package com.group10.battleship.model;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +10,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+
+import com.group10.battleship.BattleshipApplication;
+import com.group10.battleship.graphics.BitmapUtils;
 import com.group10.battleship.model.Ship.ShipType;
 
 
@@ -39,6 +48,10 @@ public class ModelParser {
 	public static String SHIP_DESTROYER_VAL = "destroyer";
 	
 	public final static String YIELD_TURN_TYPE_VAL = "yield";
+	
+	public final static String PROFILE_TYPE_VAL = "profile";
+	public static String PROFILE_NAME_KEY = "name";
+	public static String PROFILE_IMAGE_KEY = "image";
 	
 	public static String getJsonForBoard(List<Ship> ships) throws JSONException
 	{
@@ -95,6 +108,19 @@ public class ModelParser {
 		JSONObject yield = new JSONObject(); 
 		yield.put(TYPE_KEY, YIELD_TURN_TYPE_VAL);
 		return yield.toString();
+	}
+	
+	public static String getJsonForProfile(String name, Uri imageUri) throws JSONException, IOException
+	{
+		Bitmap bm = BitmapUtils.decodeSampledBitmapFromUri(imageUri, 200, 200);
+		String imageString = BitmapUtils.encodeToBase64(bm);
+		
+		JSONObject obj = new JSONObject(); 
+		obj.put(TYPE_KEY , PROFILE_TYPE_VAL); 
+		obj.put(PROFILE_NAME_KEY, name);
+		obj.put(PROFILE_IMAGE_KEY, imageString);
+		String json = obj.toString(); 
+		return json;
 	}
 
 	

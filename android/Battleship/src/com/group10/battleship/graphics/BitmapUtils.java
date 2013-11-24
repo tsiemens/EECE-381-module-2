@@ -1,5 +1,6 @@
 package com.group10.battleship.graphics;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +10,7 @@ import com.group10.battleship.BattleshipApplication;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.util.Base64;
 
 public class BitmapUtils {
 
@@ -66,5 +68,19 @@ public class BitmapUtils {
 		}
 
 		return inSampleSize;
+	}
+	
+	public static String encodeToBase64(Bitmap image)
+	{
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+	    image.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+	    byte[] byteArray = baos.toByteArray();
+	    return Base64.encodeToString(byteArray, Base64.DEFAULT);
+	}
+	
+	public static Bitmap decodeBase64(String input) 
+	{
+	    byte[] decodedByte = Base64.decode(input, 0);
+	    return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length); 
 	}
 }
