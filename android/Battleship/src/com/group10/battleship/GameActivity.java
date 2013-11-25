@@ -1,15 +1,5 @@
 package com.group10.battleship;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.group10.battleship.audio.MusicManager;
-import com.group10.battleship.audio.MusicManager.Music;
-import com.group10.battleship.game.Game;
-import com.group10.battleship.game.Game.GameState;
-import com.group10.battleship.game.Game.GameStateChangedListener;
-import com.group10.battleship.graphics.GL20Renderer;
-
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -26,8 +16,18 @@ import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.audio.MusicManager;
+import com.group10.battleship.audio.MusicManager.Music;
+import com.group10.battleship.game.Game;
+import com.group10.battleship.game.Game.GameState;
+import com.group10.battleship.game.Game.GameStateChangedListener;
+import com.group10.battleship.graphics.GL20Renderer;
 
 /**
  * http://www.learnopengles.com/android-lesson-one-getting-started/
@@ -43,6 +43,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	private Handler mHustleHandler = new Handler();
 	private Runnable mHustleRunnable = new hustleRunnable();
+	
+	private ImageView mBannerAdView; 
+	private ImageButton mCloseAdButton;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -90,16 +93,17 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		
 		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
-		final ImageView iv = (ImageView) findViewById(R.id.banner_ad);
-		final Button x = (Button) findViewById(R.id.close_ad_button);
-		iv.startAnimation(slideUp);
-		x.startAnimation(slideUp);
-		x.setOnClickListener(new OnClickListener() {
+		mBannerAdView = (ImageView) findViewById(R.id.banner_ad);
+		mCloseAdButton = (ImageButton) findViewById(R.id.close_ad_button);
+		mBannerAdView.startAnimation(slideUp);
+		mCloseAdButton.startAnimation(slideUp);
+		mCloseAdButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				iv.startAnimation(slideDown);
-				iv.setVisibility(View.INVISIBLE);
-				x.setVisibility(View.INVISIBLE);
+				mBannerAdView.startAnimation(slideDown);
+				mCloseAdButton.startAnimation(slideDown);
+				mBannerAdView.setVisibility(View.INVISIBLE);
+				mCloseAdButton.setVisibility(View.INVISIBLE);
 			}
 		});
 	}
@@ -119,6 +123,14 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
 		MusicManager.getInstance().resume();
+		if(mCloseAdButton.getVisibility() == View.INVISIBLE && mBannerAdView.getVisibility() == View.INVISIBLE)
+		{
+			Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+			mCloseAdButton.setVisibility(View.VISIBLE);
+			mBannerAdView.setVisibility(View.VISIBLE);
+			mBannerAdView.startAnimation(slideUp);
+			mCloseAdButton.startAnimation(slideUp);
+		}
 	}
 
 	@Override
