@@ -21,9 +21,13 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.ImageView;
 
 /**
  * http://www.learnopengles.com/android-lesson-one-getting-started/
@@ -83,6 +87,21 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		supportInvalidateOptionsMenu();
 		MusicManager.getInstance().stop(Music.MENU);
 		MusicManager.getInstance().play(Music.GAME);
+		
+		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
+		final ImageView iv = (ImageView) findViewById(R.id.banner_ad);
+		final Button x = (Button) findViewById(R.id.close_ad_button);
+		iv.startAnimation(slideUp);
+		x.startAnimation(slideUp);
+		x.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				iv.startAnimation(slideDown);
+				iv.setVisibility(View.INVISIBLE);
+				x.setVisibility(View.INVISIBLE);
+			}
+		});
 	}
 
 	@Override
