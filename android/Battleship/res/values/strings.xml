@@ -34,5 +34,8 @@
     <string name="profile_activity_title_edit_mode">Edit Profile</string>
     <string name="profile_edit_image_hint">Tap to change image</string>
     <string name="profile_edit_name_hint">Profile name</string>
+    
+    <string name="game_vs_bar_opponent_name_placeholder">Opponent</string>
+    <string name="game_vs_bar_player_name_placeholder">Player</string>
 
 </resources>

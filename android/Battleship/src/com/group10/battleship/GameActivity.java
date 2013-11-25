@@ -1,20 +1,11 @@
 package com.group10.battleship;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.group10.battleship.audio.MusicManager;
-import com.group10.battleship.audio.MusicManager.Music;
-import com.group10.battleship.game.Game;
-import com.group10.battleship.game.Game.GameState;
-import com.group10.battleship.game.Game.GameStateChangedListener;
-import com.group10.battleship.graphics.GL20Renderer;
-
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ConfigurationInfo;
+import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +15,17 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
+import android.widget.LinearLayout;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.audio.MusicManager;
+import com.group10.battleship.audio.MusicManager.Music;
+import com.group10.battleship.game.Game;
+import com.group10.battleship.game.Game.GameState;
+import com.group10.battleship.game.Game.GameStateChangedListener;
+import com.group10.battleship.graphics.GL20Renderer;
 
 /**
  * http://www.learnopengles.com/android-lesson-one-getting-started/
