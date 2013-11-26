@@ -271,6 +271,7 @@ public class Board implements GL20Drawable {
 	 * @return false if there is no ship at the coordinate given.
 	 */
 	public boolean sinkShipAt(int x, int y) {
+		setHitTile(x, y);
 		Ship ship = getShipAtIndex(x,y);
 		
 		if (ship != null) {
