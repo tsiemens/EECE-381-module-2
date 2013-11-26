@@ -65,7 +65,12 @@ public class RandomAI implements BattleshipAI{
 	}
 
 	@Override
-	public void respondToLastMove(boolean hit) {
+	public void respondToLastMove(boolean hit, Ship sunk) {
+		// We don't care about the result here
+	}
+	
+	@Override
+	public void setDifficulty(int diff) {
 		// We don't care about the result here
 	}
 }

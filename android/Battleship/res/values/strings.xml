@@ -27,6 +27,8 @@
     <string name="dialog_confirm">OK</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
+    <string name="dialog_win_message">You Have Won!</string>
+    <string name="dialog_loss_message">You Have Lost!</string>
 
     <string name="pref_title_middleman_ip">Middleman IP</string>
     <string name="pref_title_middleman_port">Middleman Port</string>

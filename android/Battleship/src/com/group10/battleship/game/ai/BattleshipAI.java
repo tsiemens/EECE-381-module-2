@@ -2,6 +2,7 @@ package com.group10.battleship.game.ai;
 
 import com.group10.battleship.model.Board;
 import com.group10.battleship.model.Board.BoardCoord;
+import com.group10.battleship.model.Ship;
 
 public interface BattleshipAI {
 	
@@ -17,12 +18,19 @@ public interface BattleshipAI {
 	 * Called after performMove to respond to the move.
 	 * Does nothing if called more than once per move, or before first performMove.
 	 * @param hit
+	 * @param sunk Only given when the ship is sunk. Otherwise, is null.
 	 */
-	public void respondToLastMove(boolean hit);
+	public void respondToLastMove(boolean hit, Ship sunk);
 	
 	/**
 	 * Moves the ships on myBoard into a valid configuraton.
 	 * @param myBoard
 	 */
 	public void arrangeShips(Board myBoard);
+	
+	/**
+	 * Sets the difficult of the ai
+	 * @param difficulty 1 for easy, 2 for normal, 3 for hard
+	 */
+	public void setDifficulty(int difficulty);
 }

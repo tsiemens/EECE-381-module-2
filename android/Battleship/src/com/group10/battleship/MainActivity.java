@@ -1,11 +1,11 @@
 package com.group10.battleship;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.group10.battleship.audio.MusicManager;
+import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.network.NIOS2NetworkManager;
@@ -17,6 +17,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,11 +51,20 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 		mGameModeGroup = (RadioGroup) findViewById(R.id.radioGroup1);
 		mGameModeGroup.setOnCheckedChangeListener(this);
+		
+		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
+		MusicManager.getInstance().play(Music.MENU);
+	}
+	
+	@Override
+	public void onPause() {
+		MusicManager.getInstance().pause();
+		super.onPause();
 	}
 
 	@Override

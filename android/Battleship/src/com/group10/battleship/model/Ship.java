@@ -10,7 +10,7 @@ import com.group10.battleship.model.Board.BoardCoord;
 
 public class Ship implements GL20Drawable{
 	
-	public static int SELECTED_COLOR = Color.parseColor("#ff00ffff");
+	public static int SELECTED_COLOR = Color.parseColor("#ff99daf2");
 	public static int SHIP_COLOR = Color.parseColor("#ff999999");
 	
 	private TexturedRect mTexRect;
@@ -19,6 +19,9 @@ public class Ship implements GL20Drawable{
 	
 	private boolean mIsHorizontal;
 	// In format of { Col, Row }
+	private boolean mIsSunk;
+	private int mHits;
+	
 	private BoardCoord mGridIndex;
 	// In format of { x, y }
 	private float[] mBoardLoc;
@@ -45,6 +48,8 @@ public class Ship implements GL20Drawable{
 		mGridIndex = new BoardCoord(0, 0);
 		mBoardLoc = new float[] {0, 0};
 		mIsHorizontal = true;
+		mIsSunk = false;
+		mHits = 0;
 	}
 
 	/**
@@ -169,9 +174,44 @@ public class Ship implements GL20Drawable{
 		}
 	}
 	
+	public BoardCoord[] getShipCoords() {
+		 BoardCoord[] coords = new BoardCoord[mType.size()];
+		 int x = this.mGridIndex.x;
+		 int y = this.mGridIndex.y;
+		 
+		 for (int i = 0; i < mType.size(); i++) {
+			 coords[i] = new BoardCoord(x, y);
+			 if(mIsHorizontal) {
+				 x++;
+			 } else {
+				 y++;
+			 }
+		 }
+		 
+		 return coords;
+	}
+	
 	public BoardCoord getPosIndex() { return new BoardCoord(mGridIndex.x, mGridIndex.y); }
 	
 	public ShipType getType() { return mType;}
+	
+	
+	/**
+	 * Adds a hit to the ship to determine whether is has
+	 * been sunk.
+	 * 
+	 * @return true if the hit sunk the ship, false otherwise
+	 */
+	public boolean  addHit() {
+		mHits++;
+		
+		if(mHits == mType.size())
+			mIsSunk = true;
+		
+		return mIsSunk;
+	}
+	
+	public boolean isSunk() { return mIsSunk;}
 	
 	public static enum ShipType {
 		CARRIER, BATTLESHIP, DESTROYER,
