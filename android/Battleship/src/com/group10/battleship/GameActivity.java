@@ -88,6 +88,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public void onPause() {
 		Log.d(TAG, "onPause");
+		stopHustling();
 		MusicManager.getInstance().pause();
 		mGLSurfaceView.onPause();
 		super.onPause();
@@ -100,6 +101,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
 		MusicManager.getInstance().resume();
+		if (Game.getInstance().getState() == GameState.TAKING_TURN)
+			initiateHustling();
 	}
 
 	@Override
@@ -218,9 +221,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			Log.d("", "waiting for opponent");
 			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
 			stopHustling();
-		} else if(Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
+		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
-		} else if(Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
+		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
 			showGameoverDialog(false);
 		}
 	}
@@ -238,23 +241,24 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	private void showGameoverDialog(boolean won) {
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-		
+
 		if (won)
 			dialogBuilder.setMessage(R.string.dialog_win_message);
 		else
 			dialogBuilder.setMessage(R.string.dialog_loss_message);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
-		dialogBuilder.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Game.getInstance().forfeit();
-				GameActivity.this.finish();
-			}
-		});
+		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
+				new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Game.getInstance().forfeit();
+						GameActivity.this.finish();
+					}
+				});
 		dialogBuilder.show();
 	}
-	
+
 	private class hustleRunnable implements Runnable {
 
 		@Override
@@ -263,19 +267,20 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			MusicManager.getInstance().play(Music.THINKING);
 		}
 	}
-	
+
 	private void showExitConfirmationDialog() {
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 		dialogBuilder.setMessage(R.string.dialog_quit_conf_message);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
-		dialogBuilder.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Game.getInstance().forfeit();
-				GameActivity.this.finish();
-			}
-		});
+		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
+				new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Game.getInstance().forfeit();
+						GameActivity.this.finish();
+					}
+				});
 		dialogBuilder.show();
 	}
 }
