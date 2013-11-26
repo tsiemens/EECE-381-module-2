@@ -17,7 +17,6 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.actionbarsherlock.app.SherlockActivity;
@@ -46,7 +45,6 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	private Runnable mHustleRunnable = new hustleRunnable();
 	
 	private RelativeLayout mBannerAd;
-	private ImageButton mCloseAdButton;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -95,9 +93,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
 		mBannerAd = (RelativeLayout) findViewById(R.id.banner_ad_layout);
-		mCloseAdButton = (ImageButton) findViewById(R.id.close_ad_button);
+		ImageButton imgButton = (ImageButton) findViewById(R.id.close_ad_button);
 		mBannerAd.startAnimation(slideUp);
-		mCloseAdButton.setOnClickListener(new OnClickListener() {
+		imgButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				mBannerAd.startAnimation(slideDown);
