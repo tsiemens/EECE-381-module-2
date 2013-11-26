@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ConfigurationInfo;
-import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,13 +15,10 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
-<<<<<<< HEAD
-import android.widget.LinearLayout;
-=======
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
->>>>>>> banner_ad
+import android.widget.RelativeLayout;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -49,7 +45,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	private Handler mHustleHandler = new Handler();
 	private Runnable mHustleRunnable = new hustleRunnable();
 	
-	private ImageView mBannerAdView; 
+	private RelativeLayout mBannerAd;
 	private ImageButton mCloseAdButton;
 
 	@Override
@@ -98,17 +94,14 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		
 		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
-		mBannerAdView = (ImageView) findViewById(R.id.banner_ad);
+		mBannerAd = (RelativeLayout) findViewById(R.id.banner_ad_layout);
 		mCloseAdButton = (ImageButton) findViewById(R.id.close_ad_button);
-		mBannerAdView.startAnimation(slideUp);
-		mCloseAdButton.startAnimation(slideUp);
+		mBannerAd.startAnimation(slideUp);
 		mCloseAdButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mBannerAdView.startAnimation(slideDown);
-				mCloseAdButton.startAnimation(slideDown);
-				mBannerAdView.setVisibility(View.INVISIBLE);
-				mCloseAdButton.setVisibility(View.INVISIBLE);
+				mBannerAd.startAnimation(slideDown);
+				mBannerAd.setVisibility(View.INVISIBLE);
 			}
 		});
 	}
@@ -128,13 +121,11 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		refreshOptionsMenu();
 		mGLSurfaceView.onResume();
 		MusicManager.getInstance().resume();
-		if(mCloseAdButton.getVisibility() == View.INVISIBLE && mBannerAdView.getVisibility() == View.INVISIBLE)
+		if(mBannerAd.getVisibility() == View.INVISIBLE)
 		{
 			Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-			mCloseAdButton.setVisibility(View.VISIBLE);
-			mBannerAdView.setVisibility(View.VISIBLE);
-			mBannerAdView.startAnimation(slideUp);
-			mCloseAdButton.startAnimation(slideUp);
+			mBannerAd.setVisibility(View.VISIBLE);
+			mBannerAd.startAnimation(slideUp);
 		}
 	}
 
