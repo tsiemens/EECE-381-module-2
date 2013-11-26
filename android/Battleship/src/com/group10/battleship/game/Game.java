@@ -152,10 +152,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			NIOS2NetworkManager.sendGameOver(false, true);
 		}
 		
-		if (youWon)
+		if (youWon) {
 			setState(GameState.GAME_OVER_WIN);
-		else
+		} else {
 			setState(GameState.GAME_OVER_LOSS);
+			mOpponentBoard.revealShips();
+		}
 	}
 	
 	public boolean isMultiplayer() {
@@ -507,7 +509,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			
 			//Give AI the ship if the ship is sunk, 
 			//The coordinates of the sunken ship is public information
-			
+			 
 			if (target != null)
 				sunk = target.isSunk();
 			
