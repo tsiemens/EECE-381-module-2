@@ -32,5 +32,34 @@
     <string name="btn_guest">Guest</string>
     <string name="btn_host">Host</string>
     <string name="btn_one_player">1-P</string>
+    <string name="pref_nios_group_title">Nios Settings</string>
+    <string name="pref_general_group_title">General Settings</string>
+    <string-array name="pref_history_entries">
+        <item>One</item>
+        <item>Two</item>
+        <item>Three</item>
+        <item>Four</item>
+        <item>Five</item>
+    </string-array>
+    <string name="pref_history_number">Number of Past Players to Keep</string>
+    <string name="dialog_history">History</string>
+    <string-array name="pref_history_entryvalues">
+        <item >One Selected</item>
+        <item >Two Selected</item>
+        <item >Three Selected</item>
+        <item >Four Selected</item>
+        <item >Five Selected</item>
+    </string-array>
+    <string name="dialog_title_history">Past Players</string>
+    <string-array name="dialog_recent_plays">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string-array name="dialog_level_select">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+    </string-array>
 
 </resources>

@@ -14,6 +14,7 @@ import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListene
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -36,6 +37,9 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	private Button mStartGameBtn;
 	
 	private RadioGroup mGameModeGroup;
+	
+	private String mHostIpTv;
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -63,6 +67,17 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		int selected = -1;
+		
+		builder.setSingleChoiceItems(R.array.dialog_level_select, selected, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int selected) {
+				// TODO set level on selecting the choice and start the game				
+			}
+		});
+		builder.show();
+		
 		if (item.getItemId() == R.id.app_settings) {
 			startActivity(new Intent(this, PreferenceActivity.class));
 			return true;
@@ -129,9 +144,16 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
 		// TODO show dialog with ip
-//		mHostIpTv.setText("IP: "
-//				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
-//				+ NetworkManager.getInstance().getAndroidHostPort());
+		
+		mHostIpTv = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
+				+ NetworkManager.getInstance().getAndroidHostPort();
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		
+		builder.setPositiveButton(R.string.dialog_confirm, null)
+		.setNegativeButton(R.string.dialog_cancel, null)
+		.setMessage(mHostIpTv);
+		builder.show();
 	}
 
 	@Override
@@ -182,6 +204,24 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	       				handleSocketError(e);
 	       			} 
 	               }
+	           })
+	           .setNeutralButton(R.string.dialog_history, new DialogInterface.OnClickListener() {				
+				@Override
+				public void onClick(DialogInterface dialog, int id) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+					int selected = -1;
+					builder.setTitle(R.string.dialog_title_history)
+					.setSingleChoiceItems(R.array.dialog_recent_plays, selected , new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// TODO add Port and correct IP
+							EditText text = (EditText)findViewById(R.string.host_ip_hint);
+							text.setText(R.array.dialog_recent_plays); 
+						}
+					})
+					.setNegativeButton(R.string.dialog_cancel, null);
+					builder.show();
+				}
 	           })
 	           .setNegativeButton(R.string.dialog_cancel, null);
 	    builder.show();
