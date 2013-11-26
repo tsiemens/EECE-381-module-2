@@ -271,6 +271,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	public void onFireButtonPressed() {
 		BoardCoord pos = mOpponentBoard.getSelectedTileIndex();
+		if(pos == null)
+			{
+				// if user didn't select a text, don't let them send a fire
+				Toast.makeText(mContext, "Please select a tile first", Toast.LENGTH_SHORT).show();
+				return;
+			}
 		// Don't do anything if tile has already been acted on.
 		if (mOpponentBoard.getTileColour(pos.x, pos.y) == Board.TILE_COLOR_NORMAL) {
 			if (isHost || !isMultiplayer()) { 
