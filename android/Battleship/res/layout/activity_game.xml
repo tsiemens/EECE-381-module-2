@@ -27,7 +27,7 @@
                 android:layout_alignTop="@+id/opponent_profile_image"
                 android:layout_marginLeft="@dimen/activity_horizontal_margin"
                 android:layout_toRightOf="@+id/opponent_profile_image"
-                android:text="@string/game_vs_bar_opponent_title_placeholder"
+                android:text="@string/game_vs_bar_opponent_title"
                 android:textColor="#66000000" />
 
             <ImageView
@@ -37,13 +37,14 @@
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
                 android:adjustViewBounds="true"
-                android:src="@drawable/profile_img_placeholder" />
+                android:src="@drawable/profile_img_placeholder"
+                android:contentDescription="@null" />
 
             <TextView
                 android:id="@+id/opponent_vs_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignLeft="@+id/opponent_vs_title"
+                android:layout_alignLeft="@id/opponent_vs_title"
                 android:layout_centerVertical="true"
                 android:text="@string/game_vs_bar_opponent_name_placeholder"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -67,7 +68,6 @@
                 android:orientation="vertical" >
 
                 <TextView
-                    android:id="@+id/turn_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/game_vs_bar_turn"
@@ -78,10 +78,10 @@
                     android:id="@+id/player_turn_img"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_centerVertical="true"
+                    android:layout_gravity="center_horizontal"
                     android:adjustViewBounds="true"
-                    android:src="@drawable/profile_img_placeholder" />
+                    android:src="@drawable/profile_img_placeholder"
+                    android:contentDescription="@null" />
             </LinearLayout>
         </RelativeLayout>
 
@@ -108,7 +108,8 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:adjustViewBounds="true"
-            android:src="@drawable/banner_ad" />
+            android:src="@drawable/banner_ad"
+            android:contentDescription="@null" />
 
         <ImageButton
             android:id="@+id/close_ad_button"
@@ -119,7 +120,8 @@
             android:layout_marginBottom="-10dp"
             android:layout_marginRight="5dp"
             android:adjustViewBounds="true"
-            android:background="@drawable/close_banner_button" />
+            android:background="@drawable/close_banner_button"
+            android:contentDescription="@null" />
     </RelativeLayout>
 
 </RelativeLayout>

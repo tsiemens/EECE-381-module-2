@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import com.group10.battleship.R;
 import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
+import com.group10.battleship.graphics.BitmapUtils;
 import com.group10.battleship.graphics.GL20Drawable;
 import com.group10.battleship.graphics.GL20Renderer;
 import com.group10.battleship.graphics.GL20Renderer.RendererListener;
@@ -46,6 +48,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
 	private TexturedRect mBackground;
+	
+	private String mOpponentProfileName;
+	private String mOpponentProfileTaunt;
+	private Bitmap mOpponentProfileImage;
+	private ProfileDataReceivedListener mProfileDataListener;
 	
 	private boolean isHost;
 	private boolean mIsMultiplayer;
@@ -86,6 +93,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void start(boolean isMultiplayer) {
+		// TODO send profile data
 		setState(GameState.PLACING_SHIPS);
 		mIsMultiplayer = isMultiplayer;
 		willYieldTurn = new Random().nextBoolean();
@@ -119,6 +127,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		setState(GameState.UNINITIALIZED);
 		mPlayerBoard = null;
 		mOpponentBoard = null;
+		
+		if (mOpponentProfileImage != null) {
+			mOpponentProfileImage.recycle();
+			mOpponentProfileImage = null;
+		}
+		mOpponentProfileName = null;
+		mOpponentProfileTaunt = null;
 	}
 	
 	public void forfeit() {
@@ -389,7 +404,17 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.YIELD_TURN_TYPE_VAL)) {
 					// The guest has been told by host that it gets to move first.
 					setState(GameState.TAKING_TURN);
-				}
+				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.PROFILE_TYPE_VAL)) {
+					// The opponent has sent its profile data
+					mOpponentProfileName = obj.getString(ModelParser.PROFILE_NAME_KEY);
+					mOpponentProfileTaunt = obj.getString(ModelParser.PROFILE_TAUNT_KEY);
+					String imgString = obj.getString(ModelParser.PROFILE_IMAGE_KEY);
+					mOpponentProfileImage = BitmapUtils.decodeBase64(imgString);
+					if (mProfileDataListener != null) {
+						mProfileDataListener.onProfileDataReceived(mOpponentProfileName,
+								mOpponentProfileTaunt, mOpponentProfileImage);
+					}
+				} 
 			} catch (JSONException e) {
 				Log.e(TAG, "Error getting json object from json string");
 			}
@@ -456,5 +481,23 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		} else {
 			Log.e(TAG, "move requested of AI after all spaces taken.");
 		}
+	}
+	
+	public static interface ProfileDataReceivedListener {
+		public void onProfileDataReceived(String name, String taunt, Bitmap image);
+	}
+	
+	public void setProfileDataReveivedListener(ProfileDataReceivedListener listener) {
+		mProfileDataListener = listener;
+		if (mProfileDataListener != null && 
+				(mOpponentProfileName != null || mOpponentProfileTaunt != null 
+				|| mOpponentProfileImage != null) ) {
+			mProfileDataListener.onProfileDataReceived(mOpponentProfileName,
+					mOpponentProfileTaunt, mOpponentProfileImage);
+		}
+	}
+	
+	public Bitmap getOpponentImage() {
+		return mOpponentProfileImage;
 	}
 }

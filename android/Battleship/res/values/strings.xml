@@ -37,7 +37,7 @@
     <string name="profile_taunt_label">Taunt:</string>
     <string name="profile_edit_taunt_hint">Your opponents will see this!</string>
     
-    <string name="game_vs_bar_opponent_title_placeholder">Opponent:</string>
+    <string name="game_vs_bar_opponent_title">Opponent:</string>
     <string name="game_vs_bar_opponent_name_placeholder">Semi-Colonel Bitsley</string>
 	<string name="game_vs_bar_opponent_taunt_placeholder">Shiver me Registers!</string>
 	<string name="game_vs_bar_turn">Turn:</string>

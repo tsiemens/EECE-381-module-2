@@ -60,6 +60,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 		mProfileTauntEditor = (EditText)findViewById(R.id.et_profile_taunt);
 		
 		refreshProfileData();
+		
 		// TODO check preferences for existing profile
 		setEditMode(false);
 	}
@@ -111,6 +112,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	
 	private void refreshProfileData() {
 		// TODO get data from user prefs
+		mProfileImage.setImageResource(R.drawable.profile_img_placeholder);
 	}
 	
 	private void enterEditMode() {

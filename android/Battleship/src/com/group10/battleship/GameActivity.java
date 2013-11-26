@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ConfigurationInfo;
+import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,7 +18,9 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -27,6 +30,7 @@ import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.game.Game.GameStateChangedListener;
+import com.group10.battleship.game.Game.ProfileDataReceivedListener;
 import com.group10.battleship.graphics.GL20Renderer;
 
 /**
@@ -34,7 +38,7 @@ import com.group10.battleship.graphics.GL20Renderer;
  * 
  */
 public class GameActivity extends SherlockActivity implements OnTouchListener,
-		AnimationListener, GameStateChangedListener {
+		AnimationListener, GameStateChangedListener, ProfileDataReceivedListener {
 
 	private static final String TAG = GameActivity.class.getSimpleName();
 
@@ -45,12 +49,24 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	private Runnable mHustleRunnable = new hustleRunnable();
 	
 	private RelativeLayout mBannerAd;
+	
+	private ImageView mOpponentImage;
+	private TextView mOpponentName;
+	private TextView mOpponentTaunt;
+	
+	private ImageView mCurrentTurnImage;
+	private Bitmap mPlayerProfileBitmap;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
-
+		
+		mOpponentName = (TextView) findViewById(R.id.opponent_vs_name);
+		mOpponentTaunt = (TextView) findViewById(R.id.opponent_vs_taunt_text);
+		mOpponentImage = (ImageView) findViewById(R.id.opponent_profile_image);
+		mCurrentTurnImage = (ImageView) findViewById(R.id.player_turn_img);
+		
 		Log.d(TAG, "onCreate");
 		mGLSurfaceView = (GLSurfaceView) findViewById(R.id.glsv_game_view);
 
@@ -85,10 +101,14 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 		game.configure(this, mGLRenderer);
 		game.setGameStateListener(this);
+		game.setProfileDataReveivedListener(this);
 
 		supportInvalidateOptionsMenu();
 		MusicManager.getInstance().stop(Music.MENU);
 		MusicManager.getInstance().play(Music.GAME);
+		
+		// TODO get from preferences
+		// mPlayerProfileBitmap = 
 		
 		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
@@ -280,5 +300,36 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			}
 		});
 		dialogBuilder.show();
+	}
+
+	@Override
+	public void onProfileDataReceived(String name, String taunt, Bitmap image) {
+		if (name != null) {
+			mOpponentName.setText(name);
+		} else {
+			mOpponentName.setText(R.string.game_vs_bar_opponent_name_placeholder);
+		}
+		
+		if (taunt != null) {
+			mOpponentTaunt.setText(taunt);
+		} else {
+			mOpponentTaunt.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
+		}
+		
+		setProfileImage(mOpponentImage, image);
+		
+		if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {		
+			setProfileImage(mCurrentTurnImage, image);
+		} else {
+			setProfileImage(mCurrentTurnImage, mPlayerProfileBitmap);
+		}
+	}
+	
+	private void setProfileImage(ImageView iv, Bitmap bm) {
+		if (bm != null) {
+			iv.setImageBitmap(bm);
+		} else {
+			iv.setImageResource(R.drawable.profile_img_placeholder);
+		}
 	}
 }
