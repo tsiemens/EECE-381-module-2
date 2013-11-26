@@ -170,7 +170,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		float width = renderer.getDefaultRight() - x;
 		float height = y - renderer.getDefaultBottom();
 		float sideLength = (height > width) ? width : height;
-
+		
 		if (mPlayerBoard == null) {
 			mPlayerBoard = new Board(mContext, sideLength, x, y, true);
 		} else {
@@ -202,7 +202,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		mDrawList.add(mBackground);
 		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
-
 	}
 
 	public void onRotateButtonPressed() {
@@ -216,6 +215,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	
 	public void onConfirmBoardPressed()
 	{
+		// deselect the highlighted ship
+		if(mPlayerBoard.getSelectedShip() != null) mPlayerBoard.getSelectedShip().setSelected(false);
 		try {
 			if (!isMultiplayer()) {
 				mSingleplayerAI.arrangeShips(mOpponentBoard);
@@ -343,6 +344,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
 						mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
 								obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						if(wasHit)
+							mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+						
 					} else {
 						// Host must process the move, and return if it hit/missed
 						boolean wasHit = processMoveOnBoard(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
@@ -357,6 +361,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					boolean wasHit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
 					mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
 							mLastMove.x, mLastMove.y);
+					if(wasHit)
+						mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL)) {
 					// Host is receiving the guest's board data
 					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);

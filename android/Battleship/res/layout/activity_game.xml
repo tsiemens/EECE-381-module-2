@@ -92,4 +92,28 @@
             android:layout_weight="0.7" />
     </LinearLayout>
 
+<<<<<<< HEAD
 </RelativeLayout>
+=======
+    <ImageView
+        android:id="@+id/banner_ad"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:adjustViewBounds="true"
+        android:src="@drawable/banner_ad" />
+
+    <ImageButton
+        android:id="@+id/close_ad_button"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_above="@+id/banner_ad"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="-10dp"
+        android:layout_marginRight="5dp"
+        android:adjustViewBounds="true"
+        android:background="@drawable/close_banner_button" />
+
+</RelativeLayout>
+>>>>>>> banner_ad
