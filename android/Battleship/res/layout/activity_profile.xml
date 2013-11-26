@@ -53,7 +53,9 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="20dp"
                 android:textSize="24sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end" />
 
             <EditText
                 android:id="@+id/et_profile_name"
@@ -67,6 +69,41 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+       	<LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textStyle="bold"
+                android:text="@string/profile_taunt_label" />
+            
+            <TextView
+                android:id="@+id/tv_profile_taunt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <EditText
+                android:id="@+id/et_profile_taunt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:hint="@string/profile_edit_taunt_hint"
+                android:inputType="text"
+                android:layout_marginLeft="10dp"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
     </LinearLayout>
 
 </ScrollView>

@@ -1,13 +1,10 @@
 package com.group10.battleship;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +30,9 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	private ImageView mProfileImage;
 	private TextView mImageEditHint;
 	
+	private TextView mProfileTaunt;
+	private EditText mProfileTauntEditor;
+	
 	private Bitmap mImageBitmap;
 	// A temporary bitmap, to allow undoing
 	private Bitmap mEditModeBitmap;
@@ -54,6 +54,10 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 
 		mImageEditHint = (TextView)findViewById(R.id.tv_profile_image_edit_hint);
 		mImageEditHint.setOnClickListener(this);
+		
+		mProfileTaunt = (TextView)findViewById(R.id.tv_profile_taunt);
+		
+		mProfileTauntEditor = (EditText)findViewById(R.id.et_profile_taunt);
 		
 		refreshProfileData();
 		// TODO check preferences for existing profile
@@ -111,6 +115,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	
 	private void enterEditMode() {
 		mProfileNameEditor.setText(mProfileName.getText());
+		mProfileTauntEditor.setText(mProfileTaunt.getText());
 		mEditModeBitmap = null;
 		setEditMode(true);
 	}
@@ -118,6 +123,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	private void confirmEdit() {
 		// TODO save to shared prefs
 		mProfileName.setText(mProfileNameEditor.getEditableText().toString());
+		mProfileTaunt.setText(mProfileTauntEditor.getEditableText().toString());
 		if (mEditModeBitmap != null) {
 			// We need to recyle unused bitmaps
 			if (mImageBitmap != null) {
@@ -146,12 +152,16 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 			mProfileName.setVisibility(View.GONE);
 			mProfileNameEditor.setVisibility(View.VISIBLE);
 			mImageEditHint.setVisibility(View.VISIBLE);
+			mProfileTaunt.setVisibility(View.GONE);
+			mProfileTauntEditor.setVisibility(View.VISIBLE);
 		} else {
 			setTitle(R.string.profile_activity_title_edit_mode);
 			setTitle(R.string.profile_activity_title);
 			mProfileName.setVisibility(View.VISIBLE);
 			mProfileNameEditor.setVisibility(View.GONE);
 			mImageEditHint.setVisibility(View.GONE);
+			mProfileTaunt.setVisibility(View.VISIBLE);
+			mProfileTauntEditor.setVisibility(View.GONE);
 		}
 		supportInvalidateOptionsMenu();
 	}
