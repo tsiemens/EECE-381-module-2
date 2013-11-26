@@ -35,7 +35,8 @@
     <string name="profile_edit_image_hint">Tap to change image</string>
     <string name="profile_edit_name_hint">Profile name</string>
     
-    <string name="game_vs_bar_opponent_name_placeholder">Opponent</string>
-    <string name="game_vs_bar_player_name_placeholder">Player</string>
-
+    <string name="game_vs_bar_opponent_title_placeholder">Opponent:</string>
+    <string name="game_vs_bar_opponent_name_placeholder">Semi-Colonel Bitsley</string>
+	<string name="game_vs_bar_opponent_taunt_placeholder">Shiver me Registers!</string>
+	<string name="game_vs_bar_turn">Turn:</string>
 </resources>
