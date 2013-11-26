@@ -15,6 +15,8 @@ public class PrefsManager {
 	public static final String PREF_KEY_MM_IP = "pref_middleman_ip";
 	public static final String PREF_KEY_MM_PORT = "pref_middleman_port";
 	
+	public static final String PREF_KEY_MAX_HISTORY = "pref_history_number";
+	
 	private static PrefsManager sInstance;
 	
 	private SharedPreferences mPrefs;

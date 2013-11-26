@@ -38,8 +38,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	
 	private RadioGroup mGameModeGroup;
 	
-	private String mHostIpTv;
-	
+	private String mHostIp;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -67,17 +66,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		int selected = -1;
-		
-		builder.setSingleChoiceItems(R.array.dialog_level_select, selected, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int selected) {
-				// TODO set level on selecting the choice and start the game				
-			}
-		});
-		builder.show();
-		
 		if (item.getItemId() == R.id.app_settings) {
 			startActivity(new Intent(this, PreferenceActivity.class));
 			return true;
@@ -94,8 +82,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				// Game was in progress before, so we have to restart it.
 				game.invalidate();
 			}
-			game.start(false);
-			startActivity(new Intent(this, GameActivity.class));
+			showLevelSelectDialog();
 		}
 		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_host){
 			Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
@@ -119,7 +106,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			} 
 		}
 		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_guest){
-			showGuestDialog();
+			showGuestDialog(null);
 		}
 	}
 
@@ -143,16 +130,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
-		// TODO show dialog with ip
-		
-		mHostIpTv = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
+		mHostIp = "Waiting for player to join.\nIP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort();
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		
-		builder.setPositiveButton(R.string.dialog_confirm, null)
-		.setNegativeButton(R.string.dialog_cancel, null)
-		.setMessage(mHostIpTv);
+		builder.setNegativeButton(R.string.dialog_cancel, null)
+		.setMessage(mHostIp);
 		builder.show();
 	}
 
@@ -179,52 +163,90 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		
 	}
 	
-	private void showGuestDialog(){
+	private void showGuestDialog(String ip){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		LayoutInflater inflater = this.getLayoutInflater();
 
 	    // Inflate and set the layout for the dialog
-	    // Pass null as the parent view because its going in the dialog layout
-	    builder.setView(inflater.inflate(R.layout.dialog_guest_findgame, null))
-	    // Add action buttons
-	           .setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
-	               @Override
-	               public void onClick(DialogInterface dialog, int id) {
-	            	   Toast.makeText(MainActivity.this, "Finding game...", Toast.LENGTH_SHORT).show();
-	       			try {
-	       				// TODO get host ip
-//	       				NetworkManager.getInstance().setupAndroidSocket(dialog. mHostIpEt.getText().toString(), 
-//	       						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-//	       				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
-	       			} catch(NumberFormatException e)
-	       			{
-	       				Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-	       				e.printStackTrace();
-	       			} catch (Exception e) {
-	       				handleSocketError(e);
-	       			} 
-	               }
-	           })
-	           .setNeutralButton(R.string.dialog_history, new DialogInterface.OnClickListener() {				
-				@Override
-				public void onClick(DialogInterface dialog, int id) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-					int selected = -1;
-					builder.setTitle(R.string.dialog_title_history)
-					.setSingleChoiceItems(R.array.dialog_recent_plays, selected , new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							// TODO add Port and correct IP
-							EditText text = (EditText)findViewById(R.string.host_ip_hint);
-							text.setText(R.array.dialog_recent_plays); 
-						}
-					})
-					.setNegativeButton(R.string.dialog_cancel, null);
-					builder.show();
+		View dialogView = inflater.inflate(R.layout.dialog_guest_findgame, null);
+		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
+		iptext.setText(ip); 
+		builder.setView(dialogView)
+		.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				Toast.makeText(MainActivity.this, "Finding game...", Toast.LENGTH_SHORT).show();
+				try {
+					// TODO get host ip
+					//	       				NetworkManager.getInstance().setupAndroidSocket(dialog. mHostIpEt.getText().toString(), 
+					//	       						Integer.parseInt(mHostPortEt.getText().toString()), false); 
+					//	       				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+				} catch(NumberFormatException e)
+				{
+					Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					e.printStackTrace();
+				} catch (Exception e) {
+					handleSocketError(e);
 				}
-	           })
-	           .setNegativeButton(R.string.dialog_cancel, null);
-	    builder.show();
+			}
+		})
+		.setNeutralButton(R.string.dialog_history, new DialogInterface.OnClickListener() {				
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				showIPHistoryDialog();
+			}
+		})
+		.setNegativeButton(R.string.dialog_cancel, null)
+		.setOnCancelListener(new DialogInterface.OnCancelListener() {
+
+			@Override
+			public void onCancel(DialogInterface arg0) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+		builder.show();
+	}
+	
+	private void showIPHistoryDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+		builder.setTitle(R.string.dialog_title_history)
+		.setItems(R.array.dialog_recent_plays, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO add Port and correct IP
+				dialog.dismiss();
+				showGuestDialog("an ip");
+			}
+		})
+		.setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				showGuestDialog(null);
+			}
+		})
+		.setOnCancelListener(new DialogInterface.OnCancelListener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				showGuestDialog(null);
+			}
+		});
+		builder.show();
+	}
+	
+	private void showLevelSelectDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+		builder.setItems(R.array.dialog_level_select, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int selected) {
+				// TODO set level on selecting the choice and start the game
+				Game.getInstance().start(false);
+				dialog.dismiss();
+				startActivity(new Intent(MainActivity.this, GameActivity.class));
+			}
+		});
+		builder.show();
 	}
 
 }

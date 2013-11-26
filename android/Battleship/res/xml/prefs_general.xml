@@ -6,7 +6,8 @@
         <ListPreference
             android:key="pref_history_number"
             android:title="@string/pref_history_number"
-        	android:entries="@array/pref_history_entries" />
+        	android:entries="@array/pref_history_entries"
+        	android:entryValues="@array/pref_history_entryvalues" />
     </PreferenceCategory>    	
         
     <PreferenceCategory 

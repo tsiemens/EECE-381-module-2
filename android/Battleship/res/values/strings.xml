@@ -14,6 +14,7 @@
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_find_game">Find Game</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
+    <string name="main_menu_dialog_level_select_title">Select Difficulty</string>
     
     <string name="host_ip_hint">Enter Host IP</string>
     <string name="host_ip_separator">:</string>
@@ -41,15 +42,16 @@
         <item>Four</item>
         <item>Five</item>
     </string-array>
-    <string name="pref_history_number">Number of Past Players to Keep</string>
-    <string name="dialog_history">History</string>
     <string-array name="pref_history_entryvalues">
-        <item >One Selected</item>
-        <item >Two Selected</item>
-        <item >Three Selected</item>
-        <item >Four Selected</item>
-        <item >Five Selected</item>
+        <item >1</item>
+        <item >2</item>
+        <item >3</item>
+        <item >4</item>
+        <item >5</item>
     </string-array>
+    <string name="pref_history_number">Number of Past Players to Keep</string>
+    
+    <string name="dialog_history">History</string>  
     <string name="dialog_title_history">Past Players</string>
     <string-array name="dialog_recent_plays">
         <item>1</item>
