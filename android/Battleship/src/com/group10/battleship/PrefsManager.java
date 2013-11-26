@@ -11,8 +11,11 @@ import android.preference.PreferenceManager;
  */
 public class PrefsManager {
 	
-	public static final String PREF_KEY_LOCAL_DEBUG = "pref_local_debug";
 	public static final String PREF_KEY_USE_NIOS = "pref_use_nios";
+	public static final String PREF_KEY_MM_IP = "pref_middleman_ip";
+	public static final String PREF_KEY_MM_PORT = "pref_middleman_port";
+	
+	public static final String PREF_KEY_MAX_HISTORY = "pref_history_number";
 	
 	private static PrefsManager sInstance;
 	
@@ -45,5 +48,27 @@ public class PrefsManager {
 	public boolean getBoolean(String key, boolean defVal)
 	{
 		return mPrefs.getBoolean(key, defVal);
+	}
+	
+	public boolean putInt(String key, int val)
+	{
+		mEditor.putInt(key, val);
+		return mEditor.commit();
+	}
+	
+	public int getInt(String key, int defVal)
+	{
+		return mPrefs.getInt(key, defVal);
+	}
+	
+	public boolean putString(String key, String val)
+	{
+		mEditor.putString(key, val);
+		return mEditor.commit();
+	}
+	
+	public String getString(String key, String defVal)
+	{
+		return mPrefs.getString(key, defVal);
 	}
 }

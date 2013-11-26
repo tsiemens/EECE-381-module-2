@@ -14,19 +14,56 @@
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_find_game">Find Game</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
-    
-    <string name="host_ip_none">No IP set</string>
+    <string name="main_menu_dialog_level_select_title">Select Difficulty</string>
+    <string name="main_menu_view_profile">View My Profile</string>
+    <string name="host_ip_hint">Enter Host IP</string>
     <string name="host_ip_separator">:</string>
-    <string name="host_port_none">No port set</string>
+    <string name="host_port_hint">Enter Host Port</string>
     
     <string name="prefs_activity_title">Settings</string>
     <string name="pref_title_local_debug">Local Debug Mode</string>
     <string name="pref_title_use_nios">Use Nios/Middleman</string>
-    
+
     <string name="dialog_confirm">OK</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
     <string name="dialog_win_message">You Have Won!</string>
     <string name="dialog_loss_message">You Have Lost!</string>
+
+    <string name="pref_title_middleman_ip">Middleman IP</string>
+    <string name="pref_title_middleman_port">Middleman Port</string>
+    <string name="btn_guest">Guest</string>
+    <string name="btn_host">Host</string>
+    <string name="btn_one_player">1-P</string>
+    <string name="pref_nios_group_title">Nios Settings</string>
+    <string name="pref_general_group_title">General Settings</string>
+    <string-array name="pref_history_entries">
+        <item>One</item>
+        <item>Two</item>
+        <item>Three</item>
+        <item>Four</item>
+        <item>Five</item>
+    </string-array>
+    <string-array name="pref_history_entryvalues">
+        <item >1</item>
+        <item >2</item>
+        <item >3</item>
+        <item >4</item>
+        <item >5</item>
+    </string-array>
+    <string name="pref_history_number">Number of Past Players to Keep</string>
+    
+    <string name="dialog_history">History</string>  
+    <string name="dialog_title_history">Past Players</string>
+    <string-array name="dialog_recent_plays">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string-array name="dialog_level_select">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+    </string-array>
 
 </resources>
