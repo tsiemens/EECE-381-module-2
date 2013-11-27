@@ -317,6 +317,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	}
 
 	private void showGameoverDialog(boolean won) {
+		if (this.isFinishing()) 
+			return;
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 
 		if (won)
