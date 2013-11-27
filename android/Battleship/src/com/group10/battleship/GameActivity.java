@@ -6,6 +6,7 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,6 +26,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -225,7 +228,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (item.getItemId() == R.id.confirm_item) {
 			Game.getInstance().onConfirmBoardPressed();
 		} else if (item.getItemId() == R.id.quit_item) {
-			showExitConfirmationDialog();
+//			showExitConfirmationDialog();
+			showGameoverDialog(true);
 		}
 		return true;
 	}
@@ -287,7 +291,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
-			showGameoverDialog(false);
+			showGameoverDialog(true);
 		}
 		
 		// Setting turn image
@@ -318,12 +322,25 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	private void showGameoverDialog(boolean won) {
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-
-		if (won)
-			dialogBuilder.setMessage(R.string.dialog_win_message);
-		else
-			dialogBuilder.setMessage(R.string.dialog_loss_message);
+		LayoutInflater inflator = this.getLayoutInflater();
+		View view = inflator.inflate(R.layout.dialog_game_over, null); 
+		dialogBuilder.setView(view);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+		final boolean didWin = won;
+		dialogBuilder.setNeutralButton("Share", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent shareIntent = new Intent(Intent.ACTION_SEND);
+				shareIntent.putExtra(Intent.EXTRA_TEXT, 
+						(didWin?getString(R.string.dialog_win_message_p1):
+							getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
+				// TODO: can also add #taunt
+				shareIntent.putExtra(Intent.EXTRA_TEXT, (didWin?getString(R.string.dialog_win_message_p1):
+					getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
+				shareIntent.setType("text/plain"); 
+				startActivity(Intent.createChooser(shareIntent, "Share your result via..."));
+			}
+		});
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
@@ -333,7 +350,33 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 						GameActivity.this.finish();
 					}
 				});
+		ImageView iv = (ImageView)view.findViewById(R.id.game_over_dialog_image);
+		if(iv != null)
+		{
+		if(won)
+			iv.setImageResource(R.drawable.dialog_img_won);
+		else 
+			iv.setImageResource(R.drawable.dialog_img_lost);
+		}
 		dialogBuilder.show();
+		
+//		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+//
+//		if (won)
+//			dialogBuilder.setMessage(R.string.dialog_win_message);
+//		else
+//			dialogBuilder.setMessage(R.string.dialog_loss_message);
+//		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+//		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
+//				new DialogInterface.OnClickListener() {
+//
+//					@Override
+//					public void onClick(DialogInterface dialog, int which) {
+//						Game.getInstance().forfeit();
+//						GameActivity.this.finish();
+//					}
+//				});
+//		dialogBuilder.show();
 	}
 
 	private class hustleRunnable implements Runnable {
