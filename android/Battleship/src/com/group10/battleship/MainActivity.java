@@ -12,6 +12,8 @@ import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
+import com.group10.battleship.network.UDPManager;
+import com.group10.battleship.network.UDPManager.OnUDPRecieveListener;
 
 import android.content.Intent;
 import android.media.AudioManager;
@@ -24,12 +26,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnUDPRecieveListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
+	private static final int DEFAULT_PORT = 50002;
 
 	private Button mStartGameBtn;
 	private Button mFindGameBtn;
+	
+	private Button mSendUDP;
+	private Button mRecieveUDP;
+	private UDPManager mUDPManager;
 
 	private EditText mHostIpEt;
 	private EditText mHostPortEt;
@@ -46,9 +53,19 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 		mFindGameBtn = (Button) findViewById(R.id.btn_find_game);
 		mFindGameBtn.setOnClickListener(this);
+		
+		mSendUDP = (Button) findViewById(R.id.btn_send_udp);
+		mSendUDP.setOnClickListener(this);
+		
+		mRecieveUDP = (Button) findViewById(R.id.btn_recieve_udp);
+		mRecieveUDP.setOnClickListener(this);
 
+		mUDPManager = new UDPManager(); 
+		mUDPManager.setOnUDPRecieveListener(this);
+				
 		mHostIpEt = (EditText) findViewById(R.id.et_host_ip);
 		mHostPortEt = (EditText) findViewById(R.id.et_host_port);
+		mHostPortEt.setText(Integer.valueOf(DEFAULT_PORT).toString());
 
 		mHostIpTv = (TextView) findViewById(R.id.tv_host_ip);
 		
@@ -101,8 +118,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		{
 			Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 			try {
+				//Starts broadcasting Host IP Address on UDP broadcast socket 
+				mUDPManager.new SendBroadcast().execute(null, null, null);
+				
 				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
+				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+				NetworkManager.getInstance().setPort(DEFAULT_PORT);
+				
 				// If using nios, also set up the nios 
 				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
 				{
@@ -130,6 +152,12 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			} catch (Exception e) {
 				handleSocketError(e);
 			} 
+		}
+		else if(view == mSendUDP) {
+			
+		}
+		else if(view == mRecieveUDP) {
+			mUDPManager.new RecieveBroadcast().execute(null, null, null);
 		}
 	}
 
@@ -168,6 +196,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		}
 		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
+	}
+	
+	@Override
+	public void onUDPRecieved() {
+		mHostIpEt.setText(mUDPManager.getIPString());
 	}
 
 	@Override

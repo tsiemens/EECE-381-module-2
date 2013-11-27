@@ -13,6 +13,8 @@
     
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_find_game">Find Game</string>
+    <string name="main_menu_send_udp">Send UDP</string>
+    <string name="main_menu_recieve_udp">Recieve UDP</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
     
     <string name="host_ip_none">No IP set</string>

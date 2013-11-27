@@ -25,7 +25,9 @@ import com.group10.battleship.BattleshipApplication;
 public class NetworkManager extends Object {
 	private static final String TAG = NetworkManager.class.getSimpleName();
 	private static NetworkManager NetworkManagerInstance;
+	private static int PORT = 50002; 
 	public boolean mIsHost = false;
+	
 
 	// IO Streams
 	private PrintWriter mAndroidSocketOutput;
@@ -79,6 +81,10 @@ public class NetworkManager extends Object {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public void setPort(int port) {
+		this.PORT = port;
 	}
 
 	// SETUP LISTENERS
@@ -272,7 +278,7 @@ public class NetworkManager extends Object {
 				if (mServerSocket != null) {
 					mServerSocket.close();
 				}
-				mServerSocket = new ServerSocket(0);
+				mServerSocket = new ServerSocket(PORT);
 				mAndroidHostIP = getLocalIpAddress();
 				mAndroidHostPort = mServerSocket.getLocalPort();
 
