@@ -1,6 +1,9 @@
 package com.group10.battleship;
 
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -88,6 +91,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		PrefsManager pm = PrefsManager.getInstance();
 		if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_single) {
 			Game game = Game.getInstance();
+			setUpNiosSocket();
 			if (game.getState() != GameState.UNINITIALIZED) {
 				// Game was in progress before, so we have to restart it.
 				game.invalidate();
@@ -100,16 +104,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
 				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
 				// If using nios, also set up the nios 
-				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
-				{
-					String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
-					int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
-					Log.d(TAG, ip+":"+port);
-					if (ip != null && port != -1) {
-						NetworkManager.getInstance().setupNiosSocket(ip, port);
-						NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
-					}
-				}
+				setUpNiosSocket();
 			} catch (Exception e) {
 				handleSocketError(e);
 				e.printStackTrace();
@@ -117,6 +112,30 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		}
 		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_guest){
 			showGuestDialog(null);
+		}
+	}
+	
+	private void setUpNiosSocket()
+	{
+		PrefsManager pm = PrefsManager.getInstance();
+		if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
+		{
+			String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
+			int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
+			Log.d(TAG, ip+":"+port);
+			if (ip != null && port != -1 && ip.length() != 0) {
+				try {
+					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+					NetworkManager.getInstance().setupNiosSocket(ip, port);
+				} catch (Exception e) {
+					handleSocketError(e);
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				Toast.makeText(this, "NIOS IP & port not specified, not connected to NIOS", Toast.LENGTH_LONG).show();
+			}
 		}
 	}
 
