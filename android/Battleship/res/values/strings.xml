@@ -11,6 +11,9 @@
     <string name="menu_item_rotate">Rotate Ship</string>
     <string name="menu_item_quit">Quit</string>
     
+    <string name="menu_item_cancel">Cancel</string>
+    <string name="menu_item_edit">Edit</string>
+    
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_find_game">Find Game</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
@@ -27,6 +30,7 @@
     <string name="dialog_confirm">OK</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
+
     <string name="dialog_win_message">You Have Won!</string>
     <string name="dialog_loss_message">You Have Lost!</string>
 
@@ -65,5 +69,19 @@
         <item>Medium</item>
         <item>Hard</item>
     </string-array>
+    
+    <string name="default_player_name">Player</string>
+    
+    <string name="profile_activity_title">Profile</string>
+    <string name="profile_activity_title_edit_mode">Edit Profile</string>
+    <string name="profile_edit_image_hint">Tap to change image</string>
+    <string name="profile_edit_name_hint">Profile name</string>
+    <string name="profile_taunt_label">Taunt:</string>
+    <string name="profile_edit_taunt_hint">Your opponents will see this!</string>
+    
+    <string name="game_vs_bar_opponent_title">Opponent:</string>
+    <string name="game_vs_bar_opponent_name_placeholder">Semi-Colonel Bitsley</string>
+	<string name="game_vs_bar_opponent_taunt_placeholder">Shiver me Registers!</string>
+	<string name="game_vs_bar_turn">Turn:</string>
 
 </resources>

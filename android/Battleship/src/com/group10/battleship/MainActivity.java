@@ -3,12 +3,14 @@ package com.group10.battleship;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-
+import java.util.List;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.audio.MusicManager;
 import com.group10.battleship.audio.MusicManager.Music;
+import com.group10.battleship.database.ConnectionHistoryRepository;
+import com.group10.battleship.database.ConnectionHistoryRepository.HistoryItem;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.network.NIOS2NetworkManager;
@@ -17,7 +19,6 @@ import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListene
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -30,7 +31,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -39,10 +39,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	private Button mStartGameBtn;
+	private Button mProfileButton;
 	
 	private RadioGroup mGameModeGroup;
 	
 	private String mHostIp;
+	
+	private List<HistoryItem> mHistoryItems;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,6 +54,13 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 		mStartGameBtn = (Button) findViewById(R.id.btn_start_game);
 		mStartGameBtn.setOnClickListener(this);
+		mProfileButton = (Button) findViewById(R.id.btn_view_profile);
+		mProfileButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+			}
+		});
 
 		mGameModeGroup = (RadioGroup) findViewById(R.id.radioGroup1);
 		mGameModeGroup.setOnCheckedChangeListener(this);
@@ -62,6 +72,10 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	public void onResume() {
 		super.onResume();
 		MusicManager.getInstance().play(Music.MENU);
+		
+		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
+			startActivity(new Intent(this, ProfileActivity.class));
+		}
 	}
 	
 	@Override
@@ -118,10 +132,10 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	private void setUpNiosSocket()
 	{
 		PrefsManager pm = PrefsManager.getInstance();
-		if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
+		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 		{
-			String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
-			int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
+			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
+			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 			Log.d(TAG, ip+":"+port);
 			if (ip != null && port != -1 && ip.length() != 0) {
 				try {
@@ -197,7 +211,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		LayoutInflater inflater = this.getLayoutInflater();
 
 	    // Inflate and set the layout for the dialog
-		View dialogView = inflater.inflate(R.layout.dialog_guest_findgame, null);
+		final View dialogView = inflater.inflate(R.layout.dialog_guest_findgame, null);
 		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
 		iptext.setText(ip); 
 		builder.setView(dialogView)
@@ -206,10 +220,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			public void onClick(DialogInterface dialog, int id) {
 				Toast.makeText(MainActivity.this, "Finding game...", Toast.LENGTH_SHORT).show();
 				try {
-					// TODO get host ip
-					//	       				NetworkManager.getInstance().setupAndroidSocket(dialog. mHostIpEt.getText().toString(), 
-					//	       						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-					//	       				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
+					String ip = ((EditText)dialogView.findViewById(R.id.et_ip)).getText().toString();
+					int port = Integer.parseInt(((EditText)dialogView.findViewById(R.id.et_port)).getText().toString());
+					Log.d(TAG, "should find game at "+ip+":"+port);
+					NetworkManager.getInstance().setupAndroidSocket(ip, port, false); 
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(MainActivity.this);
 				} catch(NumberFormatException e)
 				{
 					Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -224,28 +239,31 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			public void onClick(DialogInterface dialog, int id) {
 				showIPHistoryDialog();
 			}
-		})
-		.setNegativeButton(R.string.dialog_cancel, null)
-		.setOnCancelListener(new DialogInterface.OnCancelListener() {
-
-			@Override
-			public void onCancel(DialogInterface arg0) {
-				// TODO Auto-generated method stub
-
-			}
 		});
 		builder.show();
 	}
 	
 	private void showIPHistoryDialog() {
+		mHistoryItems = ConnectionHistoryRepository.getSortedHistory();
+		
+		if (mHistoryItems.size() == 0) {
+			Toast.makeText(this, "No history", Toast.LENGTH_SHORT).show();
+			showGuestDialog(null);
+			return;
+		}
+		
+		String[] itemStrings = new String[mHistoryItems.size()];
+		for (int i = 0; i < mHistoryItems.size(); i++) {
+			itemStrings[i] = mHistoryItems.get(i).toString();
+		}
+		
 		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 		builder.setTitle(R.string.dialog_title_history)
-		.setItems(R.array.dialog_recent_plays, new DialogInterface.OnClickListener() {
+		.setItems(itemStrings, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				// TODO add Port and correct IP
 				dialog.dismiss();
-				showGuestDialog("an ip");
+				showGuestDialog(mHistoryItems.get(which).ip);
 			}
 		})
 		.setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {

@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:name="com.group10.battleship.BattleshipApplication"
@@ -32,7 +33,12 @@
             android:screenOrientation="portrait"
             android:label="@string/app_name" />
         <activity
+            android:name="com.group10.battleship.ProfileActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" />
+        <activity
             android:name="com.group10.battleship.PreferenceActivity"
+            android:screenOrientation="portrait"
             android:label="@string/prefs_activity_title" />
     </application>
 
