@@ -226,7 +226,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (item.getItemId() == R.id.confirm_item) {
 			Game.getInstance().onConfirmBoardPressed();
 		} else if (item.getItemId() == R.id.quit_item) {
-			showExitConfirmationDialog();
+//			showExitConfirmationDialog();
+			showGameoverDialog(true);
 		}
 		return true;
 	}
@@ -319,11 +320,6 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	private void showGameoverDialog(boolean won) {
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-
-		if (won)
-			dialogBuilder.setMessage(R.string.dialog_win_message);
-		else
-			dialogBuilder.setMessage(R.string.dialog_loss_message);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
 		final boolean didWin = won;
 		dialogBuilder.setNeutralButton("Share", new DialogInterface.OnClickListener() {
