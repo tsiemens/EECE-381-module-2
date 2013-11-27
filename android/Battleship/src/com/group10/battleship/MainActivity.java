@@ -1,7 +1,8 @@
 package com.group10.battleship;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.List;
-
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -188,6 +189,30 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			}
 			else if (mSelectedModeId == R.id.rb_guest){
 				showGuestDialog(null);
+			}
+		}
+	}
+	
+	private void setUpNiosSocket()
+	{
+		PrefsManager pm = PrefsManager.getInstance();
+		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
+		{
+			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
+			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
+			Log.d(TAG, ip+":"+port);
+			if (ip != null && port != -1 && ip.length() != 0) {
+				try {
+					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+					NetworkManager.getInstance().setupNiosSocket(ip, port);
+				} catch (Exception e) {
+					handleSocketError(e);
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				Toast.makeText(this, "NIOS IP & port not specified, not connected to NIOS", Toast.LENGTH_LONG).show();
 			}
 		}
 	}

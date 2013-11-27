@@ -152,11 +152,10 @@ public class NetworkManager extends Object {
 	// Initializes an output stream if null
 	public PrintWriter getNiosSocketOutput() {
 		if (mNiosSocketOutput == null) {
-			try {
+			try { 
 				mNiosSocketOutput = new PrintWriter(new BufferedWriter(
-						new OutputStreamWriter(mNiosSocket.getOutputStream())),
-						true);
-			} catch (IOException e) {
+						new OutputStreamWriter(mNiosSocket.getOutputStream())), true);
+			} catch (Exception e) {
 				Log.d(TAG, "Error with socket writer");
 				e.printStackTrace();
 			}
@@ -211,6 +210,7 @@ public class NetworkManager extends Object {
 
 		@Override
 		protected Object doInBackground(Object... params) {
+			Log.d(TAG, "is setting up NIOS socket");
 			ipAddress = (String) params[0];
 			portNum = (Integer) params[1];
 			isNios = (Boolean) params[2];
@@ -241,6 +241,10 @@ public class NetworkManager extends Object {
 				Log.d(TAG, "IOException");
 				e.printStackTrace();
 				return e;
+			} catch (Exception e)
+			{
+				Log.d(TAG, "exception");
+				return e; 
 			}
 			return null;
 		}
@@ -250,11 +254,17 @@ public class NetworkManager extends Object {
 				if (onAndroidSocketSetupListener != null)
 					onAndroidSocketSetupListener.onAndroidSocketSetupError();
 			} else if (isNios) {
-				if (onNiosSocketSetupListener != null)
-					onNiosSocketSetupListener.onSuccessfulNiosSetup();
+				if (onNiosSocketSetupListener != null )
+				{
+					if (mNiosSocket == null)
+						onNiosSocketSetupListener.onNiosSocketSetupError();
+					else 
+						onNiosSocketSetupListener.onSuccessfulNiosSetup();
+				}
 			} else {
 				if (onAndroidSocketSetupListener != null)
 					onAndroidSocketSetupListener.onGameFound();
+				
 			}
 		}
 
@@ -330,8 +340,8 @@ public class NetworkManager extends Object {
 			if (sendToAndroid)
 				getAndroidSocketOutput().println(message);
 			else
-				getNiosSocketOutput().println(
-						(char) (message.length() + 1) + message);
+				if(getNiosSocketOutput() != null)
+					getNiosSocketOutput().println((char) (message.length() + 1) + message);
 			return null;
 		};
 	}
@@ -404,5 +414,9 @@ public class NetworkManager extends Object {
 				.getAppContext().getSystemService(Context.WIFI_SERVICE);
 		return Formatter.formatIpAddress(wifiManager.getConnectionInfo()
 				.getIpAddress());
+	}
+
+	public Object getNiosSocket() {
+		return mNiosSocket;
 	}
 }
