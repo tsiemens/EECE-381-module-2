@@ -445,17 +445,23 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 							mPlayerBoard.sinkShipAt(
 									obj.getInt(ModelParser.MOVE_XPOS_KEY),
 									obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							mSoundManager.playSFX(R.raw.ship_explode);
 						} else {
 							mPlayerBoard.setTileColour(
 									wasHit ? Board.TILE_COLOR_HIT
 											: Board.TILE_COLOR_MISS, obj
 											.getInt(ModelParser.MOVE_XPOS_KEY),
 									obj.getInt(ModelParser.MOVE_YPOS_KEY));
-							if (wasHit)
+							if (wasHit) {
 								mPlayerBoard.setHitTile(
 										obj.getInt(ModelParser.MOVE_XPOS_KEY),
 										obj.getInt(ModelParser.MOVE_YPOS_KEY));
+								mSoundManager.playSFX(R.raw.hit);
+							} else {
+								mSoundManager.playSFX(R.raw.miss);
+							}
 						}
+							
 						mFireTileX = mPlayerBoard.getTileLocationAtIndex(
 								obj.getInt(ModelParser.MOVE_XPOS_KEY),
 								obj.getInt(ModelParser.MOVE_YPOS_KEY))[0];
@@ -475,6 +481,14 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						boolean wasSunk = false;
 						if (playerShip != null)
 							wasSunk = playerShip.isSunk();
+						
+						if (wasHit) {
+							mSoundManager.playSFX(R.raw.hit);
+						} else if (wasSunk) {
+							mSoundManager.playSFX(R.raw.ship_explode);
+						} else {
+							mSoundManager.playSFX(R.raw.miss);
+						}
 
 						NetworkManager.getInstance().send(
 								ModelParser.getJsonForMoveResponse(wasHit,
@@ -507,13 +521,18 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 					if (wasSunk) {
 						mOpponentBoard.sinkShipAt(mLastMove.x, mLastMove.y);
+						mSoundManager.playSFX(R.raw.ship_explode);
 					} else {
 						mOpponentBoard.setTileColour(
 								wasHit ? Board.TILE_COLOR_HIT
 										: Board.TILE_COLOR_MISS, mLastMove.x,
 								mLastMove.y);
-						if (wasHit)
+						if (wasHit) {
 							mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
+							mSoundManager.playSFX(R.raw.hit);
+						} else {
+							mSoundManager.playSFX(R.raw.miss);
+						}
 					}
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
 						ModelParser.BOARD_TYPE_VAL)) {
