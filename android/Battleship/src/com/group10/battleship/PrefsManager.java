@@ -11,11 +11,15 @@ import android.preference.PreferenceManager;
  */
 public class PrefsManager {
 	
-	public static final String PREF_KEY_USE_NIOS = "pref_use_nios";
-	public static final String PREF_KEY_MM_IP = "pref_middleman_ip";
-	public static final String PREF_KEY_MM_PORT = "pref_middleman_port";
+	public static final String KEY_USE_NIOS = "pref_use_nios";
+	public static final String KEY_MM_IP = "pref_middleman_ip";
+	public static final String KEY_MM_PORT = "pref_middleman_port";
 	
-	public static final String PREF_KEY_MAX_HISTORY = "pref_history_number";
+	public static final String KEY_MAX_HISTORY = "pref_history_number";
+	
+	public static final String KEY_PROFILE_NAME = "pref_profile_name";
+	public static final String KEY_PROFILE_TAUNT = "pref_profile_taunt";
+	public static final String KEY_PROFILE_IMAGE_URI = "pref_profile_image";
 	
 	private static PrefsManager sInstance;
 	

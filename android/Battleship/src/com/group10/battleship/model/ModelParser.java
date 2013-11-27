@@ -1,45 +1,57 @@
 package com.group10.battleship.model;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.util.Log;
+
+import com.group10.battleship.graphics.BitmapUtils;
 import com.group10.battleship.model.Ship.ShipType;
 
 
 public class ModelParser { 
 	
-	public static String TYPE_KEY  = "type";
+	private static final String TAG = ModelParser.class.getSimpleName();
 	
-	public static String MOVE_TYPE_VAL = "move";
-	public static String MOVE_XPOS_KEY = "xpos";
-	public static String MOVE_YPOS_KEY  = "ypos";
+	public static final String TYPE_KEY  = "type";
 	
-	public static String MOVE_RESPONSE_KEY  = "response";
-	public static String MOVE_RESPONSE_TYPE_VAL = "moveresponse";
-	public static String MOVE_RESPONSE_HIT_KEY = "hit";
-	public static String MOVE_RESPONSE_SUNK_KEY = "sunk";
-	public static String GAME_OVER_TYPE_VAL = "gameover";
-	public static String GAME_OVER_WIN_KEY = "youwin";
+	public static final String MOVE_TYPE_VAL = "move";
+	public static final String MOVE_XPOS_KEY = "xpos";
+	public static final String MOVE_YPOS_KEY  = "ypos";
 	
-	public static String BOARD_TYPE_VAL = "gameboard"; 
-	public static String BOARD_TYPE_SHIPS_KEY = "ships";
-	public static String SHIP_TYPE_VAL = "ship"; 
-	public static String SHIP_TYPE_TYPE_KEY = "shiptype";
-	public static String SHIP_XPOS_KEY = "xpos";
-	public static String SHIP_YPOS_KEY = "ypos";
-	public static String SHIP_HORIZ_KEY = "horiz";
+	public static final String MOVE_RESPONSE_KEY  = "response";
+	public static final String MOVE_RESPONSE_TYPE_VAL = "moveresponse";
+	public static final String MOVE_RESPONSE_HIT_KEY = "hit";
+	public static final String MOVE_RESPONSE_SUNK_KEY = "sunk";
+	public static final String GAME_OVER_TYPE_VAL = "gameover";
+	public static final String GAME_OVER_WIN_KEY = "youwin";
 	
-	public static String SHIP_BATTLESHIP_VAL = "battleship";
-	public static String SHIP_PATROL_VAL = "patrol";
-	public static String SHIP_SUB_VAL = "sub";
-	public static String SHIP_CARRIER_VAL = "carrier";
-	public static String SHIP_DESTROYER_VAL = "destroyer";
+	public static final String BOARD_TYPE_VAL = "gameboard"; 
+	public static final String BOARD_TYPE_SHIPS_KEY = "ships";
+	public static final String SHIP_TYPE_VAL = "ship"; 
+	public static final String SHIP_TYPE_TYPE_KEY = "shiptype";
+	public static final String SHIP_XPOS_KEY = "xpos";
+	public static final String SHIP_YPOS_KEY = "ypos";
+	public static final String SHIP_HORIZ_KEY = "horiz";
 	
-	public final static String YIELD_TURN_TYPE_VAL = "yield";
+	public static final String SHIP_BATTLESHIP_VAL = "battleship";
+	public static final String SHIP_PATROL_VAL = "patrol";
+	public static final String SHIP_SUB_VAL = "sub";
+	public static final String SHIP_CARRIER_VAL = "carrier";
+	public static final String SHIP_DESTROYER_VAL = "destroyer";
+	
+	public static final String YIELD_TURN_TYPE_VAL = "yield";
+	
+	public static final String PROFILE_TYPE_VAL = "profile";
+	public static final String PROFILE_NAME_KEY = "name";
+	public static final String PROFILE_IMAGE_KEY = "image";
+	public static final String PROFILE_TAUNT_KEY = "taunt";
 	
 	public static String getJsonForBoard(List<Ship> ships) throws JSONException
 	{
@@ -97,6 +109,28 @@ public class ModelParser {
 		JSONObject yield = new JSONObject(); 
 		yield.put(TYPE_KEY, YIELD_TURN_TYPE_VAL);
 		return yield.toString();
+	}
+	
+	public static String getJsonForProfile(String name, Uri imageUri, String taunt) throws JSONException
+	{
+		String imageString = null;
+		if (imageUri != null) {
+			try {
+				Bitmap bm = BitmapUtils.decodeSampledBitmapFromUri(imageUri, 200, 200);
+				imageString = BitmapUtils.encodeToBase64(bm);
+			} catch (IOException e) {
+				Log.e(TAG, "Could not decode profile image");
+				e.printStackTrace();
+			}
+		}
+		
+		JSONObject obj = new JSONObject(); 
+		obj.put(TYPE_KEY , PROFILE_TYPE_VAL); 
+		obj.put(PROFILE_NAME_KEY, name);
+		obj.put(PROFILE_IMAGE_KEY, imageString);
+		obj.put(PROFILE_TAUNT_KEY, taunt);
+		String json = obj.toString(); 
+		return json;
 	}
 
 	

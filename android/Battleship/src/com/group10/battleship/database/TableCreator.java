@@ -16,10 +16,9 @@ public class TableCreator {
 		Log.i(TAG, "Creating Connection History table");
 		String table = 
 				"CREATE TABLE connectionHistory ("
+					+" ip TEXT PRIMARY KEY,"
 					+" player_name TEXT,"
-					+" ip TEXT,"
-					+" last_played INTEGER,"
-					+" PRIMARY KEY (player_name, ip)"
+					+" last_played INTEGER"
 					+")";
 		return table;
 	}
