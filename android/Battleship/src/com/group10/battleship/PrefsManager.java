@@ -21,6 +21,8 @@ public class PrefsManager {
 	public static final String KEY_PROFILE_TAUNT = "pref_profile_taunt";
 	public static final String KEY_PROFILE_IMAGE_URI = "pref_profile_image";
 	
+    public static final String KEY_HAS_RUN_BEFORE = "pref_has_run_before";
+	
 	private static PrefsManager sInstance;
 	
 	private SharedPreferences mPrefs;

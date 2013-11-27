@@ -25,8 +25,14 @@
         android:id="@+id/switch_boards_item"
         android:icon="@drawable/ic_find_previous_holo_light"
         android:orderInCategory="100"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:title="@string/menu_item_goto_oboard"/>
+    
+     <item
+        android:id="@+id/show_help_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_item_help"/>
     
     <item
         android:id="@+id/quit_item"
