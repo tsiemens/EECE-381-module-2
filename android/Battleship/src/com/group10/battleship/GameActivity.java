@@ -6,6 +6,7 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -324,6 +325,18 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		else
 			dialogBuilder.setMessage(R.string.dialog_loss_message);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+		final boolean didWin = won;
+		dialogBuilder.setNeutralButton("Share", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent shareIntent = new Intent(Intent.ACTION_SEND);
+				shareIntent.putExtra(Intent.EXTRA_TEXT, 
+						(didWin?getString(R.string.dialog_win_message_p1):
+							getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
+				shareIntent.setType("text/plain"); 
+				startActivity(Intent.createChooser(shareIntent, "Share your result via..."));
+			}
+		});
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
