@@ -228,8 +228,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (item.getItemId() == R.id.confirm_item) {
 			Game.getInstance().onConfirmBoardPressed();
 		} else if (item.getItemId() == R.id.quit_item) {
-//			showExitConfirmationDialog();
-			showGameoverDialog(true);
+			showExitConfirmationDialog();
 		}
 		return true;
 	}
