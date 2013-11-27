@@ -13,6 +13,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -36,43 +37,61 @@ import com.group10.battleship.game.Game.GameStateChangedListener;
 import com.group10.battleship.game.Game.ProfileDataReceivedListener;
 import com.group10.battleship.graphics.BitmapUtils;
 import com.group10.battleship.graphics.GL20Renderer;
+import com.group10.battleship.graphics.GifAnimation;
 
 /**
  * http://www.learnopengles.com/android-lesson-one-getting-started/
  * 
  */
 public class GameActivity extends SherlockActivity implements OnTouchListener,
-		AnimationListener, GameStateChangedListener, ProfileDataReceivedListener {
+		AnimationListener, GameStateChangedListener,
+		ProfileDataReceivedListener {
 
 	private static final String TAG = GameActivity.class.getSimpleName();
-	
+
 	public static final int BOARD_TRANS_ANIM_DURATION = 500;
+	public static final int SMOKE_ANIM_DURATION = 1000;
 
 	private GLSurfaceView mGLSurfaceView;
 	private GL20Renderer mGLRenderer;
 
 	private Handler mHustleHandler = new Handler();
-	private Runnable mHustleRunnable = new hustleRunnable();
-	
+	private Runnable mHustleRunnable = new HustleRunnable();
+
+	private GifAnimation mSmokeView;
+	private Handler mHideSmokeHandler = new Handler();
+	private Runnable mHideSmokeRunnable = new HideSmokeRunnable();
+
+	private int mSmokeSizeX = 175;
+	private int mSmokeSizeY = 230;
+
 	private RelativeLayout mBannerAd;
-	
+
 	private ImageView mOpponentImage;
 	private TextView mOpponentName;
 	private TextView mOpponentTaunt;
-	
+
 	private ImageView mCurrentTurnImage;
 	private Bitmap mPlayerProfileBitmap;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_game);
-		
+
+		mSmokeView = new GifAnimation(this, "explosion.gif", mSmokeSizeX,
+				mSmokeSizeY);
+		RelativeLayout rl = (RelativeLayout) LayoutInflater.from(this).inflate(
+				R.layout.activity_game, null);
+		rl.addView(mSmokeView.getView());
+		mSmokeView.getView().setVisibility(View.INVISIBLE);
+
+		setContentView(rl);
+
 		mOpponentName = (TextView) findViewById(R.id.opponent_vs_name);
 		mOpponentTaunt = (TextView) findViewById(R.id.opponent_vs_taunt_text);
 		mOpponentImage = (ImageView) findViewById(R.id.opponent_profile_image);
 		mCurrentTurnImage = (ImageView) findViewById(R.id.player_turn_img);
-		
+
 		Log.d(TAG, "onCreate");
 		mGLSurfaceView = (GLSurfaceView) findViewById(R.id.glsv_game_view);
 
@@ -112,12 +131,14 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		supportInvalidateOptionsMenu();
 		MusicManager.getInstance().stop(Music.MENU);
 		MusicManager.getInstance().play(Music.GAME);
-		
+
 		// Set the user's profile image
-		String profileImgUriStr = PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_IMAGE_URI, null);
+		String profileImgUriStr = PrefsManager.getInstance().getString(
+				PrefsManager.KEY_PROFILE_IMAGE_URI, null);
 		if (profileImgUriStr != null) {
 			try {
-				mPlayerProfileBitmap = BitmapUtils.decodeSampledBitmapFromUri(Uri.parse(profileImgUriStr), 100, 100);
+				mPlayerProfileBitmap = BitmapUtils.decodeSampledBitmapFromUri(
+						Uri.parse(profileImgUriStr), 100, 100);
 			} catch (IOException e) {
 				e.printStackTrace();
 				mPlayerProfileBitmap = null;
@@ -125,9 +146,11 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else {
 			mPlayerProfileBitmap = null;
 		}
-		
-		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
-		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
+
+		Animation slideUp = AnimationUtils.loadAnimation(
+				getApplicationContext(), R.anim.slide_up);
+		final Animation slideDown = AnimationUtils.loadAnimation(
+				getApplicationContext(), R.anim.slide_down);
 		mBannerAd = (RelativeLayout) findViewById(R.id.banner_ad_layout);
 		ImageButton imgButton = (ImageButton) findViewById(R.id.close_ad_button);
 		mBannerAd.startAnimation(slideUp);
@@ -160,9 +183,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		if (Game.getInstance().getState() == GameState.TAKING_TURN)
 			initiateHustling();
 
-		if(mBannerAd.getVisibility() == View.INVISIBLE)
-		{
-			Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
+		if (mBannerAd.getVisibility() == View.INVISIBLE) {
+			Animation slideUp = AnimationUtils.loadAnimation(
+					getApplicationContext(), R.anim.slide_up);
 			mBannerAd.setVisibility(View.VISIBLE);
 			mBannerAd.startAnimation(slideUp);
 		}
@@ -214,9 +237,11 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.switch_boards_item) {
 			if (mGLRenderer.getCamPosY() > 1.0f) {
-				mGLRenderer.translateCamWithAnimation(0f, 0f, BOARD_TRANS_ANIM_DURATION);
+				mGLRenderer.translateCamWithAnimation(0f, 0f,
+						BOARD_TRANS_ANIM_DURATION);
 			} else {
-				mGLRenderer.translateCamWithAnimation(0f, 2.0f, BOARD_TRANS_ANIM_DURATION);
+				mGLRenderer.translateCamWithAnimation(0f, 2.0f,
+						BOARD_TRANS_ANIM_DURATION);
 			}
 		} else if (item.getItemId() == R.id.rotate_item) {
 			Game.getInstance().onRotateButtonPressed();
@@ -278,18 +303,22 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public void onGameStateChanged() {
 		refreshOptionsMenu();
 		if (Game.getInstance().getState() == GameState.TAKING_TURN) {
-			mGLRenderer.translateCamWithAnimation(0f, 2.0f, BOARD_TRANS_ANIM_DURATION);
+			smokeAnimation();
+			// mGLRenderer.translateCamWithAnimation(0f, 2.0f,
+			// BOARD_TRANS_ANIM_DURATION);
 			initiateHustling();
 		} else if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
 			Log.d("", "waiting for opponent");
-			mGLRenderer.translateCamWithAnimation(0f, 0f, BOARD_TRANS_ANIM_DURATION);
+			smokeAnimation();
+			// mGLRenderer.translateCamWithAnimation(0f, 0f,
+			// BOARD_TRANS_ANIM_DURATION);
 			stopHustling();
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
 			showGameoverDialog(false);
 		}
-		
+
 		// Setting turn image
 		Bitmap bm;
 		if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
@@ -297,11 +326,46 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else {
 			bm = mPlayerProfileBitmap;
 		}
-		
+
 		if (bm != null) {
 			mCurrentTurnImage.setImageBitmap(bm);
 		} else {
-			mCurrentTurnImage.setImageResource(R.drawable.profile_img_placeholder);
+			mCurrentTurnImage
+					.setImageResource(R.drawable.profile_img_placeholder);
+		}
+	}
+
+	private void smokeAnimation() {
+
+		float yOffset = mGLSurfaceView.getY();
+
+		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
+		int x = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
+				.getFirePosition()[0] - mGLRenderer.getLeft()));
+
+		float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
+		int y = (int) (mGLSurfaceView.getHeight() / gly * (mGLRenderer.getTop() - Game
+				.getInstance().getFirePosition()[1]));
+
+		x = x - mSmokeSizeX;
+		y = (int) (y - mSmokeSizeY + yOffset);
+
+		mSmokeView.show(x, y);
+		mSmokeView.getView().setVisibility(View.VISIBLE);
+		mHideSmokeHandler.postDelayed(mHideSmokeRunnable, SMOKE_ANIM_DURATION);
+	}
+
+	private class HideSmokeRunnable implements Runnable {
+		@Override
+		public void run() {
+			mSmokeView.getView().setVisibility(View.VISIBLE);
+			mSmokeView.clear();
+			if (Game.getInstance().getState() == GameState.TAKING_TURN)
+				mGLRenderer.translateCamWithAnimation(0f, 2.0f,
+						BOARD_TRANS_ANIM_DURATION);
+			else
+				mGLRenderer.translateCamWithAnimation(0f, 0f,
+						BOARD_TRANS_ANIM_DURATION);
 		}
 	}
 
@@ -336,7 +400,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		dialogBuilder.show();
 	}
 
-	private class hustleRunnable implements Runnable {
+	private class HustleRunnable implements Runnable {
 
 		@Override
 		public void run() {
@@ -366,24 +430,26 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		if (name != null) {
 			mOpponentName.setText(name);
 		} else {
-			mOpponentName.setText(R.string.game_vs_bar_opponent_name_placeholder);
+			mOpponentName
+					.setText(R.string.game_vs_bar_opponent_name_placeholder);
 		}
-		
+
 		if (taunt != null) {
 			mOpponentTaunt.setText(taunt);
 		} else {
-			mOpponentTaunt.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
+			mOpponentTaunt
+					.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
 		}
-		
+
 		setProfileImage(mOpponentImage, image);
-		
-		if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {		
+
+		if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
 			setProfileImage(mCurrentTurnImage, image);
 		} else {
 			setProfileImage(mCurrentTurnImage, mPlayerProfileBitmap);
 		}
 	}
-	
+
 	private void setProfileImage(ImageView iv, Bitmap bm) {
 		if (bm != null) {
 			iv.setImageBitmap(bm);
