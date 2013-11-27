@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name = "button_background">#FF3b7aa1</color>
+    <color name = "button_highlight">#FF4a83a6</color>
+	<color name = "radio_unselected_background">#FF2a3142</color>
+	<color name = "radio_selected_line">#FF76aaca</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="main_background">#FF373f56</color>
+    <color name = "button_pressed">#FF326889</color>
+    
+    
+</resources>
