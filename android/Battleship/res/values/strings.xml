@@ -65,5 +65,7 @@
         <item>Medium</item>
         <item>Hard</item>
     </string-array>
+    
+    <string name="default_player_name">Player</string>
 
 </resources>

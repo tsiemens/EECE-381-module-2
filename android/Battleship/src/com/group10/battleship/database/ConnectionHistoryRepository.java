@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import com.group10.battleship.BattleshipApplication;
+import com.group10.battleship.R;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 
@@ -21,6 +24,17 @@ public class ConnectionHistoryRepository {
 		public HistoryItem(String name, String ip) {
 			this.name = name;
 			this.ip = ip;
+		}
+		
+		@Override
+		public String toString() {
+			String nameString;
+			if (name != null && !name.isEmpty()) {
+				nameString = name;
+			} else {
+				nameString = BattleshipApplication.getAppContext().getString(R.string.default_player_name);
+			}
+			return nameString + " - " + ip;
 		}
 		
 		public String name;
@@ -47,12 +61,24 @@ public class ConnectionHistoryRepository {
 	 * Updates the item last played to now
 	 * @param histItem
 	 */
-	public static void updateLastPlayed(HistoryItem histItem) {
+	public static void updateLastPlayed(String ip) {
 		ContentValues cv = new ContentValues(1);
 		cv.put(COL_LASTPLAYED, Calendar.getInstance().getTimeInMillis());
 		DatabaseManager.getInstance().update(TABLE_NAME, cv,
-				COL_NAME+" = ? AND "+COL_IP+" = ?", 
-				new String[] {histItem.name, histItem.ip});
+				COL_IP+" = ?", 
+				new String[] {ip});
+	}
+	
+	/**
+	 * Updates the name for ip in the database
+	 * @param histItem
+	 */
+	public static void updateNameforItem(String ip, String name) {
+		ContentValues cv = new ContentValues(1);
+		cv.put(COL_NAME, name);
+		DatabaseManager.getInstance().update(TABLE_NAME, cv,
+				COL_IP+" = ?", 
+				new String[] {ip});
 	}
 	
 	/**
