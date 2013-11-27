@@ -1,6 +1,19 @@
 package com.group10.battleship;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -13,32 +26,18 @@ import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.media.AudioManager;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
-import android.widget.TextView;
-import android.widget.Toast;
 
-
-public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnCheckedChangeListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	private Button mStartGameBtn;
-	
-	private RadioGroup mGameModeGroup;
-	
+
+	private Button mHostButton; 
+	private Button mGuestButton; 
+	private Button mSinglePlayerButton; 
+	private int mSelectedModeId;
+
 	private String mHostIp;
 
 	@Override
@@ -49,9 +48,17 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		mStartGameBtn = (Button) findViewById(R.id.btn_start_game);
 		mStartGameBtn.setOnClickListener(this);
 
-		mGameModeGroup = (RadioGroup) findViewById(R.id.radioGroup1);
-		mGameModeGroup.setOnCheckedChangeListener(this);
-		
+		mHostButton = (Button) findViewById(R.id.rb_host);
+		mHostButton.setOnClickListener(this);
+		mGuestButton = (Button) findViewById(R.id.rb_guest);
+		mGuestButton.setOnClickListener(this);
+		mSinglePlayerButton = (Button) findViewById(R.id.rb_single);
+		mSinglePlayerButton.setOnClickListener(this);
+		mSelectedModeId = R.id.rb_host;
+		mHostButton.setSelected(true);
+		mGuestButton.setSelected(false);
+		mSinglePlayerButton.setSelected(false);
+
 		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
@@ -60,7 +67,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		super.onResume();
 		MusicManager.getInstance().play(Music.MENU);
 	}
-	
+
 	@Override
 	public void onPause() {
 		MusicManager.getInstance().pause();
@@ -83,40 +90,69 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		return super.onOptionsItemSelected(item);
 	}
 
+	private void performRadioButtonLikeActions(int id)
+	{
+		if(id == R.id.rb_host)
+		{
+			mHostButton.setSelected(true);
+			mGuestButton.setSelected(false);
+			mSinglePlayerButton.setSelected(false);
+		}
+		else if(id == R.id.rb_guest)
+		{
+			mHostButton.setSelected(false);
+			mGuestButton.setSelected(true);
+			mSinglePlayerButton.setSelected(false);
+		}
+		else if(id == R.id.rb_single)
+		{
+			mHostButton.setSelected(false);
+			mGuestButton.setSelected(false);
+			mSinglePlayerButton.setSelected(true);
+		}
+		mSelectedModeId = id;
+	}
+
 	@Override
 	public void onClick(View view) {
-		PrefsManager pm = PrefsManager.getInstance();
-		if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_single) {
-			Game game = Game.getInstance();
-			if (game.getState() != GameState.UNINITIALIZED) {
-				// Game was in progress before, so we have to restart it.
-				game.invalidate();
-			}
-			showLevelSelectDialog();
-		}
-		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_host){
-			Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
-			try {
-				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
-				// If using nios, also set up the nios 
-				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
-				{
-					String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
-					int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
-					Log.d(TAG, ip+":"+port);
-					if (ip != null && port != -1) {
-						NetworkManager.getInstance().setupNiosSocket(ip, port);
-						NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
-					}
+		int id = view.getId();
+		if( id != R.id.btn_start_game)
+			performRadioButtonLikeActions(id);
+		if(view.getId() == R.id.btn_start_game)
+		{
+			PrefsManager pm = PrefsManager.getInstance();
+			if ( mSelectedModeId == R.id.rb_single) {
+				Game game = Game.getInstance();
+				if (game.getState() != GameState.UNINITIALIZED) {
+					// Game was in progress before, so we have to restart it.
+					game.invalidate();
 				}
-			} catch (Exception e) {
-				handleSocketError(e);
-				e.printStackTrace();
-			} 
-		}
-		else if (mGameModeGroup.getCheckedRadioButtonId() == R.id.rb_guest){
-			showGuestDialog(null);
+				showLevelSelectDialog();
+			}
+			else if (mSelectedModeId == R.id.rb_host){
+				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
+				try {
+					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
+					// If using nios, also set up the nios 
+					if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
+					{
+						String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
+						int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
+						Log.d(TAG, ip+":"+port);
+						if (ip != null && port != -1) {
+							NetworkManager.getInstance().setupNiosSocket(ip, port);
+							NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+						}
+					}
+				} catch (Exception e) {
+					handleSocketError(e);
+					e.printStackTrace();
+				} 
+			}
+			else if (mSelectedModeId == R.id.rb_guest){
+				showGuestDialog(null);
+			}
 		}
 	}
 
@@ -142,9 +178,9 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	public void onFoundIPAddress(String ip, int port) {
 		mHostIp = "Waiting for player to join.\nIP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort();
-		
+
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		
+
 		builder.setNegativeButton(R.string.dialog_cancel, null)
 		.setMessage(mHostIp);
 		builder.show();
@@ -167,17 +203,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
 	}
 
-	@Override
-	public void onCheckedChanged(RadioGroup parent, int checkedID) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	private void showGuestDialog(String ip){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		LayoutInflater inflater = this.getLayoutInflater();
 
-	    // Inflate and set the layout for the dialog
+		// Inflate and set the layout for the dialog
 		View dialogView = inflater.inflate(R.layout.dialog_guest_findgame, null);
 		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
 		iptext.setText(ip); 
@@ -217,7 +247,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		});
 		builder.show();
 	}
-	
+
 	private void showIPHistoryDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 		builder.setTitle(R.string.dialog_title_history)
@@ -243,7 +273,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		});
 		builder.show();
 	}
-	
+
 	private void showLevelSelectDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
