@@ -45,6 +45,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		AnimationListener, GameStateChangedListener, ProfileDataReceivedListener {
 
 	private static final String TAG = GameActivity.class.getSimpleName();
+	
+	public static final int BOARD_TRANS_ANIM_DURATION = 500;
 
 	private GLSurfaceView mGLSurfaceView;
 	private GL20Renderer mGLRenderer;
@@ -212,9 +214,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.switch_boards_item) {
 			if (mGLRenderer.getCamPosY() > 1.0f) {
-				mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+				mGLRenderer.translateCamWithAnimation(0f, 0f, BOARD_TRANS_ANIM_DURATION);
 			} else {
-				mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+				mGLRenderer.translateCamWithAnimation(0f, 2.0f, BOARD_TRANS_ANIM_DURATION);
 			}
 		} else if (item.getItemId() == R.id.rotate_item) {
 			Game.getInstance().onRotateButtonPressed();
@@ -276,11 +278,11 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	public void onGameStateChanged() {
 		refreshOptionsMenu();
 		if (Game.getInstance().getState() == GameState.TAKING_TURN) {
-			mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+			mGLRenderer.translateCamWithAnimation(0f, 2.0f, BOARD_TRANS_ANIM_DURATION);
 			initiateHustling();
 		} else if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
 			Log.d("", "waiting for opponent");
-			mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+			mGLRenderer.translateCamWithAnimation(0f, 0f, BOARD_TRANS_ANIM_DURATION);
 			stopHustling();
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);

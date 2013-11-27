@@ -17,7 +17,7 @@ public class PrefsManager {
 	
 	public static final String KEY_MAX_HISTORY = "pref_history_number";
 	
-	public static final String KEY_PROFILE = "pref_profile_name";
+	public static final String KEY_PROFILE_NAME = "pref_profile_name";
 	public static final String KEY_PROFILE_TAUNT = "pref_profile_taunt";
 	public static final String KEY_PROFILE_IMAGE_URI = "pref_profile_image";
 	

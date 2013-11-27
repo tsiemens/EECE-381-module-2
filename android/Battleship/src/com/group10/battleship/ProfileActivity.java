@@ -61,7 +61,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 		
 		refreshProfileData();
 		
-		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE, null) == null) {
+		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
 			setEditMode(true);
 		} else {
 			setEditMode(false);
@@ -115,7 +115,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	
 	private void refreshProfileData() {
 		PrefsManager pm = PrefsManager.getInstance();
-		mProfileName.setText(pm.getString(PrefsManager.KEY_PROFILE, null));
+		mProfileName.setText(pm.getString(PrefsManager.KEY_PROFILE_NAME, null));
 		mProfileTaunt.setText(pm.getString(PrefsManager.KEY_PROFILE_TAUNT, null));
 		
 		String imageuri = pm.getString(PrefsManager.KEY_PROFILE_IMAGE_URI, null);
@@ -146,7 +146,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 		if (name == null || name.isEmpty()) {
 			name = getString(R.string.default_player_name);
 		}
-		pm.putString(PrefsManager.KEY_PROFILE, name);
+		pm.putString(PrefsManager.KEY_PROFILE_NAME, name);
 		
 		String taunt = mProfileTauntEditor.getEditableText().toString();
 		pm.putString(PrefsManager.KEY_PROFILE_TAUNT, taunt);

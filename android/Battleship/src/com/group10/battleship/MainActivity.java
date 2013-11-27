@@ -72,7 +72,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		super.onResume();
 		MusicManager.getInstance().play(Music.MENU);
 		
-		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE, null) == null) {
+		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
 			startActivity(new Intent(this, ProfileActivity.class));
 		}
 	}

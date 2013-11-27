@@ -1,5 +1,6 @@
 package com.group10.battleship.game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,10 +12,13 @@ import org.json.JSONTokener;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
+import com.group10.battleship.GameActivity;
 import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
 import com.group10.battleship.audio.SoundManager;
@@ -93,13 +97,24 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 
-	public void start(boolean isMultiplayer) {
-		// TODO send profile data
+	public void start(boolean isMultiplayer) {		
 		setState(GameState.PLACING_SHIPS);
 		mIsMultiplayer = isMultiplayer;
 		willYieldTurn = new Random().nextBoolean();
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
+			
+			// Send profile data
+			PrefsManager pm = PrefsManager.getInstance();
+			String imageUriStr = pm.getString(PrefsManager.KEY_PROFILE_IMAGE_URI, null);
+			try {
+				NetworkManager.getInstance().send(ModelParser.getJsonForProfile(
+						pm.getString(PrefsManager.KEY_PROFILE_NAME, null),
+						imageUriStr != null ? Uri.parse(imageUriStr) : null,
+						pm.getString(PrefsManager.KEY_PROFILE_TAUNT, null)), true);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		} else {
 			// TODO detect difficulty somehow
 			mSingleplayerAI = new SmartAI();
@@ -466,7 +481,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					mOpponentProfileName = obj.getString(ModelParser.PROFILE_NAME_KEY);
 					mOpponentProfileTaunt = obj.getString(ModelParser.PROFILE_TAUNT_KEY);
 					String imgString = obj.getString(ModelParser.PROFILE_IMAGE_KEY);
-					mOpponentProfileImage = BitmapUtils.decodeBase64(imgString);
+					mOpponentProfileImage = (imgString != null) ? BitmapUtils.decodeBase64(imgString) : null;
 					if (mProfileDataListener != null) {
 						mProfileDataListener.onProfileDataReceived(mOpponentProfileName,
 								mOpponentProfileTaunt, mOpponentProfileImage);
@@ -515,8 +530,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			mStateListener.onGameStateChanged();
 		
 		if (!isMultiplayer() && state == GameState.WAITING_FOR_OPPONENT) {
-			performAIMove();
-			setState(GameState.TAKING_TURN);
+			// The AI needs to go after the board has shifted
+			Handler handler = new Handler();
+			handler.postDelayed(new Runnable() {
+				
+				@Override
+				public void run() {
+					performAIMove();
+					setState(GameState.TAKING_TURN);
+				}
+			}, GameActivity.BOARD_TRANS_ANIM_DURATION + 700);
 		}
 	}
 	
