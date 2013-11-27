@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.group10.battleship.BattleshipApplication;
+import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
 
 import android.content.ContentValues;
@@ -91,8 +92,7 @@ public class ConnectionHistoryRepository {
 		cv.put(COL_IP, histItem.ip);
 		cv.put(COL_LASTPLAYED, Calendar.getInstance().getTimeInMillis());
 		if (DatabaseManager.getInstance().insert(TABLE_NAME, null, cv) != -1) {
-			// Get max from prefs
-			clearOldItems(5);
+			clearOldItems(PrefsManager.getInstance().getInt(PrefsManager.KEY_MAX_HISTORY, 5));
 		}
 	}
 	

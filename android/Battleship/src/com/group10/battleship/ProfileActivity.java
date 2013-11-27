@@ -61,8 +61,11 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 		
 		refreshProfileData();
 		
-		// TODO check preferences for existing profile
-		setEditMode(false);
+		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE, null) == null) {
+			setEditMode(true);
+		} else {
+			setEditMode(false);
+		}
 	}
 
 	@Override
@@ -111,8 +114,23 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	}
 	
 	private void refreshProfileData() {
-		// TODO get data from user prefs
-		mProfileImage.setImageResource(R.drawable.profile_img_placeholder);
+		PrefsManager pm = PrefsManager.getInstance();
+		mProfileName.setText(pm.getString(PrefsManager.KEY_PROFILE, null));
+		mProfileTaunt.setText(pm.getString(PrefsManager.KEY_PROFILE_TAUNT, null));
+		
+		String imageuri = pm.getString(PrefsManager.KEY_PROFILE_IMAGE_URI, null);
+		int imagesize = getResources().getDimensionPixelSize(R.dimen.profile_image_size);
+		try {
+			if (imageuri != null) {
+				Bitmap bm = BitmapUtils.decodeSampledBitmapFromUri(Uri.parse(imageuri), imagesize, imagesize);
+				mProfileImage.setImageBitmap(bm);
+			} else {
+				mProfileImage.setImageResource(R.drawable.profile_img_placeholder);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			mProfileImage.setImageResource(R.drawable.profile_img_placeholder);
+		}
 	}
 	
 	private void enterEditMode() {
@@ -123,9 +141,18 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	}
 	
 	private void confirmEdit() {
-		// TODO save to shared prefs
-		mProfileName.setText(mProfileNameEditor.getEditableText().toString());
-		mProfileTaunt.setText(mProfileTauntEditor.getEditableText().toString());
+		PrefsManager pm = PrefsManager.getInstance();
+		String name = mProfileNameEditor.getText().toString();
+		if (name == null || name.isEmpty()) {
+			name = getString(R.string.default_player_name);
+		}
+		pm.putString(PrefsManager.KEY_PROFILE, name);
+		
+		String taunt = mProfileTauntEditor.getEditableText().toString();
+		pm.putString(PrefsManager.KEY_PROFILE_TAUNT, taunt);
+		
+		mProfileName.setText(name);
+		mProfileTaunt.setText(taunt);
 		if (mEditModeBitmap != null) {
 			// We need to recyle unused bitmaps
 			if (mImageBitmap != null) {
@@ -133,6 +160,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 			}
 			mImageBitmap = mEditModeBitmap;
 			mEditModeBitmap = null;
+			pm.putString(PrefsManager.KEY_PROFILE_IMAGE_URI, mEditModeImageUri.toString());
 		}
 		setEditMode(false);
 	}

@@ -1,11 +1,14 @@
 package com.group10.battleship;
 
+import java.io.IOException;
+
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ConfigurationInfo;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +34,7 @@ import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.game.Game.GameStateChangedListener;
 import com.group10.battleship.game.Game.ProfileDataReceivedListener;
+import com.group10.battleship.graphics.BitmapUtils;
 import com.group10.battleship.graphics.GL20Renderer;
 
 /**
@@ -107,8 +111,18 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		MusicManager.getInstance().stop(Music.MENU);
 		MusicManager.getInstance().play(Music.GAME);
 		
-		// TODO get from preferences
-		// mPlayerProfileBitmap = 
+		// Set the user's profile image
+		String profileImgUriStr = PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_IMAGE_URI, null);
+		if (profileImgUriStr != null) {
+			try {
+				mPlayerProfileBitmap = BitmapUtils.decodeSampledBitmapFromUri(Uri.parse(profileImgUriStr), 100, 100);
+			} catch (IOException e) {
+				e.printStackTrace();
+				mPlayerProfileBitmap = null;
+			}
+		} else {
+			mPlayerProfileBitmap = null;
+		}
 		
 		Animation slideUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
@@ -272,6 +286,20 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			showGameoverDialog(true);
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
 			showGameoverDialog(false);
+		}
+		
+		// Setting turn image
+		Bitmap bm;
+		if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
+			bm = Game.getInstance().getOpponentImage();
+		} else {
+			bm = mPlayerProfileBitmap;
+		}
+		
+		if (bm != null) {
+			mCurrentTurnImage.setImageBitmap(bm);
+		} else {
+			mCurrentTurnImage.setImageResource(R.drawable.profile_img_placeholder);
 		}
 	}
 

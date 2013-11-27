@@ -57,7 +57,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		mProfileButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				// TODO open profile activity
+				startActivity(new Intent(MainActivity.this, ProfileActivity.class));
 			}
 		});
 
@@ -71,6 +71,10 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	public void onResume() {
 		super.onResume();
 		MusicManager.getInstance().play(Music.MENU);
+		
+		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE, null) == null) {
+			startActivity(new Intent(this, ProfileActivity.class));
+		}
 	}
 	
 	@Override
@@ -112,10 +116,10 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
 				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
 				// If using nios, also set up the nios 
-				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
+				if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 				{
-					String ip = pm.getString(PrefsManager.PREF_KEY_MM_IP, null);
-					int port = pm.getInt(PrefsManager.PREF_KEY_MM_PORT, -1);
+					String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
+					int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 					Log.d(TAG, ip+":"+port);
 					if (ip != null && port != -1) {
 						NetworkManager.getInstance().setupNiosSocket(ip, port);
