@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -363,7 +364,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
-			showGameoverDialog(true);
+			showGameoverDialog(false);
 		}
 
 		// Setting turn image
@@ -479,24 +480,6 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			iv.setImageResource(R.drawable.dialog_img_lost);
 		}
 		dialogBuilder.show();
-		
-//		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-//
-//		if (won)
-//			dialogBuilder.setMessage(R.string.dialog_win_message);
-//		else
-//			dialogBuilder.setMessage(R.string.dialog_loss_message);
-//		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
-//		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
-//				new DialogInterface.OnClickListener() {
-//
-//					@Override
-//					public void onClick(DialogInterface dialog, int which) {
-//						Game.getInstance().forfeit();
-//						GameActivity.this.finish();
-//					}
-//				});
-//		dialogBuilder.show();
 	}
 
 	private class HustleRunnable implements Runnable {
