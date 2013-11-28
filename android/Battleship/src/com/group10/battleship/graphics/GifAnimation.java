@@ -27,6 +27,7 @@ public class GifAnimation {
 	 
 	     mView.getSettings().setUseWideViewPort(true);
 	     mView.getSettings().setLoadWithOverviewMode(true);
+	     mView.setVerticalScrollBarEnabled(false);
 	 
 	     fileName = name;
 	   }
