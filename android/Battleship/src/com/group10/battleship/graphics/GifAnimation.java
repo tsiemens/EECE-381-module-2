@@ -63,5 +63,6 @@ public class GifAnimation {
 	 
 	   public void clear() {
 	     mView.loadUrl("about:blank");
+	     mView.clearCache(true);
 	   }
 }
