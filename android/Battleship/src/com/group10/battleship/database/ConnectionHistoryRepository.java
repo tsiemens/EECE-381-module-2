@@ -10,9 +10,11 @@ import com.group10.battleship.R;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.util.Log;
 
 public class ConnectionHistoryRepository {
-
+	public static final String TAG = ConnectionHistoryRepository.class.getSimpleName();
+	
 	public static final String TABLE_NAME = "connectionHistory";
 	public static final String COL_NAME = "player_name";
 	public static final String COL_IP = "ip";
@@ -62,10 +64,10 @@ public class ConnectionHistoryRepository {
 	 * Updates the item last played to now
 	 * @param histItem
 	 */
-	public static void updateLastPlayed(String ip) {
+	public static int updateLastPlayed(String ip) {
 		ContentValues cv = new ContentValues(1);
 		cv.put(COL_LASTPLAYED, Calendar.getInstance().getTimeInMillis());
-		DatabaseManager.getInstance().update(TABLE_NAME, cv,
+		return DatabaseManager.getInstance().update(TABLE_NAME, cv,
 				COL_IP+" = ?", 
 				new String[] {ip});
 	}
@@ -75,6 +77,7 @@ public class ConnectionHistoryRepository {
 	 * @param histItem
 	 */
 	public static void updateNameforItem(String ip, String name) {
+		Log.v(TAG, "Updating name for "+ip+" to "+name);
 		ContentValues cv = new ContentValues(1);
 		cv.put(COL_NAME, name);
 		DatabaseManager.getInstance().update(TABLE_NAME, cv,
@@ -92,7 +95,7 @@ public class ConnectionHistoryRepository {
 		cv.put(COL_IP, histItem.ip);
 		cv.put(COL_LASTPLAYED, Calendar.getInstance().getTimeInMillis());
 		if (DatabaseManager.getInstance().insert(TABLE_NAME, null, cv) != -1) {
-			clearOldItems(PrefsManager.getInstance().getInt(PrefsManager.KEY_MAX_HISTORY, 5));
+			clearOldItems(Integer.parseInt(PrefsManager.getInstance().getString(PrefsManager.KEY_MAX_HISTORY, "5")));
 		}
 	}
 	
