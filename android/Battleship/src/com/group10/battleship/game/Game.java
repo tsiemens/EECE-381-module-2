@@ -48,26 +48,30 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Context mContext;
 
 	private List<GL20Drawable> mDrawList;
-	
+
 	private SoundManager mSoundManager = SoundManager.getInstance();
 
 	private Board mPlayerBoard;
 	private Board mOpponentBoard;
 	private TexturedRect mBackground;
-	
+
+	private float mFireTileX;
+	private float mFireTileY;
+	private float mTileLength;
+
 	private String mOpponentProfileName;
 	private String mOpponentProfileTaunt;
 	private Bitmap mOpponentProfileImage;
 	private ProfileDataReceivedListener mProfileDataListener;
-	
+
 	private boolean isHost;
 	private boolean mIsMultiplayer;
-	
+
 	private boolean hasReceivedOpponentBoard = false;
 	private boolean willYieldTurn = false;
-	
+
 	private GameState mState;
-	
+
 	// Temporary coords for last move if player 2s
 	private BoardCoord mLastMove;
 
@@ -75,11 +79,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Ship mDraggedShip;
 	// How far away the initial touch was from the ship's 'origin'
 	private int[] mShipDraggingOffset;
-	
+
 	private GameStateChangedListener mStateListener;
-	
+
 	private BattleshipAI mSingleplayerAI;
-	
+
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
 	}
@@ -98,12 +102,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 
-	public void start(boolean isMultiplayer) {		
+	public void start(boolean isMultiplayer) {
 		setState(GameState.PLACING_SHIPS);
 		mIsMultiplayer = isMultiplayer;
 		willYieldTurn = new Random().nextBoolean();
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
+
 			if (!isHost) {
 				String ip = NetworkManager.getInstance().getAndroidHostIP();
 				if (ConnectionHistoryRepository.updateLastPlayed(ip) <= 0) {
@@ -114,15 +119,19 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
 				}
 			}
-			
+
 			// Send profile data
 			PrefsManager pm = PrefsManager.getInstance();
-			String imageUriStr = pm.getString(PrefsManager.KEY_PROFILE_IMAGE_URI, null);
+			String imageUriStr = pm.getString(
+					PrefsManager.KEY_PROFILE_IMAGE_URI, null);
 			try {
-				NetworkManager.getInstance().send(ModelParser.getJsonForProfile(
-						pm.getString(PrefsManager.KEY_PROFILE_NAME, null),
-						imageUriStr != null ? Uri.parse(imageUriStr) : null,
-						pm.getString(PrefsManager.KEY_PROFILE_TAUNT, null)), true);
+				NetworkManager.getInstance().send(
+						ModelParser.getJsonForProfile(pm.getString(
+								PrefsManager.KEY_PROFILE_NAME, null),
+								imageUriStr != null ? Uri.parse(imageUriStr)
+										: null, pm.getString(
+												PrefsManager.KEY_PROFILE_TAUNT, null)),
+												true);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -155,7 +164,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		setState(GameState.UNINITIALIZED);
 		mPlayerBoard = null;
 		mOpponentBoard = null;
-		
+
 		if (mOpponentProfileImage != null) {
 			mOpponentProfileImage.recycle();
 			mOpponentProfileImage = null;
@@ -163,7 +172,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		mOpponentProfileName = null;
 		mOpponentProfileTaunt = null;
 	}
-	
+
 	public void forfeit() {
 		if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN) {
 			if (isMultiplayer()) {
@@ -173,34 +182,35 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					e.printStackTrace();
 				}
 			}
-		
+
 			if (isHost) {
 				NIOS2NetworkManager.sendGameOver(false, true);
 			}
 		}
-		
+
 		invalidate();
 	}
-	
+
 	public void win(boolean youWon) {
 		if (isMultiplayer() && isHost) {
 			try {
-				NetworkManager.getInstance().send(ModelParser.getJsonForGameOver(!youWon), true);
+				NetworkManager.getInstance().send(
+						ModelParser.getJsonForGameOver(!youWon), true);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		if (isHost) {
 			NIOS2NetworkManager.sendGameOver(false, true);
 		}
-		
+
 		if (youWon)
 			setState(GameState.GAME_OVER_WIN);
 		else
 			setState(GameState.GAME_OVER_LOSS);
 	}
-	
+
 	public boolean isMultiplayer() {
 		return mIsMultiplayer;
 	}
@@ -208,9 +218,18 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public GameState getState() {
 		return mState;
 	}
-	
-	public void setGameStateListener(GameStateChangedListener listener){
+
+	public void setGameStateListener(GameStateChangedListener listener) {
 		mStateListener = listener;
+	}
+
+	public float[] getFirePosition() {
+		float[] pos = { mFireTileX, mFireTileY };
+		return pos;
+	}
+
+	public float getTileLength() {
+		return mTileLength;
 	}
 
 	@Override
@@ -234,7 +253,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		float width = renderer.getDefaultRight() - x;
 		float height = y - renderer.getDefaultBottom();
 		float sideLength = (height > width) ? width : height;
-		
+
+		mTileLength = sideLength;
+
 		if (mPlayerBoard == null) {
 			mPlayerBoard = new Board(mContext, sideLength, x, y, true);
 		} else {
@@ -255,14 +276,14 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			mDrawList.remove(mOpponentBoard);
 			mOpponentBoard = b;
 		}
-		
+
 		if (mBackground != null) {
 			mDrawList.remove(mBackground);
 		}
 		mBackground = new TexturedRect(mContext, R.drawable.gamebackground);
 		mBackground.setPosition(-1f, 3f);
 		mBackground.setSize(2f, 4f);
-		
+
 		mDrawList.add(mBackground);
 		mDrawList.add(mOpponentBoard);
 		mDrawList.add(mPlayerBoard);
@@ -276,34 +297,39 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 		}
 	}
-	
-	public void onConfirmBoardPressed()
-	{
+
+	public void onConfirmBoardPressed() {
 		// deselect the highlighted ship
-		if(mPlayerBoard.getSelectedShip() != null) mPlayerBoard.getSelectedShip().setSelected(false);
+		if (mPlayerBoard.getSelectedShip() != null)
+			mPlayerBoard.getSelectedShip().setSelected(false);
 		try {
 			if (!isMultiplayer()) {
 				mSingleplayerAI.arrangeShips(mOpponentBoard);
-				if(willYieldTurn) {
+				if (willYieldTurn) {
 					setState(GameState.WAITING_FOR_OPPONENT);
 				} else {
 					setState(GameState.TAKING_TURN);
 				}
-			} else if(!NetworkManager.getInstance().isHost()) {
+			} else if (!NetworkManager.getInstance().isHost()) {
 				// Is player 2
 				Log.d(TAG, "Sending board");
-				NetworkManager.getInstance().send(ModelParser.getJsonForBoard(mPlayerBoard.getShips()), true);
+				NetworkManager.getInstance().send(
+						ModelParser.getJsonForBoard(mPlayerBoard.getShips()),
+						true);
 				setState(GameState.WAITING_FOR_OPPONENT);
-			} else if(hasReceivedOpponentBoard) {
-				// if host already received client board & is pressing to confirm own
-				if(willYieldTurn) {
+			} else if (hasReceivedOpponentBoard) {
+				// if host already received client board & is pressing to
+				// confirm own
+				if (willYieldTurn) {
 					setState(GameState.WAITING_FOR_OPPONENT);
-					NetworkManager.getInstance().send(ModelParser.getJsonForYield(), true);
+					NetworkManager.getInstance().send(
+							ModelParser.getJsonForYield(), true);
 				} else {
 					setState(GameState.TAKING_TURN);
 				}
 			} else {
-				// Host is confirming board, but still waiting for other player to confirm.
+				// Host is confirming board, but still waiting for other player
+				// to confirm.
 				setState(GameState.WAITING_FOR_OPPONENT);
 			}
 
@@ -311,26 +337,28 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void onFireButtonPressed() {
 		BoardCoord pos = mOpponentBoard.getSelectedTileIndex();
-		if(pos == null)
-			{
-				// if user didn't select a text, don't let them send a fire
-				Toast.makeText(mContext, "Please select a tile first", Toast.LENGTH_SHORT).show();
-				return;
-			}
+		if (pos == null) {
+			// if user didn't select a text, don't let them send a fire
+			Toast.makeText(mContext, "Please select a tile first",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
 		// Don't do anything if tile has already been acted on.
 		if (mOpponentBoard.getTileColour(pos.x, pos.y) == Board.TILE_COLOR_NORMAL) {
-			if (isHost || !isMultiplayer()) { 
+			if (isHost || !isMultiplayer()) {
 				boolean hit = processMoveOnBoard(pos.x, pos.y, true);
-				if (isMultiplayer()){
+				if (isMultiplayer()) {
 					try {
-						Ship oppShip = mOpponentBoard.getShipAtIndex(pos.x, pos.y);
+						Ship oppShip = mOpponentBoard.getShipAtIndex(pos.x,
+								pos.y);
 						boolean sunk = false;
 						if (oppShip != null)
 							sunk = oppShip.isSunk();
-						String msg = ModelParser.getJsonForMove(pos.x, pos.y, ModelParser.getJsonForMoveResponse(hit, sunk));
+						String msg = ModelParser.getJsonForMove(pos.x, pos.y,
+								ModelParser.getJsonForMoveResponse(hit, sunk));
 						NetworkManager.getInstance().send(msg, true);
 					} catch (JSONException e) {
 						Log.e(TAG, "THIS SHOULD NEVER HAPPEN");
@@ -361,9 +389,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			// Check for selection of enemy tile
 			BoardCoord inx = mOpponentBoard.getTileIndexAtLocation(x, y);
 			if (inx != null && mState == GameState.TAKING_TURN) {
-                Log.d(TAG, "Touched down enemy tile: " + inx.x + "," + inx.y);
-                mOpponentBoard.setSelectedTile(inx);
-        }
+				Log.d(TAG, "Touched down enemy tile: " + inx.x + "," + inx.y);
+				mOpponentBoard.setSelectedTile(inx);
+			}
 
 			// Check for selecting ship
 			inx = mPlayerBoard.getTileIndexAtLocation(x, y);
@@ -375,10 +403,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					mPlayerBoard.selectShip(selectShip);
 					mDraggedShip = selectShip;
 
-					mShipDraggingOffset[0] = inx.x
-							- selectShip.getPosIndex().x;
-					mShipDraggingOffset[1] = inx.y
-							- selectShip.getPosIndex().y;
+					mShipDraggingOffset[0] = inx.x - selectShip.getPosIndex().x;
+					mShipDraggingOffset[1] = inx.y - selectShip.getPosIndex().y;
 				}
 			}
 		} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
@@ -409,99 +435,159 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void ReceivedAndroidData(String message) {
-		if(!(message.charAt(0) == '{')) { return; } // catch non-JSON messages
-		else { 
+		if (!(message.charAt(0) == '{')) {
+			return;
+		} // catch non-JSON messages
+		else {
 			try {
-				JSONObject obj = (JSONObject) new JSONTokener(message).nextValue();
-				if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_TYPE_VAL)) {
+				JSONObject obj = (JSONObject) new JSONTokener(message)
+				.nextValue();
+				if (obj.getString(ModelParser.TYPE_KEY).equals(
+						ModelParser.MOVE_TYPE_VAL)) {
 					// Process Move data
-					if(!isHost) {
+					if (!isHost) {
 						// Guest is given host's move and if it hit or missed
 						JSONObject responseObj = (JSONObject) new JSONTokener(obj.getString(ModelParser.MOVE_RESPONSE_KEY)).nextValue();
 						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
 						boolean wasSunk = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
-						
+
 						if (wasSunk) {
-							mPlayerBoard.sinkShipAt(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							mPlayerBoard.sinkShipAt(
+									obj.getInt(ModelParser.MOVE_XPOS_KEY),
+									obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							mSoundManager.playSFX(R.raw.ship_explode);
 						} else {
-							mPlayerBoard.setTileColour(wasHit?Board.TILE_COLOR_HIT:Board.TILE_COLOR_MISS, 
-									obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
-							if(wasHit)
-								mPlayerBoard.setHitTile(obj.getInt(ModelParser.MOVE_XPOS_KEY), obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							mPlayerBoard.setTileColour(
+									wasHit ? Board.TILE_COLOR_HIT
+											: Board.TILE_COLOR_MISS, 
+											obj.getInt(ModelParser.MOVE_XPOS_KEY),
+											obj.getInt(ModelParser.MOVE_YPOS_KEY));
+							if (wasHit) {
+								mPlayerBoard.setHitTile(
+										obj.getInt(ModelParser.MOVE_XPOS_KEY),
+										obj.getInt(ModelParser.MOVE_YPOS_KEY));
+								mSoundManager.playSFX(R.raw.hit);
+							} else {
+								mSoundManager.playSFX(R.raw.miss);
+							}
 						}
+
+						mFireTileX = mPlayerBoard.getTileLocationAtIndex(
+								obj.getInt(ModelParser.MOVE_XPOS_KEY),
+								obj.getInt(ModelParser.MOVE_YPOS_KEY))[0];
+						mFireTileY = mPlayerBoard.getTileLocationAtIndex(
+								obj.getInt(ModelParser.MOVE_XPOS_KEY),
+								obj.getInt(ModelParser.MOVE_YPOS_KEY))[1];
 					} else {
-						// Host must process the move, and return if it hit/missed
-						boolean wasHit = processMoveOnBoard(obj.getInt(ModelParser.MOVE_XPOS_KEY), 
+						// Host must process the move, and return if it
+						// hit/missed
+						boolean wasHit = processMoveOnBoard(
+								obj.getInt(ModelParser.MOVE_XPOS_KEY),
 								obj.getInt(ModelParser.MOVE_YPOS_KEY), false);
-						
-						Ship playerShip = mPlayerBoard.getShipAtIndex(obj.getInt(ModelParser.MOVE_XPOS_KEY),
+
+						Ship playerShip = mPlayerBoard.getShipAtIndex(
+								obj.getInt(ModelParser.MOVE_XPOS_KEY),
 								obj.getInt(ModelParser.MOVE_YPOS_KEY));
 						boolean wasSunk = false;
 						if (playerShip != null)
 							wasSunk = playerShip.isSunk();
-						
-						NetworkManager.getInstance().send(ModelParser.getJsonForMoveResponse(wasHit, wasSunk), true);
-						
-						if(mPlayerBoard.isAllSunk())
+
+						if (wasHit) {
+							mSoundManager.playSFX(R.raw.hit);
+						} else if (wasSunk) {
+							mSoundManager.playSFX(R.raw.ship_explode);
+						} else {
+							mSoundManager.playSFX(R.raw.miss);
+						}
+
+						NetworkManager.getInstance().send(
+								ModelParser.getJsonForMoveResponse(wasHit,
+										wasSunk), true);
+
+						if (mPlayerBoard.isAllSunk())
 							win(false);
 					}
-					
 					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
 					if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN)
 						setState(GameState.TAKING_TURN);
-					
+
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_RESPONSE_TYPE_VAL)) {
 					// Guest is receiving response to move
-					boolean wasHit = obj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-					boolean wasSunk = obj.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
-					
+					boolean wasHit = obj
+							.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
+					boolean wasSunk = obj
+							.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
+
+					mFireTileX = mOpponentBoard.getTileLocationAtIndex(
+							mLastMove.x, mLastMove.y)[0];
+					mFireTileY = mOpponentBoard.getTileLocationAtIndex(
+							mLastMove.x, mLastMove.y)[1];
+
 					if (wasSunk) {
 						mOpponentBoard.sinkShipAt(mLastMove.x, mLastMove.y);
+						mSoundManager.playSFX(R.raw.ship_explode);
 					} else {
-						mOpponentBoard.setTileColour(wasHit ? Board.TILE_COLOR_HIT : Board.TILE_COLOR_MISS, 
-								mLastMove.x, mLastMove.y);
-						if(wasHit)
+						mOpponentBoard.setTileColour(
+								wasHit ? Board.TILE_COLOR_HIT
+										: Board.TILE_COLOR_MISS, mLastMove.x,
+										mLastMove.y);
+						if (wasHit) {
 							mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
+							mSoundManager.playSFX(R.raw.hit);
+						} else {
+							mSoundManager.playSFX(R.raw.miss);
+						}
 					}
-				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.BOARD_TYPE_VAL)) {
+				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
+						ModelParser.BOARD_TYPE_VAL)) {
 					// Host is receiving the guest's board data
-					JSONArray shipArr = obj.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
-					Toast.makeText(mContext, "Host received game board", Toast.LENGTH_SHORT).show();
+					JSONArray shipArr = obj
+							.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
+					Toast.makeText(mContext, "Host received game board",
+							Toast.LENGTH_SHORT).show();
 					hasReceivedOpponentBoard = true;
-					
-					for(int i=0; i < shipArr.length(); i++) {
-						JSONObject ship = (JSONObject)shipArr.get(i);
-						mOpponentBoard.setShip(ship.getInt(ModelParser.SHIP_XPOS_KEY), 
-								ship.getInt(ModelParser.SHIP_YPOS_KEY), 
-								ship.getBoolean(ModelParser.SHIP_HORIZ_KEY), 
-								ModelParser.getShipTypeFromString(ship.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
+
+					for (int i = 0; i < shipArr.length(); i++) {
+						JSONObject ship = (JSONObject) shipArr.get(i);
+						mOpponentBoard
+						.setShip(
+								ship.getInt(ModelParser.SHIP_XPOS_KEY),
+								ship.getInt(ModelParser.SHIP_YPOS_KEY),
+								ship.getBoolean(ModelParser.SHIP_HORIZ_KEY),
+								ModelParser.getShipTypeFromString(ship
+										.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
 					}
-					
-					if(mState == GameState.WAITING_FOR_OPPONENT) {
+
+					if (mState == GameState.WAITING_FOR_OPPONENT) {
 						// Host had already submitted board
-						if(willYieldTurn) {
+						if (willYieldTurn) {
 							// Guest gets the first move
-							NetworkManager.getInstance().send(ModelParser.getJsonForYield(), true);
-						} else { 
+							NetworkManager.getInstance().send(
+									ModelParser.getJsonForYield(), true);
+						} else {
 							setState(GameState.TAKING_TURN);
 						}
 					}
-				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.YIELD_TURN_TYPE_VAL)) {
-					// The guest has been told by host that it gets to move first.
+				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
+						ModelParser.YIELD_TURN_TYPE_VAL)) {
+					// The guest has been told by host that it gets to move
+					// first.
 					setState(GameState.TAKING_TURN);
-				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.GAME_OVER_TYPE_VAL)) {
-					boolean youWin = obj.getBoolean(ModelParser.GAME_OVER_WIN_KEY);
+				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
+						ModelParser.GAME_OVER_TYPE_VAL)) {
+					boolean youWin = obj
+							.getBoolean(ModelParser.GAME_OVER_WIN_KEY);
 					win(youWin);
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.PROFILE_TYPE_VAL)) {
 					// The opponent has sent its profile data
 					mOpponentProfileName = obj.getString(ModelParser.PROFILE_NAME_KEY);
-					
+
 					// Update history
 					if (!isHost) {
 						String ip = NetworkManager.getInstance().getAndroidHostIP();
 						ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
 					}
-					
+
 					mOpponentProfileTaunt = obj.getString(ModelParser.PROFILE_TAUNT_KEY);
 					String imgString = obj.getString(ModelParser.PROFILE_IMAGE_KEY);
 					mOpponentProfileImage = (imgString != null) ? BitmapUtils.decodeBase64(imgString) : null;
@@ -515,21 +601,24 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 		}
 	}
-	
+
 	/**
-	 * Processes a move attempt taken on the board
-	 * Sends message to nios appropriately
+	 * Processes a move attempt taken on the board Sends message to nios
+	 * appropriately
+	 * 
 	 * @param x
 	 * @param y
 	 * @return true if the move hit, false if missed
 	 */
 	private boolean processMoveOnBoard(int x, int y, boolean isHostsMove) {
 		Board board;
-		if (isHostsMove) board = mOpponentBoard;
-		else board = mPlayerBoard;
-		
+		if (isHostsMove)
+			board = mOpponentBoard;
+		else
+			board = mPlayerBoard;
+
 		boolean wasHit = board.playerShotAttempt(x, y);
-		if(wasHit) {
+		if (wasHit) {
 			mSoundManager.playSFX(R.raw.hit);
 			NIOS2NetworkManager.sendHit(isHostsMove, x, y);
 		} else if (wasHit) {
@@ -539,34 +628,38 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			mSoundManager.playSFX(R.raw.miss);
 			NIOS2NetworkManager.sendMiss(isHostsMove, x, y);
 		}
+
+		mFireTileX = board.getTileLocationAtIndex(x, y)[0];
+		mFireTileY = board.getTileLocationAtIndex(x, y)[1];
+
 		return wasHit;
 	}
-	
+
 	public static interface GameStateChangedListener {
 		public void onGameStateChanged();
 	}
-	
-	private void setState(GameState state)
-	{
+
+	private void setState(GameState state) {
 		mState = state;
-		if(mStateListener != null)
+		if (mStateListener != null)
 			mStateListener.onGameStateChanged();
-		
+
 		if (!isMultiplayer() && state == GameState.WAITING_FOR_OPPONENT) {
 			// The AI needs to go after the board has shifted
 			Handler handler = new Handler();
 			handler.postDelayed(new Runnable() {
-				
+
 				@Override
 				public void run() {
 					performAIMove();
 					if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN)
 						setState(GameState.TAKING_TURN);
 				}
-			}, GameActivity.BOARD_TRANS_ANIM_DURATION + 700);
+			}, GameActivity.BOARD_TRANS_ANIM_DURATION
+			+ GameActivity.SMOKE_ANIM_DURATION + 100);
 		}
 	}
-	
+
 	private void performAIMove() {
 		BoardCoord pos;
 		// Ask AI for move until it responds with a valid one.
@@ -576,46 +669,49 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				Log.e(TAG, "move requested of AI after all spaces taken.");
 				break;
 			}
-		} while(pos != null && mPlayerBoard.getTileColour(pos.x, pos.y) != Board.TILE_COLOR_NORMAL);
-		
+		} while (pos != null
+				&& mPlayerBoard.getTileColour(pos.x, pos.y) != Board.TILE_COLOR_NORMAL);
+
 		if (pos != null) {
 			Ship target = mPlayerBoard.getShipAtIndex(pos.x, pos.y);
 			boolean hit = processMoveOnBoard(pos.x, pos.y, false);
 			boolean sunk = false;
-			
-			//Give AI the ship if the ship is sunk, 
-			//The coordinates of the sunken ship is public information
-			
+
+			// Give AI the ship if the ship is sunk,
+			// The coordinates of the sunken ship is public information
+
 			if (target != null)
 				sunk = target.isSunk();
-			
+
 			if (sunk)
 				mSingleplayerAI.respondToLastMove(hit, target);
 			else
 				mSingleplayerAI.respondToLastMove(hit, null);
-			
+
 		} else {
 			Log.e(TAG, "move requested of AI after all spaces taken.");
 		}
-		
+
 		if (mPlayerBoard.isAllSunk())
 			win(false);
 	}
-	
+
 	public static interface ProfileDataReceivedListener {
-		public void onProfileDataReceived(String name, String taunt, Bitmap image);
+		public void onProfileDataReceived(String name, String taunt,
+				Bitmap image);
 	}
-	
-	public void setProfileDataReveivedListener(ProfileDataReceivedListener listener) {
+
+	public void setProfileDataReveivedListener(
+			ProfileDataReceivedListener listener) {
 		mProfileDataListener = listener;
-		if (mProfileDataListener != null && 
-				(mOpponentProfileName != null || mOpponentProfileTaunt != null 
-				|| mOpponentProfileImage != null) ) {
+		if (mProfileDataListener != null
+				&& (mOpponentProfileName != null
+				|| mOpponentProfileTaunt != null || mOpponentProfileImage != null)) {
 			mProfileDataListener.onProfileDataReceived(mOpponentProfileName,
 					mOpponentProfileTaunt, mOpponentProfileImage);
 		}
 	}
-	
+
 	public Bitmap getOpponentImage() {
 		return mOpponentProfileImage;
 	}

@@ -19,10 +19,12 @@ public class Board implements GL20Drawable {
 	public static final int TILE_COLOR_HIT = Color.parseColor("#aadb4437");
 
 	public static final int TILE_COLOR_SUNK = Color.parseColor("#aa545454");
-	public static final int TILE_COLOR_SELECTION = Color.parseColor("#ffff7800");
-	
+	public static final int TILE_COLOR_SELECTION = Color
+			.parseColor("#ffff7800");
+
 	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff68b943");
-	public static final int BORDER_COLOR_OPPONENT = Color.parseColor("#ffce0202");
+	public static final int BORDER_COLOR_OPPONENT = Color
+			.parseColor("#ffce0202");
 	public static final int BOARD_SIZE = 10;
 
 	private Context mContext;
@@ -120,30 +122,26 @@ public class Board implements GL20Drawable {
 
 		mHitTiles = makeHitTiles();
 	}
-	
-	public List<TexturedRect> makeHitTiles()
-	{
+
+	public List<TexturedRect> makeHitTiles() {
 		float tileSize = getTileGridSize() - (2 * getTilePadding());
-		List<TexturedRect>temp= new ArrayList<TexturedRect>(17);
-		for(int i=0; i < 17; i++)
-		{
+		List<TexturedRect> temp = new ArrayList<TexturedRect>(17);
+		for (int i = 0; i < 17; i++) {
 			TexturedRect hitTile = new TexturedRect(mContext, R.drawable.hit);
 			hitTile.setSize(tileSize, tileSize);
 			temp.add(hitTile);
 		}
 		return temp;
 	}
-	
-	public void setHitTileList(List<TexturedRect> list)
-	{
+
+	public void setHitTileList(List<TexturedRect> list) {
 		mHitTiles = list;
 	}
 
-	public List<TexturedRect> getHitTileList()
-	{
+	public List<TexturedRect> getHitTileList() {
 		return mHitTiles;
 	}
-	
+
 	public void setShip(int xPos, int yPos, boolean horiz, ShipType type) {
 
 		for (int i = 0; i < mShips.size(); i++) {
@@ -190,13 +188,14 @@ public class Board implements GL20Drawable {
 
 		List<TexturedRect> hitTiles = board.getHitTiles();
 		if (hitTiles != null && mHitTiles != null) {
-				hitTiles = makeHitTiles();
-				numHitTiles = board.numHitTiles;
-			for(int i=0; i < numHitTiles; i++)
-			{
-				hitTiles.get(i).setPosition(board.getHitTileList().get(i).getXPos(), board.getHitTileList().get(i).getYPos());
+			hitTiles = makeHitTiles();
+			numHitTiles = board.numHitTiles;
+			for (int i = 0; i < numHitTiles; i++) {
+				hitTiles.get(i).setPosition(
+						board.getHitTileList().get(i).getXPos(),
+						board.getHitTileList().get(i).getYPos());
 			}
-			
+
 			mHitTiles = hitTiles;
 		}
 	}
@@ -221,7 +220,7 @@ public class Board implements GL20Drawable {
 			}
 		}
 		if (mHitTiles != null) {
-			for (int i=0; i < numHitTiles; i++) {
+			for (int i = 0; i < numHitTiles; i++) {
 				mHitTiles.get(i).draw(mvpMatrix);
 			}
 		}
@@ -242,15 +241,16 @@ public class Board implements GL20Drawable {
 	 * Determines if there is a ship at the tile location & sets the tile to
 	 * show either hit/miss
 	 * 
-	 * @param col, row
+	 * @param col
+	 *            , row
 	 */
 	public boolean playerShotAttempt(int x, int y) {
 		// notify player if already fired
 
-		Ship ship = getShipAtIndex(x,y);
-		
+		Ship ship = getShipAtIndex(x, y);
+
 		if (ship != null) {
-			if(ship.addHit()) {
+			if (ship.addHit()) {
 				sinkShipAt(x, y);
 			} else {
 				setTileColour(TILE_COLOR_HIT, x, y);
@@ -262,41 +262,43 @@ public class Board implements GL20Drawable {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Used to sink ship at a given location by changing the tile colors.
 	 * 
-	 * @param x coordinate of shot
-	 * @param y coordinate of shot
+	 * @param x
+	 *            coordinate of shot
+	 * @param y
+	 *            coordinate of shot
 	 * @return false if there is no ship at the coordinate given.
 	 */
 	public boolean sinkShipAt(int x, int y) {
 		setHitTile(x, y);
-		Ship ship = getShipAtIndex(x,y);
-		
+		Ship ship = getShipAtIndex(x, y);
+
 		if (ship != null) {
 			BoardCoord[] coords = ship.getShipCoords();
-		
-			for( int i = 0; i < coords.length; i++) {
+
+			for (int i = 0; i < coords.length; i++) {
 				setTileColour(TILE_COLOR_SUNK, coords[i].x, coords[i].y);
 			}
-			
+
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
-	public boolean isPlayerBoard(){
+
+	public boolean isPlayerBoard() {
 		return mIsPlayerBoard;
 	}
-	
+
 	public boolean isAllSunk() {
-		for(int i = 0; i < mShips.size(); i++) {
-			if(mShips.get(i).isSunk() == false)
+		for (int i = 0; i < mShips.size(); i++) {
+			if (mShips.get(i).isSunk() == false)
 				return false;
 		}
-		
+
 		return true;
 	}
 
@@ -440,9 +442,12 @@ public class Board implements GL20Drawable {
 	 *            , row
 	 */
 	public void setHitTile(int col, int row) {
-		if(numHitTiles == 17 || mHitTiles == null) return;  // return if no hit tiles or if uninitialized (error!!)
+		if (numHitTiles == 17 || mHitTiles == null)
+			return; // return if no hit tiles or if uninitialized (error!!)
 		float tileGridSize = getTileGridSize();
-		mHitTiles.get(numHitTiles).setPosition(mTopLeftX + ((col + 1)*tileGridSize), mTopLeftY - ((row + 1)*tileGridSize));
+		mHitTiles.get(numHitTiles).setPosition(
+				mTopLeftX + ((col + 1) * tileGridSize),
+				mTopLeftY - ((row + 1) * tileGridSize));
 		numHitTiles++;
 	}
 
@@ -502,6 +507,20 @@ public class Board implements GL20Drawable {
 		}
 
 		return new BoardCoord((int) col, (int) row);
+	}
+
+	/**
+	 * Returns the bottom right position of the tile at the given index
+	 * 
+	 * @param x
+	 * @param y
+	 * @return { col, row }
+	 */
+	public float[] getTileLocationAtIndex(int x, int y) {
+		float[] pos = { 0, 0 };
+		pos[0] = mTopLeftX + ((x + 2) * getTileGridSize());
+		pos[1] = mTopLeftY - ((y + 2) * getTileGridSize());
+		return pos;
 	}
 
 	public float getTileOffset() {
