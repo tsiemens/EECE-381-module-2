@@ -358,7 +358,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	private class HideSmokeRunnable implements Runnable {
 		@Override
 		public void run() {
-			mSmokeView.getView().setVisibility(View.VISIBLE);
+			mSmokeView.getView().setVisibility(View.GONE);
 			mSmokeView.clear();
 			if (Game.getInstance().getState() == GameState.TAKING_TURN)
 				mGLRenderer.translateCamWithAnimation(0f, 2.0f,
