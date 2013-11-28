@@ -1,7 +1,9 @@
 package com.group10.battleship.graphics;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
@@ -26,9 +28,6 @@ public class GifAnimation {
 	 
 	     mView.setBackgroundColor(Color.TRANSPARENT);
 	 
-	     mView.getSettings().setUseWideViewPort(true);
-	     mView.getSettings().setLoadWithOverviewMode(true);
-	     
 	     mView.setVerticalScrollBarEnabled(false);
 	     mView.setHorizontalScrollBarEnabled(false);
 	 
@@ -45,9 +44,10 @@ public class GifAnimation {
 	    * @param x
 	    * @param y
 	    */
-	   public void setPosition(int x, int y) {
-	     mView.setX(x);
-	     mView.setY(y);
+	   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void setPosition(int x, int y) {
+	     mView.setLeft(x);
+	     mView.setTop(y);
 	   }
 	 
 	   /**

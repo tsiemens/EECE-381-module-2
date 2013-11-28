@@ -67,8 +67,8 @@ ProfileDataReceivedListener {
 	private Handler mHideSmokeHandler = new Handler();
 	private Runnable mHideSmokeRunnable = new HideSmokeRunnable();
 
-	private int mSmokeSizeX = 175;
-	private int mSmokeSizeY = 230;
+	private int mSmokeSizeX = (int)(500/3);
+	private int mSmokeSizeY = (int)(667/3.85);
 
 	private RelativeLayout mBannerAd;
 
@@ -399,9 +399,6 @@ ProfileDataReceivedListener {
 		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
 		int x = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
 				.getFirePosition()[0] - mGLRenderer.getLeft()));
-		
-		int tileSize = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
-				.getTileLength() - mGLRenderer.getLeft()));
 
 		float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
 		int y = (int) (mGLSurfaceView.getHeight() / gly * (mGLRenderer.getTop() - Game
@@ -410,7 +407,7 @@ ProfileDataReceivedListener {
 		x = x - mSmokeSizeX;
 		y = (int) (y - mSmokeSizeY + yOffset);
 
-		mSmokeView.show(x, y, mSmokeSizeX);
+		mSmokeView.show((int)(x + mSmokeSizeX*0.2), y, mSmokeSizeX);
 		mSmokeView.getView().setVisibility(View.VISIBLE);
 		mHideSmokeHandler.postDelayed(mHideSmokeRunnable, SMOKE_ANIM_DURATION);
 	}
