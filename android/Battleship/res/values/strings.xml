@@ -21,21 +21,17 @@
     <string name="host_ip_hint">Enter Host IP</string>
     <string name="host_ip_separator">:</string>
     <string name="host_port_hint">Enter Host Port</string>
-    
     <string name="prefs_activity_title">Settings</string>
     <string name="pref_title_local_debug">Local Debug Mode</string>
     <string name="pref_title_use_nios">Use Nios/Middleman</string>
-    
     <string name="dialog_confirm">OK</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
     <string name="dialog_win_message_p1">I beat\u0020</string>
     <string name="dialog_loss_message_p1">I lose to\u0020</string>
     <string name="dialog_game_over_message_p2">\u0020 in Battleship! #battleship #eece381 #group10</string>
-
     <string name="pref_title_middleman_ip">Middleman IP</string>
     <string name="pref_title_middleman_port">Middleman Port</string>
-    
     <string name="btn_guest">Guest</string>
     <string name="btn_host">Host</string>
     <string name="btn_one_player">1-P</string>
@@ -53,8 +49,8 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
-        <item>4</item>
         <item>5</item>
+        <item>10</item>
     </string-array>
 
     <string name="pref_history_number">Number of Past Players to Keep</string>
@@ -79,12 +75,10 @@
     <string name="profile_edit_name_hint">Profile name</string>
     <string name="profile_taunt_label">Taunt:</string>
     <string name="profile_edit_taunt_hint">Your opponents will see this!</string>
-    
     <string name="game_vs_bar_opponent_title">Opponent:</string>
     <string name="game_vs_bar_opponent_name_placeholder">Semi-Colonel Bitsley</string>
     <string name="game_vs_bar_opponent_taunt_placeholder">Shiver me Registers!</string>
     <string name="game_vs_bar_turn">Turn:</string>
-    
     <string name="help_overlay_choose_move">Touch and choose a move to send your opponent</string>
     <string name="help_overlay_fire_move">When you’ve picked a position, tap this fire button to send your move</string>
     <string name="help_overlay_seeOther">Tap this button to see your own board</string>

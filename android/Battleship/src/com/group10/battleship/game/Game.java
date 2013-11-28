@@ -22,6 +22,7 @@ import com.group10.battleship.GameActivity;
 import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
 import com.group10.battleship.audio.SoundManager;
+import com.group10.battleship.database.ConnectionHistoryRepository;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
 import com.group10.battleship.game.ai.SmartAI;
@@ -108,6 +109,17 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
 
+			if (!isHost) {
+				String ip = NetworkManager.getInstance().getAndroidHostIP();
+				if (ConnectionHistoryRepository.updateLastPlayed(ip) <= 0) {
+					// The item was not already in history
+					ConnectionHistoryRepository.addHistoryItem(
+							new ConnectionHistoryRepository.HistoryItem(mOpponentProfileName, ip));
+				} else {
+					ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
+				}
+			}
+
 			// Send profile data
 			PrefsManager pm = PrefsManager.getInstance();
 			String imageUriStr = pm.getString(
@@ -118,8 +130,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 								PrefsManager.KEY_PROFILE_NAME, null),
 								imageUriStr != null ? Uri.parse(imageUriStr)
 										: null, pm.getString(
-										PrefsManager.KEY_PROFILE_TAUNT, null)),
-						true);
+												PrefsManager.KEY_PROFILE_TAUNT, null)),
+												true);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -162,17 +174,18 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void forfeit() {
-		if (isMultiplayer()) {
-			try {
-				NetworkManager.getInstance().send(
-						ModelParser.getJsonForGameOver(true), true);
-			} catch (JSONException e) {
-				e.printStackTrace();
+		if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN) {
+			if (isMultiplayer()) {
+				try {
+					NetworkManager.getInstance().send(ModelParser.getJsonForGameOver(true), true);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 			}
-		}
 
-		if (isHost) {
-			NIOS2NetworkManager.sendGameOver(false, true);
+			if (isHost) {
+				NIOS2NetworkManager.sendGameOver(false, true);
+			}
 		}
 
 		invalidate();
@@ -363,11 +376,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					e.printStackTrace();
 				}
 			}
-			setState(GameState.WAITING_FOR_OPPONENT);
+			if (mOpponentBoard.isAllSunk()) {
+				win(true);
+			} else {
+				setState(GameState.WAITING_FOR_OPPONENT);
+			}
 		}
-
-		if (mOpponentBoard.isAllSunk())
-			win(true);
 	}
 
 	public void onTouchGLSurface(MotionEvent me, float x, float y) {
@@ -427,19 +441,15 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		else {
 			try {
 				JSONObject obj = (JSONObject) new JSONTokener(message)
-						.nextValue();
+				.nextValue();
 				if (obj.getString(ModelParser.TYPE_KEY).equals(
 						ModelParser.MOVE_TYPE_VAL)) {
 					// Process Move data
 					if (!isHost) {
 						// Guest is given host's move and if it hit or missed
-						JSONObject responseObj = (JSONObject) new JSONTokener(
-								obj.getString(ModelParser.MOVE_RESPONSE_KEY))
-								.nextValue();
-						boolean wasHit = responseObj
-								.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
-						boolean wasSunk = responseObj
-								.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
+						JSONObject responseObj = (JSONObject) new JSONTokener(obj.getString(ModelParser.MOVE_RESPONSE_KEY)).nextValue();
+						boolean wasHit = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
+						boolean wasSunk = responseObj.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
 
 						if (wasSunk) {
 							mPlayerBoard.sinkShipAt(
@@ -449,9 +459,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						} else {
 							mPlayerBoard.setTileColour(
 									wasHit ? Board.TILE_COLOR_HIT
-											: Board.TILE_COLOR_MISS, obj
-											.getInt(ModelParser.MOVE_XPOS_KEY),
-									obj.getInt(ModelParser.MOVE_YPOS_KEY));
+											: Board.TILE_COLOR_MISS, 
+											obj.getInt(ModelParser.MOVE_XPOS_KEY),
+											obj.getInt(ModelParser.MOVE_YPOS_KEY));
 							if (wasHit) {
 								mPlayerBoard.setHitTile(
 										obj.getInt(ModelParser.MOVE_XPOS_KEY),
@@ -461,7 +471,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 								mSoundManager.playSFX(R.raw.miss);
 							}
 						}
-							
+
 						mFireTileX = mPlayerBoard.getTileLocationAtIndex(
 								obj.getInt(ModelParser.MOVE_XPOS_KEY),
 								obj.getInt(ModelParser.MOVE_YPOS_KEY))[0];
@@ -481,7 +491,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						boolean wasSunk = false;
 						if (playerShip != null)
 							wasSunk = playerShip.isSunk();
-						
+
 						if (wasHit) {
 							mSoundManager.playSFX(R.raw.hit);
 						} else if (wasSunk) {
@@ -497,17 +507,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						if (mPlayerBoard.isAllSunk())
 							win(false);
 					}
-					Toast.makeText(
-							mContext,
-							"Move received: "
-									+ obj.getInt(ModelParser.MOVE_XPOS_KEY)
-									+ ", "
-									+ obj.getInt(ModelParser.MOVE_YPOS_KEY),
-							Toast.LENGTH_SHORT).show();
-					setState(GameState.TAKING_TURN);
+					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
+					if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN)
+						setState(GameState.TAKING_TURN);
 
-				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
-						ModelParser.MOVE_RESPONSE_TYPE_VAL)) {
+				} else if (obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_RESPONSE_TYPE_VAL)) {
 					// Guest is receiving response to move
 					boolean wasHit = obj
 							.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
@@ -526,7 +530,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						mOpponentBoard.setTileColour(
 								wasHit ? Board.TILE_COLOR_HIT
 										: Board.TILE_COLOR_MISS, mLastMove.x,
-								mLastMove.y);
+										mLastMove.y);
 						if (wasHit) {
 							mOpponentBoard.setHitTile(mLastMove.x, mLastMove.y);
 							mSoundManager.playSFX(R.raw.hit);
@@ -546,12 +550,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					for (int i = 0; i < shipArr.length(); i++) {
 						JSONObject ship = (JSONObject) shipArr.get(i);
 						mOpponentBoard
-								.setShip(
-										ship.getInt(ModelParser.SHIP_XPOS_KEY),
-										ship.getInt(ModelParser.SHIP_YPOS_KEY),
-										ship.getBoolean(ModelParser.SHIP_HORIZ_KEY),
-										ModelParser.getShipTypeFromString(ship
-												.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
+						.setShip(
+								ship.getInt(ModelParser.SHIP_XPOS_KEY),
+								ship.getInt(ModelParser.SHIP_YPOS_KEY),
+								ship.getBoolean(ModelParser.SHIP_HORIZ_KEY),
+								ModelParser.getShipTypeFromString(ship
+										.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
 					}
 
 					if (mState == GameState.WAITING_FOR_OPPONENT) {
@@ -574,23 +578,24 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					boolean youWin = obj
 							.getBoolean(ModelParser.GAME_OVER_WIN_KEY);
 					win(youWin);
-				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
-						ModelParser.PROFILE_TYPE_VAL)) {
+				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.PROFILE_TYPE_VAL)) {
 					// The opponent has sent its profile data
-					mOpponentProfileName = obj
-							.getString(ModelParser.PROFILE_NAME_KEY);
-					mOpponentProfileTaunt = obj
-							.getString(ModelParser.PROFILE_TAUNT_KEY);
-					String imgString = obj
-							.getString(ModelParser.PROFILE_IMAGE_KEY);
-					mOpponentProfileImage = (imgString != null) ? BitmapUtils
-							.decodeBase64(imgString) : null;
-					if (mProfileDataListener != null) {
-						mProfileDataListener.onProfileDataReceived(
-								mOpponentProfileName, mOpponentProfileTaunt,
-								mOpponentProfileImage);
+					mOpponentProfileName = obj.getString(ModelParser.PROFILE_NAME_KEY);
+
+					// Update history
+					if (!isHost) {
+						String ip = NetworkManager.getInstance().getAndroidHostIP();
+						ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
 					}
-				}
+
+					mOpponentProfileTaunt = obj.getString(ModelParser.PROFILE_TAUNT_KEY);
+					String imgString = obj.getString(ModelParser.PROFILE_IMAGE_KEY);
+					mOpponentProfileImage = (imgString != null) ? BitmapUtils.decodeBase64(imgString) : null;
+					if (mProfileDataListener != null) {
+						mProfileDataListener.onProfileDataReceived(mOpponentProfileName,
+								mOpponentProfileTaunt, mOpponentProfileImage);
+					}
+				} 
 			} catch (JSONException e) {
 				Log.e(TAG, "Error getting json object from json string");
 			}
@@ -647,10 +652,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				@Override
 				public void run() {
 					performAIMove();
-					setState(GameState.TAKING_TURN);
+					if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN)
+						setState(GameState.TAKING_TURN);
 				}
 			}, GameActivity.BOARD_TRANS_ANIM_DURATION
-					+ GameActivity.SMOKE_ANIM_DURATION + 100);
+			+ GameActivity.SMOKE_ANIM_DURATION + 100);
 		}
 	}
 
@@ -700,7 +706,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		mProfileDataListener = listener;
 		if (mProfileDataListener != null
 				&& (mOpponentProfileName != null
-						|| mOpponentProfileTaunt != null || mOpponentProfileImage != null)) {
+				|| mOpponentProfileTaunt != null || mOpponentProfileImage != null)) {
 			mProfileDataListener.onProfileDataReceived(mOpponentProfileName,
 					mOpponentProfileTaunt, mOpponentProfileImage);
 		}

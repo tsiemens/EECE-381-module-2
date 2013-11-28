@@ -393,7 +393,8 @@ ProfileDataReceivedListener {
 
 	private void smokeAnimation() {
 
-		float yOffset = mGLSurfaceView.getY();
+//		float yOffset = mGLSurfaceView.getY();
+		float yOffset = mGLSurfaceView.getTop();
 
 		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
 		int x = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
@@ -450,6 +451,8 @@ ProfileDataReceivedListener {
 	}
 
 	private void showGameoverDialog(boolean won) {
+		if (this.isFinishing()) 
+			return;
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 		LayoutInflater inflator = this.getLayoutInflater();
 		View view = inflator.inflate(R.layout.dialog_game_over, null); 
@@ -473,12 +476,12 @@ ProfileDataReceivedListener {
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Game.getInstance().forfeit();
-				GameActivity.this.finish();
-			}
-		});
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Game.getInstance().invalidate();
+						GameActivity.this.finish();
+					}
+				});
 		ImageView iv = (ImageView)view.findViewById(R.id.game_over_dialog_image);
 		if(iv != null)
 		{
