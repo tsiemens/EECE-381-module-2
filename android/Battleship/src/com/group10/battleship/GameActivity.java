@@ -6,8 +6,10 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -21,10 +23,12 @@ import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -71,6 +75,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	private TextView mOpponentName;
 	private TextView mOpponentTaunt;
 
+	private RelativeLayout mPlayerHelpOverlay;
+	private RelativeLayout mEnemyHelpOverlay;
+
 	private ImageView mCurrentTurnImage;
 	private Bitmap mPlayerProfileBitmap;
 
@@ -80,7 +87,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 		mSmokeView = new GifAnimation(this, "explosion.gif", mSmokeSizeX,
 				mSmokeSizeY);
-		RelativeLayout rl = (RelativeLayout) LayoutInflater.from(this).inflate(
+		FrameLayout rl = (FrameLayout) LayoutInflater.from(this).inflate(
 				R.layout.activity_game, null);
 		rl.addView(mSmokeView.getView());
 		mSmokeView.getView().setVisibility(View.INVISIBLE);
@@ -146,7 +153,31 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else {
 			mPlayerProfileBitmap = null;
 		}
+		
+//		Set up overlays 
+		Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/BuxtonSketch.ttf");
+		TextView doneText = (TextView) findViewById(R.id.text_done);
+		TextView reposText = (TextView) findViewById(R.id.text_move_ships);
+		TextView rotateText = (TextView) findViewById(R.id.text_rotate);
+		TextView seeOtherText = (TextView) findViewById(R.id.text_seeOther);
+		TextView fireText = (TextView) findViewById(R.id.text_fire);
+		TextView chooseText = (TextView) findViewById(R.id.text_choose_tile);
+		reposText.setTypeface(tf);
+		rotateText.setTypeface(tf);
+		doneText.setTypeface(tf);
+		seeOtherText.setTypeface(tf);
+		fireText.setTypeface(tf);
+		chooseText.setTypeface(tf);
 
+		mPlayerHelpOverlay = (RelativeLayout)findViewById(R.id.help_overlay_player); 
+		mPlayerHelpOverlay.setOnTouchListener(this);
+		Log.d(TAG, "has run before: " + !PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false));
+			mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
+		mEnemyHelpOverlay = (RelativeLayout)findViewById(R.id.help_overlay_enemy);
+		mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
+		mEnemyHelpOverlay.setOnTouchListener(this);
+
+//		Set up banner ad
 		Animation slideUp = AnimationUtils.loadAnimation(
 				getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(
@@ -234,26 +265,40 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == R.id.switch_boards_item) {
-			if (mGLRenderer.getCamPosY() > 1.0f) {
-				mGLRenderer.translateCamWithAnimation(0f, 0f,
-						BOARD_TRANS_ANIM_DURATION);
-			} else {
-				mGLRenderer.translateCamWithAnimation(0f, 2.0f,
-						BOARD_TRANS_ANIM_DURATION);
-			}
-		} else if (item.getItemId() == R.id.rotate_item) {
-			Game.getInstance().onRotateButtonPressed();
-		} else if (item.getItemId() == R.id.fire_item) {
-			Game.getInstance().onFireButtonPressed();
-		} else if (item.getItemId() == R.id.confirm_item) {
-			Game.getInstance().onConfirmBoardPressed();
-		} else if (item.getItemId() == R.id.quit_item) {
-			showExitConfirmationDialog();
-		}
-		return true;
-	}
+    public boolean onOptionsItemSelected(MenuItem item) {
+            if (item.getItemId() == R.id.switch_boards_item) {
+                    hideHelpOverlayIfVisible();
+                    if (mGLRenderer.getCamPosY() > 1.0f) {
+                            mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+                    } else {
+                            mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+                            if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
+                                    mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+                    }
+            } else if (item.getItemId() == R.id.rotate_item) {
+                    Game.getInstance().onRotateButtonPressed();
+            } else if (item.getItemId() == R.id.fire_item) {
+                    hideHelpOverlayIfVisible();
+                    Game.getInstance().onFireButtonPressed();
+            } else if (item.getItemId() == R.id.confirm_item) {
+                    hideHelpOverlayIfVisible();
+                    Game.getInstance().onConfirmBoardPressed();
+            } else if(item.getItemId() == R.id.show_help_item) {
+                    if(mGLRenderer.getCamPosY() > 1.0f && Game.getInstance().getState() != Game.GameState.PLACING_SHIPS)
+                    {        
+                            if(mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
+                                    mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+                    }
+                    else
+                    {
+                            if(mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
+                                    mPlayerHelpOverlay.setVisibility(View.VISIBLE);
+                    }
+            } else if (item.getItemId() == R.id.quit_item) {
+                    showExitConfirmationDialog();
+            } 
+            return true;
+    }
 
 	@Override
 	public void onBackPressed() {
@@ -262,7 +307,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	@Override
 	public boolean onTouch(View view, MotionEvent me) {
-
+		hideHelpOverlayIfVisible();
 		// Calculate the touch event in terms of the GL surface
 		float x = me.getX() / mGLSurfaceView.getWidth();
 		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
@@ -306,6 +351,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			smokeAnimation();
 			// mGLRenderer.translateCamWithAnimation(0f, 2.0f,
 			// BOARD_TRANS_ANIM_DURATION);
+			 if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false) && mGLRenderer.getCamPosY() > 1.0f)
+                 mEnemyHelpOverlay.setVisibility(View.VISIBLE);
 			initiateHustling();
 		} else if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
 			Log.d("", "waiting for opponent");
@@ -316,7 +363,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
-			showGameoverDialog(false);
+			showGameoverDialog(true);
 		}
 
 		// Setting turn image
@@ -368,6 +415,19 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 						BOARD_TRANS_ANIM_DURATION);
 		}
 	}
+	
+	private void hideHelpOverlayIfVisible()
+    {
+            if(mPlayerHelpOverlay.getVisibility() == View.VISIBLE)
+                    mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
+            if(mEnemyHelpOverlay.getVisibility() == View.VISIBLE)
+            {
+                    mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
+                    if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
+                            PrefsManager.getInstance().putBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, true);
+            }
+    }
+
 
 	private void initiateHustling() {
 		// allow player to decide for 30 seconds before hustling
@@ -382,12 +442,25 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 	private void showGameoverDialog(boolean won) {
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-
-		if (won)
-			dialogBuilder.setMessage(R.string.dialog_win_message);
-		else
-			dialogBuilder.setMessage(R.string.dialog_loss_message);
+		LayoutInflater inflator = this.getLayoutInflater();
+		View view = inflator.inflate(R.layout.dialog_game_over, null); 
+		dialogBuilder.setView(view);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+		final boolean didWin = won;
+		dialogBuilder.setNeutralButton("Share", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent shareIntent = new Intent(Intent.ACTION_SEND);
+				shareIntent.putExtra(Intent.EXTRA_TEXT, 
+						(didWin?getString(R.string.dialog_win_message_p1):
+							getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
+				// TODO: can also add #taunt
+				shareIntent.putExtra(Intent.EXTRA_TEXT, (didWin?getString(R.string.dialog_win_message_p1):
+					getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
+				shareIntent.setType("text/plain"); 
+				startActivity(Intent.createChooser(shareIntent, "Share your result via..."));
+			}
+		});
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
@@ -397,7 +470,33 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 						GameActivity.this.finish();
 					}
 				});
+		ImageView iv = (ImageView)view.findViewById(R.id.game_over_dialog_image);
+		if(iv != null)
+		{
+		if(won)
+			iv.setImageResource(R.drawable.dialog_img_won);
+		else 
+			iv.setImageResource(R.drawable.dialog_img_lost);
+		}
 		dialogBuilder.show();
+		
+//		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+//
+//		if (won)
+//			dialogBuilder.setMessage(R.string.dialog_win_message);
+//		else
+//			dialogBuilder.setMessage(R.string.dialog_loss_message);
+//		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
+//		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
+//				new DialogInterface.OnClickListener() {
+//
+//					@Override
+//					public void onClick(DialogInterface dialog, int which) {
+//						Game.getInstance().forfeit();
+//						GameActivity.this.finish();
+//					}
+//				});
+//		dialogBuilder.show();
 	}
 
 	private class HustleRunnable implements Runnable {

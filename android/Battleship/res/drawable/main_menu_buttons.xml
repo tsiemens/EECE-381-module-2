@@ -1,0 +1,25 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_selected="true">
+        <shape>
+            <solid android:color="@color/button_pressed" />
+            <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
+        </shape>
+	</item>
+	
+    <item android:state_pressed="true">
+		<shape>
+           	<solid android:color="@color/button_pressed" />
+            <padding android:bottom="10dp" android:left="20dp" android:right="20dp" android:top="10dp" />
+        </shape>
+	</item>
+	
+    <!-- Default button state -->
+    <item>
+        <shape>
+            <solid android:color="@color/button_background" />
+            <padding android:bottom="10dp" android:left="20dp" android:right="20dp" android:top="10dp" />
+        </shape>
+	</item>
+
+</selector>

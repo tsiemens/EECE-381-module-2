@@ -2,70 +2,111 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main_background"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin" >
 
-    <RadioGroup
-        android:id="@+id/radioGroup1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal" >
-
-        <RadioButton
+<LinearLayout 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+        <Button
             android:id="@+id/rb_guest"
-            android:layout_width="70dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.33"
             android:background="@drawable/radio_button_background"
             android:button="@android:color/transparent"
             android:checked="true"
             android:padding="15dp"
-            android:text="@string/btn_guest" />
+            android:text="@string/btn_guest"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-        <RadioButton
+        <Button
             android:id="@+id/rb_host"
-            android:layout_width="70dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.33"
             android:background="@drawable/radio_button_background"
             android:button="@android:color/transparent"
             android:padding="15dp"
-            android:text="@string/btn_host" />
+            android:text="@string/btn_host"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" 
+            android:textAlignment="center"/>
 
-        <RadioButton
+        <Button
             android:id="@+id/rb_single"
-            android:layout_width="70dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.33"
             android:background="@drawable/radio_button_background"
             android:button="@android:color/transparent"
             android:padding="15dp"
-            android:text="@string/btn_one_player" />
-
-    </RadioGroup>
-
-    <Button
-        android:id="@+id/btn_start_game"
-        android:layout_width="wrap_content"
+            android:text="@string/btn_one_player"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textAlignment="center" />
+</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="64dp"
-        android:background="@drawable/start_button"
-        android:padding="5dp"
-        android:text="@string/main_menu_start_game"
-        android:textAlignment="center" />
+        android:gravity="center_horizontal"
+        android:orientation="horizontal" >
 
-    <Button
-        android:id="@+id/btn_view_profile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/btn_start_game"
-        android:layout_centerVertical="true"
-        android:background="@drawable/start_button"
-        android:padding="5dp"
-        android:text="@string/main_menu_view_profile"
-        android:textAlignment="center" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.15" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="47dp"
+            android:layout_weight="0.7"
+            android:orientation="vertical" >
+
+            <Button
+                android:id="@+id/btn_start_game"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/main_menu_buttons"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="@string/main_menu_start_game"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_view_profile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/main_menu_buttons"
+                android:padding="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="@string/main_menu_view_profile"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.15" />
+    </LinearLayout>
 
 </RelativeLayout>
