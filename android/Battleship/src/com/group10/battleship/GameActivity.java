@@ -49,8 +49,8 @@ import com.group10.battleship.graphics.GifAnimation;
  * 
  */
 public class GameActivity extends SherlockActivity implements OnTouchListener,
-		AnimationListener, GameStateChangedListener,
-		ProfileDataReceivedListener {
+AnimationListener, GameStateChangedListener,
+ProfileDataReceivedListener {
 
 	private static final String TAG = GameActivity.class.getSimpleName();
 
@@ -154,8 +154,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else {
 			mPlayerProfileBitmap = null;
 		}
-		
-//		Set up overlays 
+
+		//		Set up overlays 
 		Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/BuxtonSketch.ttf");
 		TextView doneText = (TextView) findViewById(R.id.text_done);
 		TextView reposText = (TextView) findViewById(R.id.text_move_ships);
@@ -173,12 +173,12 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		mPlayerHelpOverlay = (RelativeLayout)findViewById(R.id.help_overlay_player); 
 		mPlayerHelpOverlay.setOnTouchListener(this);
 		Log.d(TAG, "has run before: " + !PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false));
-			mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
+		mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
 		mEnemyHelpOverlay = (RelativeLayout)findViewById(R.id.help_overlay_enemy);
 		mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
 		mEnemyHelpOverlay.setOnTouchListener(this);
 
-//		Set up banner ad
+		//		Set up banner ad
 		Animation slideUp = AnimationUtils.loadAnimation(
 				getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(
@@ -234,12 +234,18 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			mi = menu.getItem(i);
 			if (mi.getItemId() == R.id.switch_boards_item
 					&& mGLRenderer != null) {
-				if (mGLRenderer.getCamPosY() > 1.0f) {
-					mi.setIcon(R.drawable.ic_find_next_holo_light);
-					mi.setTitle(R.string.menu_item_goto_pboard);
-				} else {
-					mi.setIcon(R.drawable.ic_find_previous_holo_light);
-					mi.setTitle(R.string.menu_item_goto_oboard);
+				if(state == GameState.PLACING_SHIPS)
+					mi.setVisible(false);
+				else
+				{
+					mi.setVisible(true);
+					if (mGLRenderer.getCamPosY() > 1.0f) {
+						mi.setIcon(R.drawable.ic_find_next_holo_light);
+						mi.setTitle(R.string.menu_item_goto_pboard);
+					} else {
+						mi.setIcon(R.drawable.ic_find_previous_holo_light);
+						mi.setTitle(R.string.menu_item_goto_oboard);
+					}
 				}
 			} else if (mi.getItemId() == R.id.confirm_item) {
 				if (state == GameState.PLACING_SHIPS) {
@@ -266,40 +272,42 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	}
 
 	@Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-            if (item.getItemId() == R.id.switch_boards_item) {
-                    hideHelpOverlayIfVisible();
-                    if (mGLRenderer.getCamPosY() > 1.0f) {
-                            mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
-                    } else {
-                            mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
-                            if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
-                                    mEnemyHelpOverlay.setVisibility(View.VISIBLE);
-                    }
-            } else if (item.getItemId() == R.id.rotate_item) {
-                    Game.getInstance().onRotateButtonPressed();
-            } else if (item.getItemId() == R.id.fire_item) {
-                    hideHelpOverlayIfVisible();
-                    Game.getInstance().onFireButtonPressed();
-            } else if (item.getItemId() == R.id.confirm_item) {
-                    hideHelpOverlayIfVisible();
-                    Game.getInstance().onConfirmBoardPressed();
-            } else if(item.getItemId() == R.id.show_help_item) {
-                    if(mGLRenderer.getCamPosY() > 1.0f && Game.getInstance().getState() != Game.GameState.PLACING_SHIPS)
-                    {        
-                            if(mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
-                                    mEnemyHelpOverlay.setVisibility(View.VISIBLE);
-                    }
-                    else
-                    {
-                            if(mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
-                                    mPlayerHelpOverlay.setVisibility(View.VISIBLE);
-                    }
-            } else if (item.getItemId() == R.id.quit_item) {
-                    showExitConfirmationDialog();
-            } 
-            return true;
-    }
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.switch_boards_item) {
+			hideHelpOverlayIfVisible();
+			if (mGLRenderer.getCamPosY() > 1.0f) {
+				mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
+			} else {
+				mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+				if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
+					mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+			}
+		} else if (item.getItemId() == R.id.rotate_item) {
+			Game.getInstance().onRotateButtonPressed();
+		} else if (item.getItemId() == R.id.fire_item) {
+			hideHelpOverlayIfVisible();
+			Game.getInstance().onFireButtonPressed();
+		} else if (item.getItemId() == R.id.confirm_item) {
+			hideHelpOverlayIfVisible();
+			Game.getInstance().onConfirmBoardPressed();
+		} else if(item.getItemId() == R.id.show_help_item) {
+			if(Game.getInstance().getState() != Game.GameState.PLACING_SHIPS)
+			{  
+				if(mGLRenderer.getCamPosY() <= 1.0f)
+					mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
+				if(mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
+					mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+			}
+			else if(Game.getInstance().getState() == Game.GameState.PLACING_SHIPS)
+			{
+				if(mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
+					mPlayerHelpOverlay.setVisibility(View.VISIBLE);
+			}
+		} else if (item.getItemId() == R.id.quit_item) {
+			showExitConfirmationDialog();
+		} 
+		return true;
+	}
 
 	@Override
 	public void onBackPressed() {
@@ -352,8 +360,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			smokeAnimation();
 			// mGLRenderer.translateCamWithAnimation(0f, 2.0f,
 			// BOARD_TRANS_ANIM_DURATION);
-			 if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false) && mGLRenderer.getCamPosY() > 1.0f)
-                 mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+			if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false) && mGLRenderer.getCamPosY() > 1.0f)
+				mEnemyHelpOverlay.setVisibility(View.VISIBLE);
 			initiateHustling();
 		} else if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
 			Log.d("", "waiting for opponent");
@@ -379,7 +387,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			mCurrentTurnImage.setImageBitmap(bm);
 		} else {
 			mCurrentTurnImage
-					.setImageResource(R.drawable.profile_img_placeholder);
+			.setImageResource(R.drawable.profile_img_placeholder);
 		}
 	}
 
@@ -416,18 +424,18 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 						BOARD_TRANS_ANIM_DURATION);
 		}
 	}
-	
+
 	private void hideHelpOverlayIfVisible()
-    {
-            if(mPlayerHelpOverlay.getVisibility() == View.VISIBLE)
-                    mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
-            if(mEnemyHelpOverlay.getVisibility() == View.VISIBLE)
-            {
-                    mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
-                    if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
-                            PrefsManager.getInstance().putBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, true);
-            }
-    }
+	{
+		if(mPlayerHelpOverlay.getVisibility() == View.VISIBLE)
+			mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
+		if(mEnemyHelpOverlay.getVisibility() == View.VISIBLE)
+		{
+			mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
+			if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
+				PrefsManager.getInstance().putBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, true);
+		}
+	}
 
 
 	private void initiateHustling() {
@@ -465,19 +473,19 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						Game.getInstance().forfeit();
-						GameActivity.this.finish();
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Game.getInstance().forfeit();
+				GameActivity.this.finish();
+			}
+		});
 		ImageView iv = (ImageView)view.findViewById(R.id.game_over_dialog_image);
 		if(iv != null)
 		{
-		if(won)
-			iv.setImageResource(R.drawable.dialog_img_won);
-		else 
-			iv.setImageResource(R.drawable.dialog_img_lost);
+			if(won)
+				iv.setImageResource(R.drawable.dialog_img_won);
+			else 
+				iv.setImageResource(R.drawable.dialog_img_lost);
 		}
 		dialogBuilder.show();
 	}
@@ -498,12 +506,12 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						Game.getInstance().forfeit();
-						GameActivity.this.finish();
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Game.getInstance().forfeit();
+				GameActivity.this.finish();
+			}
+		});
 		dialogBuilder.show();
 	}
 
@@ -513,14 +521,14 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			mOpponentName.setText(name);
 		} else {
 			mOpponentName
-					.setText(R.string.game_vs_bar_opponent_name_placeholder);
+			.setText(R.string.game_vs_bar_opponent_name_placeholder);
 		}
 
 		if (taunt != null) {
 			mOpponentTaunt.setText(taunt);
 		} else {
 			mOpponentTaunt
-					.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
+			.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
 		}
 
 		setProfileImage(mOpponentImage, image);
