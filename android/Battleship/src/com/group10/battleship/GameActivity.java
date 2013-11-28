@@ -389,6 +389,9 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
 		int x = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
 				.getFirePosition()[0] - mGLRenderer.getLeft()));
+		
+		int tileSize = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
+				.getTileLength() - mGLRenderer.getLeft()));
 
 		float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
 		int y = (int) (mGLSurfaceView.getHeight() / gly * (mGLRenderer.getTop() - Game
@@ -397,7 +400,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		x = x - mSmokeSizeX;
 		y = (int) (y - mSmokeSizeY + yOffset);
 
-		mSmokeView.show(x, y);
+		mSmokeView.show(x, y, mSmokeSizeX);
 		mSmokeView.getView().setVisibility(View.VISIBLE);
 		mHideSmokeHandler.postDelayed(mHideSmokeRunnable, SMOKE_ANIM_DURATION);
 	}

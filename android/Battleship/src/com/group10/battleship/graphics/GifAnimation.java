@@ -2,6 +2,7 @@ package com.group10.battleship.graphics;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
@@ -27,6 +28,7 @@ public class GifAnimation {
 	 
 	     mView.getSettings().setUseWideViewPort(true);
 	     mView.getSettings().setLoadWithOverviewMode(true);
+	     
 	     mView.setVerticalScrollBarEnabled(false);
 	 
 	     fileName = name;
@@ -53,10 +55,10 @@ public class GifAnimation {
 	    * @param x
 	    * @param y
 	    */
-	   public void show(int x, int y) {
+	   public void show(int x, int y, int size) {
 	     setPosition(x, y);
-	     String data = "<html><body><img width=\"100%\" src=\"" + fileName
-	         + "\" /></body></html>";
+	     String data = "<html><body><table width=\"" + size+ "px\"><tr><right><img width=\"100%\" src=\"" + fileName
+	         + "\" /><right></tr><table></body></html>";
 	     mView.loadDataWithBaseURL("file:///android_asset/", data, "text/html",
 	         "UTF-8", null);
 	   }
