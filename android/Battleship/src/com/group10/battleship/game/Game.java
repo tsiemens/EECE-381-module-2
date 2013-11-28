@@ -22,6 +22,7 @@ import com.group10.battleship.GameActivity;
 import com.group10.battleship.PrefsManager;
 import com.group10.battleship.R;
 import com.group10.battleship.audio.SoundManager;
+import com.group10.battleship.database.ConnectionHistoryRepository;
 import com.group10.battleship.game.ai.BattleshipAI;
 import com.group10.battleship.game.ai.RandomAI;
 import com.group10.battleship.game.ai.SmartAI;
@@ -103,6 +104,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		willYieldTurn = new Random().nextBoolean();
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
+			if (!isHost) {
+				String ip = NetworkManager.getInstance().getAndroidHostIP();
+				if (ConnectionHistoryRepository.updateLastPlayed(ip) <= 0) {
+					// The item was not already in history
+					ConnectionHistoryRepository.addHistoryItem(
+							new ConnectionHistoryRepository.HistoryItem(mOpponentProfileName, ip));
+				} else {
+					ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
+				}
+			}
 			
 			// Send profile data
 			PrefsManager pm = PrefsManager.getInstance();
@@ -484,6 +495,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				} else if(obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.PROFILE_TYPE_VAL)) {
 					// The opponent has sent its profile data
 					mOpponentProfileName = obj.getString(ModelParser.PROFILE_NAME_KEY);
+					
+					// Update history
+					if (!isHost) {
+						String ip = NetworkManager.getInstance().getAndroidHostIP();
+						ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
+					}
+					
 					mOpponentProfileTaunt = obj.getString(ModelParser.PROFILE_TAUNT_KEY);
 					String imgString = obj.getString(ModelParser.PROFILE_IMAGE_KEY);
 					mOpponentProfileImage = (imgString != null) ? BitmapUtils.decodeBase64(imgString) : null;

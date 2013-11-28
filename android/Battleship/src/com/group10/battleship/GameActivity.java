@@ -320,6 +320,8 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	}
 
 	private void showGameoverDialog(boolean won) {
+		if (this.isFinishing()) 
+			return;
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 		LayoutInflater inflator = this.getLayoutInflater();
 		View view = inflator.inflate(R.layout.dialog_game_over, null); 

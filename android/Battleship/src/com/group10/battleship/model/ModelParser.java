@@ -116,7 +116,7 @@ public class ModelParser {
 		String imageString = null;
 		if (imageUri != null) {
 			try {
-				Bitmap bm = BitmapUtils.decodeSampledBitmapFromUri(imageUri, 200, 200);
+				Bitmap bm = BitmapUtils.decodeSampledBitmapFromUri(imageUri, 100, 100);
 				imageString = BitmapUtils.encodeToBase64(bm);
 			} catch (IOException e) {
 				Log.e(TAG, "Could not decode profile image");
