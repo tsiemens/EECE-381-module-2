@@ -67,6 +67,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private GameStateChangedListener mStateListener;
 	
 	private BattleshipAI mSingleplayerAI;
+	private int mAIDifficulty = 1;
 	
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
@@ -77,6 +78,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			sGameInstance = new Game();
 
 		return sGameInstance;
+	}
+	
+	public void setDifficulty(int diff) {
+		mAIDifficulty = diff; 
 	}
 
 	private Game() {
@@ -93,9 +98,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
 		} else {
-			// TODO detect difficulty somehow
 			mSingleplayerAI = new SmartAI();
-			mSingleplayerAI.setDifficulty(3);
+			mSingleplayerAI.setDifficulty(mAIDifficulty);
 			isHost = true;
 		}
 	}
