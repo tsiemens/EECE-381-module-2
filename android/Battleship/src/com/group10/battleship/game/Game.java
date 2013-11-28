@@ -154,16 +154,18 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 	
 	public void forfeit() {
-		if (isMultiplayer()) {
-			try {
-				NetworkManager.getInstance().send(ModelParser.getJsonForGameOver(true), true);
-			} catch (JSONException e) {
-				e.printStackTrace();
+		if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN) {
+			if (isMultiplayer()) {
+				try {
+					NetworkManager.getInstance().send(ModelParser.getJsonForGameOver(true), true);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 			}
-		}
 		
-		if (isHost) {
-			NIOS2NetworkManager.sendGameOver(false, true);
+			if (isHost) {
+				NIOS2NetworkManager.sendGameOver(false, true);
+			}
 		}
 		
 		invalidate();
@@ -335,11 +337,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					e.printStackTrace();
 				}
 			}
-			setState(GameState.WAITING_FOR_OPPONENT);
+			if (mOpponentBoard.isAllSunk()) {
+				win(true);
+			} else {
+				setState(GameState.WAITING_FOR_OPPONENT);
+			}
 		}
-		
-		if (mOpponentBoard.isAllSunk())
-			win(true);
 	}
 
 	public void onTouchGLSurface(MotionEvent me, float x, float y) {
@@ -431,8 +434,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						if(mPlayerBoard.isAllSunk())
 							win(false);
 					}
+					
 					Toast.makeText(mContext, "Move received: " + obj.getInt(ModelParser.MOVE_XPOS_KEY) + ", " + obj.getInt(ModelParser.MOVE_YPOS_KEY), Toast.LENGTH_SHORT).show();
-					setState(GameState.TAKING_TURN);
+					if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN)
+						setState(GameState.TAKING_TURN);
 					
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(ModelParser.MOVE_RESPONSE_TYPE_VAL)) {
 					// Guest is receiving response to move
@@ -537,7 +542,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				@Override
 				public void run() {
 					performAIMove();
-					setState(GameState.TAKING_TURN);
+					if (mState != GameState.GAME_OVER_LOSS && mState != GameState.GAME_OVER_WIN)
+						setState(GameState.TAKING_TURN);
 				}
 			}, GameActivity.BOARD_TRANS_ANIM_DURATION + 700);
 		}

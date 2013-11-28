@@ -345,7 +345,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						Game.getInstance().forfeit();
+						Game.getInstance().invalidate();
 						GameActivity.this.finish();
 					}
 				});
@@ -358,24 +358,6 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			iv.setImageResource(R.drawable.dialog_img_lost);
 		}
 		dialogBuilder.show();
-		
-//		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-//
-//		if (won)
-//			dialogBuilder.setMessage(R.string.dialog_win_message);
-//		else
-//			dialogBuilder.setMessage(R.string.dialog_loss_message);
-//		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
-//		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
-//				new DialogInterface.OnClickListener() {
-//
-//					@Override
-//					public void onClick(DialogInterface dialog, int which) {
-//						Game.getInstance().forfeit();
-//						GameActivity.this.finish();
-//					}
-//				});
-//		dialogBuilder.show();
 	}
 
 	private class hustleRunnable implements Runnable {
