@@ -376,6 +376,14 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					e.printStackTrace();
 				}
 			}
+			
+
+			mFireTileX = mOpponentBoard.getTileLocationAtIndex(
+					pos.x, pos.y)[0];
+			mFireTileY = mOpponentBoard.getTileLocationAtIndex(
+					pos.x, pos.y)[1];
+
+			
 			if (mOpponentBoard.isAllSunk()) {
 				win(true);
 			} else {
@@ -478,6 +486,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 						mFireTileY = mPlayerBoard.getTileLocationAtIndex(
 								obj.getInt(ModelParser.MOVE_XPOS_KEY),
 								obj.getInt(ModelParser.MOVE_YPOS_KEY))[1];
+						
 					} else {
 						// Host must process the move, and return if it
 						// hit/missed
@@ -517,11 +526,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 							.getBoolean(ModelParser.MOVE_RESPONSE_HIT_KEY);
 					boolean wasSunk = obj
 							.getBoolean(ModelParser.MOVE_RESPONSE_SUNK_KEY);
-
-					mFireTileX = mOpponentBoard.getTileLocationAtIndex(
-							mLastMove.x, mLastMove.y)[0];
-					mFireTileY = mOpponentBoard.getTileLocationAtIndex(
-							mLastMove.x, mLastMove.y)[1];
 
 					if (wasSunk) {
 						mOpponentBoard.sinkShipAt(mLastMove.x, mLastMove.y);
