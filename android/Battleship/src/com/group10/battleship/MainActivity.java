@@ -18,6 +18,7 @@ import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -144,9 +145,9 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		int id = view.getId();
 		if( id != R.id.btn_start_game)
 			performRadioButtonLikeActions(id);
+		
 		if( id == R.id.btn_start_game)
 		{
-			PrefsManager pm = PrefsManager.getInstance();
 			if (mSelectedModeId == R.id.rb_single) 
 			{
 				Game game = Game.getInstance();
@@ -159,21 +160,12 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			else if (mSelectedModeId == R.id.rb_host)
 			{
 				mUDPManager.new SendBroadcast().execute(null, null, null);
-				String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
-				int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
+
 				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 				try {
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
 					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
-					// If using nios, also set up the nios 
-					if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
-					{
-						Log.d(TAG, ip+":"+port);
-						if (ip != null && port != -1) {
-							NetworkManager.getInstance().setupNiosSocket(ip, port);
-							NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
-						}
-					}
+					setUpNiosSocket();
 				} catch (Exception e) {
 					handleSocketError(e);
 					e.printStackTrace();
@@ -188,6 +180,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	private void setUpNiosSocket()
 	{
 		PrefsManager pm = PrefsManager.getInstance();
+		// If using nios, set up the nios 
 		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 		{
 			NetworkManager.getInstance().close();
@@ -221,6 +214,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	public void onSuccessfulNiosSetup() {
 		NIOS2NetworkManager.sendNewGame();
 		Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
+		Game.getInstance().onNiosGameStarted();
 	}
 
 	@Override
@@ -230,15 +224,18 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
-		mHostIp = "Waiting for player to join.\nIP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort();
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-		builder.setNegativeButton(R.string.dialog_cancel, null)
-		.setMessage(mHostIp);
-		builder.create().show();
+		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
+				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel!";
 		
+		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
+			
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				// TODO Auto-generated method stub
+				Log.i("Info", "Cancel");
+				
+			}
+		});
 	}
 
 	@Override
@@ -308,17 +305,6 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		});
 		builder.show();
 	}
-
-	private void showScanningDialog() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-		builder.setTitle("Scanning for a game").setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
-			}
-		});
-		builder.show();
-	}
 	
 	private void showIPHistoryDialog() {
 		mHistoryItems = ConnectionHistoryRepository.getSortedHistory();
@@ -364,6 +350,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		builder.setItems(R.array.dialog_level_select, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int selected) {
+				setUpNiosSocket();
 				Game.getInstance().setDifficulty(3 - selected);
 				Game.getInstance().start(false);
 				dialog.dismiss();

@@ -33,6 +33,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.group10.battleship.audio.MusicManager;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
@@ -267,6 +268,17 @@ public class GameActivity extends Activity implements OnTouchListener,
 				} else {
 					mi.setVisible(false);
 				}
+			} else if(mi.getItemId() == R.id.mute_music_item) {
+				if(MusicManager.getInstance().isMuted())
+					mi.setTitle(R.string.menu_item_music_unmute);
+				else 
+					mi.setTitle(R.string.menu_item_music_mute);
+			}
+			else if(mi.getItemId() == R.id.mute_sound_item) {
+				if(Game.getInstance().getSoundManager().isMuted())
+					mi.setTitle(R.string.menu_item_sound_unmute);
+				else 
+					mi.setTitle(R.string.menu_item_sound_mute);
 			}
 		}
 
@@ -293,6 +305,20 @@ public class GameActivity extends Activity implements OnTouchListener,
 		} else if (item.getItemId() == R.id.confirm_item) {
 			hideHelpOverlayIfVisible();
 			Game.getInstance().onConfirmBoardPressed();
+		} else if(item.getItemId() == R.id.mute_sound_item) {
+			if(Game.getInstance().getSoundManager().isMuted())
+				Game.getInstance().getSoundManager().unmute();
+			else 
+				Game.getInstance().getSoundManager().mute();
+			invalidateOptionsMenu();
+			
+		} else if(item.getItemId() == R.id.mute_music_item) {
+			if(MusicManager.getInstance().isMuted())
+				MusicManager.getInstance().unmute();
+			else 
+				MusicManager.getInstance().mute();
+			invalidateOptionsMenu();
+			
 		} else if (item.getItemId() == R.id.show_help_item) {
 			if (Game.getInstance().getState() != Game.GameState.PLACING_SHIPS) {
 				if (mGLRenderer.getCamPosY() <= 1.0f)
