@@ -1,11 +1,15 @@
 package com.group10.battleship;
 
-
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.List;
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.audio.MusicManager;
 import com.group10.battleship.audio.MusicManager.Music;
+import com.group10.battleship.database.ConnectionHistoryRepository;
+import com.group10.battleship.database.ConnectionHistoryRepository.HistoryItem;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
 import com.group10.battleship.network.NIOS2NetworkManager;
@@ -13,35 +17,43 @@ import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 import com.group10.battleship.network.UDPManager;
-import com.group10.battleship.network.UDPManager.OnUDPRecieveListener;
+import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
-
-public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnUDPRecieveListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 	private static final int DEFAULT_PORT = 50002;
 
 	private Button mStartGameBtn;
-	private Button mFindGameBtn;
-	
-	private Button mSendUDP;
-	private Button mRecieveUDP;
+
 	private UDPManager mUDPManager;
+	private Button mProfileButton;
 
-	private EditText mHostIpEt;
-	private EditText mHostPortEt;
+	private RadioGroup mGameModeGroup;
 
-	private TextView mHostIpTv;
+	private Button mHostButton; 
+	private Button mGuestButton; 
+	private Button mSinglePlayerButton; 
+	private int mSelectedModeId;
+
+	private String mHostIp;
+
+	private List<HistoryItem> mHistoryItems;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -50,25 +62,28 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 		mStartGameBtn = (Button) findViewById(R.id.btn_start_game);
 		mStartGameBtn.setOnClickListener(this);
-
-		mFindGameBtn = (Button) findViewById(R.id.btn_find_game);
-		mFindGameBtn.setOnClickListener(this);
-		
-		mSendUDP = (Button) findViewById(R.id.btn_send_udp);
-		mSendUDP.setOnClickListener(this);
-		
-		mRecieveUDP = (Button) findViewById(R.id.btn_recieve_udp);
-		mRecieveUDP.setOnClickListener(this);
+		mProfileButton = (Button) findViewById(R.id.btn_view_profile);
+		mProfileButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+			}
+		});
 
 		mUDPManager = new UDPManager(); 
-		mUDPManager.setOnUDPRecieveListener(this);
+		mUDPManager.setOnBroadcastFoundListener(this);
 				
-		mHostIpEt = (EditText) findViewById(R.id.et_host_ip);
-		mHostPortEt = (EditText) findViewById(R.id.et_host_port);
-		mHostPortEt.setText(Integer.valueOf(DEFAULT_PORT).toString());
+		mHostButton = (Button) findViewById(R.id.rb_host);
+		mHostButton.setOnClickListener(this);
+		mGuestButton = (Button) findViewById(R.id.rb_guest);
+		mGuestButton.setOnClickListener(this);
+		mSinglePlayerButton = (Button) findViewById(R.id.rb_single);
+		mSinglePlayerButton.setOnClickListener(this);
+		mSelectedModeId = R.id.rb_host;
+		mHostButton.setSelected(true);
+		mGuestButton.setSelected(false);
+		mSinglePlayerButton.setSelected(false);
 
-		mHostIpTv = (TextView) findViewById(R.id.tv_host_ip);
-		
 		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 	}
 
@@ -76,8 +91,12 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	public void onResume() {
 		super.onResume();
 		MusicManager.getInstance().play(Music.MENU);
+
+		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
+			startActivity(new Intent(this, ProfileActivity.class));
+		}
 	}
-	
+
 	@Override
 	public void onPause() {
 		MusicManager.getInstance().pause();
@@ -100,64 +119,96 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		return super.onOptionsItemSelected(item);
 	}
 
+	private void performRadioButtonLikeActions(int id)
+	{
+		if(id == R.id.rb_host)
+		{
+			mHostButton.setSelected(true);
+			mGuestButton.setSelected(false);
+			mSinglePlayerButton.setSelected(false);
+		}
+		else if(id == R.id.rb_guest)
+		{
+			mHostButton.setSelected(false);
+			mGuestButton.setSelected(true);
+			mSinglePlayerButton.setSelected(false);
+		}
+		else if(id == R.id.rb_single)
+		{
+			mHostButton.setSelected(false);
+			mGuestButton.setSelected(false);
+			mSinglePlayerButton.setSelected(true);
+		}
+		mSelectedModeId = id;
+	}
+
 	@Override
 	public void onClick(View view) {
-		PrefsManager pm = PrefsManager.getInstance();
-		if (pm.getBoolean(PrefsManager.PREF_KEY_LOCAL_DEBUG, false)) {
-			// TODO: change this later to be when starting in single player
-			Game game = Game.getInstance();
-			if (game.getState() != GameState.UNINITIALIZED) {
-				// Game was in progress before, so we have to restart it.
-				game.invalidate();
-			}
-			game.start(false);
-			startActivity(new Intent(this, GameActivity.class));
-		}
-		// Host
-		else if(view == mStartGameBtn)
+		int id = view.getId();
+		if( id != R.id.btn_start_game)
+			performRadioButtonLikeActions(id);
+		if( id == R.id.btn_start_game)
 		{
-			Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
-			try {
-				//Starts broadcasting Host IP Address on UDP broadcast socket 
-				mUDPManager.new SendBroadcast().execute(null, null, null);
-				
-				NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
-				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
-				NetworkManager.getInstance().setPort(DEFAULT_PORT);
-				
-				// If using nios, also set up the nios 
-				if (pm.getBoolean(PrefsManager.PREF_KEY_USE_NIOS, true))
-				{
-					NetworkManager.getInstance().setupNiosSocket(mHostIpEt.getText().toString(), 
-							Integer.parseInt(mHostPortEt.getText().toString()));
-					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
-				}
-			} catch (Exception e) {
-				handleSocketError(e);
-				e.printStackTrace();
-			} 
-		}
-		// Client
-		else if(view == mFindGameBtn)
-		{
-			Toast.makeText(this, "Finding game...", Toast.LENGTH_SHORT).show();
-			try {
-				NetworkManager.getInstance().setupAndroidSocket(mHostIpEt.getText().toString(), 
-						Integer.parseInt(mHostPortEt.getText().toString()), false); 
-				NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);
-			} catch(NumberFormatException e)
+			PrefsManager pm = PrefsManager.getInstance();
+			if (mSelectedModeId == R.id.rb_single) 
 			{
-				Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-				e.printStackTrace();
-			} catch (Exception e) {
-				handleSocketError(e);
-			} 
+				Game game = Game.getInstance();
+				if (game.getState() != GameState.UNINITIALIZED) {
+					// Game was in progress before, so we have to restart it.
+					game.invalidate();
+				}
+				showLevelSelectDialog();
+			}
+			else if (mSelectedModeId == R.id.rb_host)
+			{
+				mUDPManager.new SendBroadcast().execute(null, null, null);
+				String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
+				int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
+				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
+				try {
+					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
+					// If using nios, also set up the nios 
+					if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
+					{
+						Log.d(TAG, ip+":"+port);
+						if (ip != null && port != -1) {
+							NetworkManager.getInstance().setupNiosSocket(ip, port);
+							NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+						}
+					}
+				} catch (Exception e) {
+					handleSocketError(e);
+					e.printStackTrace();
+				} 
+			}
+			else if (mSelectedModeId == R.id.rb_guest){
+				showGuestDialog(null);
+			}
 		}
-		else if(view == mSendUDP) {
-			
-		}
-		else if(view == mRecieveUDP) {
-			mUDPManager.new RecieveBroadcast().execute(null, null, null);
+	}
+	
+	private void setUpNiosSocket()
+	{
+		PrefsManager pm = PrefsManager.getInstance();
+		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
+		{
+			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
+			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
+			Log.d(TAG, ip+":"+port);
+			if (ip != null && port != -1 && ip.length() != 0) {
+				try {
+					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
+					NetworkManager.getInstance().setupNiosSocket(ip, port);
+				} catch (Exception e) {
+					handleSocketError(e);
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				Toast.makeText(this, "NIOS IP & port not specified, not connected to NIOS", Toast.LENGTH_LONG).show();
+			}
 		}
 	}
 
@@ -181,9 +232,14 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
-		mHostIpTv.setText("IP: "
-				+ NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort());
+		mHostIp = "Waiting for player to join.\nIP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
+				+ NetworkManager.getInstance().getAndroidHostPort();
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+		builder.setNegativeButton(R.string.dialog_cancel, null)
+		.setMessage(mHostIp);
+		builder.show();
 	}
 
 	@Override
@@ -197,15 +253,125 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
-	
-	@Override
-	public void onUDPRecieved() {
-		mHostIpEt.setText(mUDPManager.getIPString());
-	}
 
 	@Override
 	public void onAndroidSocketSetupError() {
 		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
+	}
+
+	private void showGuestDialog(String ip){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		LayoutInflater inflater = this.getLayoutInflater();
+
+		// Inflate and set the layout for the dialog
+		final View dialogView = inflater.inflate(R.layout.dialog_guest_findgame, null);
+				// Inflate and set the layout for the dialog
+		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
+		iptext.setText(ip); 
+		EditText portText = (EditText)dialogView.findViewById(R.id.et_port);
+		portText.setText(Integer.toString(DEFAULT_PORT));
+		builder.setView(dialogView)
+		.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				Toast.makeText(MainActivity.this, "Finding game...", Toast.LENGTH_SHORT).show();
+				try {
+					String ip = ((EditText)dialogView.findViewById(R.id.et_ip)).getText().toString();
+					int port = Integer.parseInt(((EditText)dialogView.findViewById(R.id.et_port)).getText().toString());
+					Log.d(TAG, "should find game at "+ip+":"+port);
+					NetworkManager.getInstance().setupAndroidSocket(ip, port, false); 
+					NetworkManager.getInstance().setOnAndroidSocketSetupListener(MainActivity.this);
+				} catch(NumberFormatException e)
+				{
+					Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+					e.printStackTrace();
+				} catch (Exception e) {
+					handleSocketError(e);
+				}
+			}
+		})
+		.setNeutralButton(R.string.dialog_history, new DialogInterface.OnClickListener() {				
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				showIPHistoryDialog();
+			}
+		})
+		.setNegativeButton(R.string.dialog_scan, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				mUDPManager.new RecieveBroadcast().execute(null, null, null);
+				showScanningDialog();
+			}
+		});
+		builder.show();
+	}
+
+	private void showScanningDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+		builder.setTitle("Scanning for a game").setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+		builder.show();
+	}
+	
+	private void showIPHistoryDialog() {
+		mHistoryItems = ConnectionHistoryRepository.getSortedHistory();
+
+		if (mHistoryItems.size() == 0) {
+			Toast.makeText(this, "No history", Toast.LENGTH_SHORT).show();
+			showGuestDialog(null);
+			return;
+		}
+
+		String[] itemStrings = new String[mHistoryItems.size()];
+		for (int i = 0; i < mHistoryItems.size(); i++) {
+			itemStrings[i] = mHistoryItems.get(i).toString();
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+		builder.setTitle(R.string.dialog_title_history)
+		.setItems(itemStrings, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				showGuestDialog(mHistoryItems.get(which).ip);
+			}
+		})
+		.setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				showGuestDialog(null);
+			}
+		})
+		.setOnCancelListener(new DialogInterface.OnCancelListener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				showGuestDialog(null);
+			}
+		});
+		builder.show();
+	}
+
+	private void showLevelSelectDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+		builder.setItems(R.array.dialog_level_select, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int selected) {
+				Game.getInstance().setDifficulty(3 - selected);
+				Game.getInstance().start(false);
+				dialog.dismiss();
+				startActivity(new Intent(MainActivity.this, GameActivity.class));
+			}
+		});
+		builder.show();
+	}
+	
+	public void onBroadcastFound() {
+		this.showGuestDialog(mUDPManager.getIPString());
 	}
 
 }

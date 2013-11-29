@@ -1,0 +1,32 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:state_selected="true">
+       <layer-list>
+		<!-- This is the line -->
+			<item>
+      			<shape>
+            		<solid android:color="@color/radio_selected_line" />
+      			</shape>
+			</item>
+		<!-- This is the main color -->
+			<item android:bottom="3dp">
+     			<shape>
+           			<solid android:color="@color/button_background" />
+     			</shape>
+			</item>
+		</layer-list>
+	</item>
+	
+    <item android:state_pressed="true">
+		<shape>
+            <solid android:color="@color/button_background" />
+            <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
+        </shape>
+	</item>
+   
+    <item>
+         <shape>
+            <solid android:color="@color/radio_unselected_background" />
+            <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
+        </shape>
+    </item>
+</selector>

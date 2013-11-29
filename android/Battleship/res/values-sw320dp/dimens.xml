@@ -1,0 +1,10 @@
+<resources>
+
+    <!--
+         Customize dimensions originally defined in res/values/dimens.xml (such as
+         screen margins) for sw320dp devices (e.g. phones) here.
+    -->
+    
+    <dimen name="profile_image_size">80dp</dimen>
+
+</resources>

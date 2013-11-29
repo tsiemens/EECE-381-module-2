@@ -1,5 +1,7 @@
 package com.group10.battleship;
 
+import com.group10.battleship.database.DatabaseManager;
+
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
@@ -19,6 +21,8 @@ public class BattleshipApplication extends Application{
 	public void onCreate() {
 		super.onCreate();
 		sApplicationInstance = this;
+		// Creates the database
+		DatabaseManager.getInstance();
 		Log.i(TAG, "Starting application...");
 	}
 

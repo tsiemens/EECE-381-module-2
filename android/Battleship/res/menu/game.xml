@@ -2,21 +2,21 @@
 
      <item
         android:id="@+id/confirm_item"
-        android:icon="@drawable/ic_cab_done_holo_light"
+        android:icon="@drawable/ic_action_accept"
         android:orderInCategory="100"
         android:showAsAction="always"
         android:title="@string/menu_item_confirm"/>
     
     <item
         android:id="@+id/rotate_item"
-        android:icon="@android:drawable/ic_menu_rotate"
+        android:icon="@drawable/ic_action_rotate_right"
         android:orderInCategory="100"
         android:showAsAction="always"
         android:title="@string/menu_item_rotate"/>
     
     <item
         android:id="@+id/fire_item"
-        android:icon="@android:drawable/ic_menu_mylocation"
+        android:icon="@drawable/ic_action_location_found"
         android:orderInCategory="100"
         android:showAsAction="always"
         android:title="@string/menu_item_fire"/>
@@ -25,8 +25,14 @@
         android:id="@+id/switch_boards_item"
         android:icon="@drawable/ic_find_previous_holo_light"
         android:orderInCategory="100"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:title="@string/menu_item_goto_oboard"/>
+    
+     <item
+        android:id="@+id/show_help_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_item_help"/>
     
     <item
         android:id="@+id/quit_item"

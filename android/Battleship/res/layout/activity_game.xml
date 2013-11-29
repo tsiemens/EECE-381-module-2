@@ -1,11 +1,254 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+    
+<RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-    
-    <android.opengl.GLSurfaceView
-        android:id="@+id/glsv_game_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
+    <LinearLayout
+        android:id="@+id/full_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/profile_image_size"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_weight="0.3"
+            android:padding="5dp" >
+
+            <TextView
+                android:id="@+id/opponent_vs_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/opponent_profile_image"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_toRightOf="@+id/opponent_profile_image"
+                android:text="@string/game_vs_bar_opponent_title"
+                android:textColor="#66000000" />
+
+            <ImageView
+                android:id="@+id/opponent_profile_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/profile_img_placeholder"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/opponent_vs_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@id/opponent_vs_title"
+                android:layout_centerVertical="true"
+                android:text="@string/game_vs_bar_opponent_name_placeholder"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/opponent_vs_taunt_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/opponent_profile_image"
+                android:layout_alignLeft="@+id/opponent_vs_name"
+                android:text="@string/game_vs_bar_opponent_taunt_placeholder"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#cc000000" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/game_vs_bar_turn"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#66000000" />
+
+                <ImageView
+                    android:id="@+id/player_turn_img"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/profile_img_placeholder"
+                    android:contentDescription="@null" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <android.opengl.GLSurfaceView
+            android:id="@+id/glsv_game_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.7" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/banner_ad_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin" >
+
+        <ImageView
+            android:id="@+id/banner_ad_img"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:adjustViewBounds="true"
+            android:src="@drawable/banner_ad"
+            android:contentDescription="@null" />
+
+        <ImageButton
+            android:id="@+id/close_ad_button"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_above="@+id/banner_ad_img"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="-10dp"
+            android:layout_marginRight="5dp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/close_banner_button"
+            android:contentDescription="@null" />
+    </RelativeLayout>
 </RelativeLayout>
+
+<!-- Translucent Instructions Overlay Views + Layouts -->
+
+    <RelativeLayout
+        android:id="@+id/help_overlay_player"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#77000000" >
+
+        <ImageView
+            android:id="@+id/arrow_rotate"
+            android:layout_width="25dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="65dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/arrow_short_up" />
+
+        <ImageView
+            android:id="@+id/arrow_done"
+            android:layout_width="25dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="30dp"
+            android:layout_toLeftOf="@+id/arrow_rotate"
+            android:adjustViewBounds="true"
+            android:src="@drawable/arrow_long_up" />
+
+        <TextView
+            android:id="@+id/text_rotate"
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/arrow_rotate"
+            android:layout_below="@+id/arrow_rotate"
+            android:text="@string/help_overlay_rotate"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFFFF" />
+
+        <TextView
+            android:id="@+id/text_done"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/text_rotate"
+            android:layout_below="@+id/arrow_done"
+            android:layout_marginRight="20dp"
+            android:text="@string/help_overlay_done"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFFFF" />
+
+        <TextView
+            android:id="@+id/text_move_ships"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/arrow_done"
+            android:layout_alignParentLeft="true"
+            android:layout_marginBottom="30dp"
+            android:layout_marginLeft="30dp"
+            android:text="@string/help_overlay_reposition"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFFFF" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/help_overlay_enemy"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#77000000" >
+
+        <ImageView
+            android:id="@+id/arrow_seeOther"
+            android:layout_width="25dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="70dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/arrow_short_up" />
+
+        <ImageView
+            android:id="@+id/arrow_fire"
+            android:layout_width="25dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="30dp"
+            android:layout_toLeftOf="@+id/arrow_seeOther"
+            android:adjustViewBounds="true"
+            android:src="@drawable/arrow_long_up" />
+
+        <TextView
+            android:id="@+id/text_seeOther"
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/arrow_seeOther"
+            android:layout_below="@+id/arrow_seeOther"
+            android:text="@string/help_overlay_seeOther"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFFFF" />
+
+        <TextView
+            android:id="@+id/text_fire"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/text_seeOther"
+            android:layout_below="@+id/arrow_fire"
+            android:layout_marginRight="20dp"
+            android:text="@string/help_overlay_fire_move"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFFFF" />
+
+        <TextView
+            android:id="@+id/text_choose_tile"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/arrow_fire"
+            android:layout_alignParentLeft="true"
+            android:layout_marginBottom="30dp"
+            android:layout_marginLeft="30dp"
+            android:text="@string/help_overlay_choose_move"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFFFF" />
+    </RelativeLayout>
+</FrameLayout>

@@ -122,7 +122,7 @@ public class SmartAI implements BattleshipAI {
 	private void assignPossibleMoves(int maxH) {
 		for(int x = 0; x < 10; x++) {
 			for(int y = 0; y < 10; y++) {
-				if (mBoardHeuristics[x][y] >= (maxH - mDifficulty)) {
+				if (mBoardHeuristics[x][y] >= (maxH - mDifficulty*3)) {
 					mNextX.add(x);
 					mNextY.add(y);
 				}

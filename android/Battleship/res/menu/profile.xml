@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+     <item
+        android:id="@+id/confirm_item"
+        android:icon="@drawable/ic_action_accept"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_item_confirm"/>
+    
+    <item
+        android:id="@+id/cancel_item"
+        android:icon="@drawable/ic_action_cancel"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_item_cancel"/>
+    
+    <item
+        android:id="@+id/edit_item"
+        android:icon="@drawable/ic_action_edit"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/menu_item_edit"/>
+
+</menu>
