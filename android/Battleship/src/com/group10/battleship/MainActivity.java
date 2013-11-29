@@ -5,6 +5,7 @@ import java.util.List;
 import com.group10.battleship.PrefsActivity;
 import com.group10.battleship.audio.MusicManager;
 import com.group10.battleship.audio.MusicManager.Music;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.database.ConnectionHistoryRepository;
 import com.group10.battleship.database.ConnectionHistoryRepository.HistoryItem;
 import com.group10.battleship.game.Game;
@@ -60,6 +61,8 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 	private ImageView mLogo;
 	private View mFadeOut;
+	
+	private boolean mIsFirstResume = true;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -102,10 +105,10 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	public void onResume() {
 		super.onResume();
 
-		MusicManager.getInstance().play(Music.MENU);
-
-		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
-			startActivity(new Intent(this, ProfileActivity.class));
+		if (!mIsFirstResume) {
+			MusicManager.getInstance().play(Music.MENU);
+		} else {
+			mIsFirstResume = false;
 		}
 	}
 
@@ -391,6 +394,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 			@Override
 			public void onAnimationEnd(Animation animation) {
+				SoundManager.getInstance().playSFX(R.raw.ship_explode);
 				Animation animation2 = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_out);
 				animation2.setAnimationListener(new AnimationListener() {
 
@@ -403,7 +407,12 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 					@Override
 					public void onAnimationEnd(Animation animation) {
-						mFadeOut.setVisibility(View.GONE);						
+						mFadeOut.setVisibility(View.GONE);
+						if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
+							startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+						} else {
+							MusicManager.getInstance().play(Music.MENU);
+						}
 					}
 				});
 				mFadeOut.startAnimation(animation2);

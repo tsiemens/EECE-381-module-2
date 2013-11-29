@@ -1,5 +1,6 @@
 package com.group10.battleship;
 
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.database.DatabaseManager;
 
 import android.app.Application;
@@ -23,6 +24,7 @@ public class BattleshipApplication extends Application{
 		sApplicationInstance = this;
 		// Creates the database
 		DatabaseManager.getInstance();
+		SoundManager.getInstance();
 		Log.i(TAG, "Starting application...");
 	}
 
