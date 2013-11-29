@@ -18,6 +18,7 @@ import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -228,14 +229,18 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
-		mHostIp = "Waiting for player to join.\nIP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort();
+		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
+				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel!";
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-		builder.setNegativeButton(R.string.dialog_cancel, null)
-		.setMessage(mHostIp);
-		builder.show();
+		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
+			
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				// TODO Auto-generated method stub
+				Log.i("Info", "Cancel");
+				
+			}
+		});
 	}
 
 	@Override
