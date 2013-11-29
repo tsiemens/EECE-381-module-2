@@ -371,8 +371,10 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 			stopHustling();
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
+			stopHustling();
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_LOSS) {
 			showGameoverDialog(false);
+			stopHustling();
 		}
 
 		// Setting turn image
