@@ -84,7 +84,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private BattleshipAI mSingleplayerAI;
 
 	private int mAIDifficulty = 1;
-	
+
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
 	}
@@ -95,13 +95,15 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 		return sGameInstance;
 	}
-	
+
 	/**
 	 * Sets the Ai's difficulty
-	 * @param diff 1 for hard, 2 for medium, 3 for easy
+	 * 
+	 * @param diff
+	 *            1 for hard, 2 for medium, 3 for easy
 	 */
 	public void setDifficulty(int diff) {
-		mAIDifficulty = diff; 
+		mAIDifficulty = diff;
 	}
 
 	private Game() {
@@ -116,7 +118,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		setState(GameState.PLACING_SHIPS);
 		mIsMultiplayer = isMultiplayer;
 		willYieldTurn = new Random().nextBoolean();
-		
+
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
 
@@ -157,13 +159,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		else
 			willYieldTurn = true;
 	}
-	
+
 	public void onNiosGameStarted() {
 		// Send names to nios
 		if (isHost) {
-			NIOS2NetworkManager.sendProfileName(true, PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, "-"));
+			NIOS2NetworkManager.sendProfileName(true, PrefsManager
+					.getInstance()
+					.getString(PrefsManager.KEY_PROFILE_NAME, "-"));
 			if (mOpponentProfileName != null) {
-				NIOS2NetworkManager.sendProfileName(false, mOpponentProfileName);
+				NIOS2NetworkManager
+						.sendProfileName(false, mOpponentProfileName);
 			}
 		}
 	}
@@ -463,14 +468,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					if (playerShip != null)
 						wasSunk = playerShip.isSunk();
 
-					if (wasHit) {
-						mSoundManager.playSFX(R.raw.hit);
-					} else if (wasSunk) {
-						mSoundManager.playSFX(R.raw.ship_explode);
-					} else {
-						mSoundManager.playSFX(R.raw.miss);
-					}
-
 					if (mPlayerBoard.isAllSunk())
 						win(false);
 					Toast.makeText(
@@ -526,10 +523,13 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 					// Update history
 					if (!isHost) {
-						String ip = NetworkManager.getInstance().getAndroidHostIP();
-						ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
+						String ip = NetworkManager.getInstance()
+								.getAndroidHostIP();
+						ConnectionHistoryRepository.updateNameforItem(ip,
+								mOpponentProfileName);
 					} else {
-						NIOS2NetworkManager.sendProfileName(false, mOpponentProfileName);
+						NIOS2NetworkManager.sendProfileName(false,
+								mOpponentProfileName);
 					}
 
 					mOpponentProfileTaunt = obj
@@ -566,12 +566,18 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			board = mPlayerBoard;
 
 		boolean wasHit = board.playerShotAttempt(x, y);
-		if (wasHit) {
+
+		Ship target = board.getShipAtIndex(x, y);
+		boolean sunk = false;
+
+		if (target != null)
+			sunk = target.isSunk();
+
+		if (sunk) {
+			mSoundManager.playSFX(R.raw.ship_explode);
+		} else if (wasHit) {
 			mSoundManager.playSFX(R.raw.hit);
 			NIOS2NetworkManager.sendHit(isPlayerMove, x, y);
-		} else if (wasHit) {
-			// TODO: add sinking ship
-			mSoundManager.playSFX(R.raw.ship_explode);
 		} else {
 			mSoundManager.playSFX(R.raw.miss);
 			NIOS2NetworkManager.sendMiss(isPlayerMove, x, y);
@@ -663,9 +669,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public Bitmap getOpponentImage() {
 		return mOpponentProfileImage;
 	}
-	
-	public SoundManager getSoundManager()
-	{
+
+	public SoundManager getSoundManager() {
 		return mSoundManager;
 	}
 }
