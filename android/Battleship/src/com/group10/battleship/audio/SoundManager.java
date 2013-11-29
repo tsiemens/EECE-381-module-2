@@ -17,6 +17,8 @@ public class SoundManager {
 	private SoundPool mSoundPool;
 	private SparseIntArray mSoundIDs;
 	private SparseIntArray mStreamIDs;
+	private float mVolume = 1f; 
+	private boolean mIsMuted = false;
 
 	public static SoundManager getInstance() {
 		if (sSoundMangerInstance == null) {
@@ -59,7 +61,7 @@ public class SoundManager {
 				// If loop is already playing, stop it
 				mSoundPool.stop(mStreamIDs.get(resID));
 			}
-			int streamID = mSoundPool.play(soundID, vol, vol, 1, -1, 1f);
+			int streamID = mSoundPool.play(soundID, vol, vol, 1, -1, mVolume);
 			mStreamIDs.put(resID, (streamID != 0) ? streamID : 0);
 		}
 	}
@@ -79,7 +81,24 @@ public class SoundManager {
 	public void playSFX(int resID) {
 		Integer soundID = mSoundIDs.get(resID);
 		if (soundID != null) {
-			mSoundPool.play(soundID, 1f, 1f, 1, 0, 1f);
+			mSoundPool.play(soundID, mVolume, mVolume, 1, 0, 1f);
 		}
+	}
+	
+	public void mute()
+	{
+		mIsMuted = true;
+		mVolume = 0f;
+	}
+	
+	public void unmute()
+	{
+		mIsMuted = false;
+		mVolume = 1f;
+	}
+
+	public boolean isMuted()
+	{
+		return mIsMuted;
 	}
 }
