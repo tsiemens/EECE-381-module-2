@@ -22,6 +22,7 @@ public class UDPManager {
 	private static final String TAG = UDPManager.class.getSimpleName();
 	private static final int PORT = 50002;
 	private InetAddress mTargetIP;
+	private int mPort;
 	private DatagramSocket mSocket;
 	private OnBroadcastFoundListener onBroadcastFoundListener;
 	
@@ -71,6 +72,10 @@ public class UDPManager {
 		return mTargetIP.getHostAddress();
 	}
 	
+	public String getPortString() {
+		return Integer.toString(mPort);
+	}
+	
 	public void setOnBroadcastFoundListener(
 			OnBroadcastFoundListener listener) {
 		onBroadcastFoundListener = listener;
@@ -93,6 +98,7 @@ public class UDPManager {
 				mSocket.receive(recPacket);
 				
 				mTargetIP = recPacket.getAddress();
+				mPort = recPacket.getPort();
 				
 				Log.d(TAG, "Received UDP Packet: " + buf + " from " + mTargetIP.toString());
 				

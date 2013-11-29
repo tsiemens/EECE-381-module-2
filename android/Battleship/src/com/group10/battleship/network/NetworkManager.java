@@ -289,6 +289,10 @@ public class NetworkManager extends Object {
 					mServerSocket.close();
 				}
 				mServerSocket = new ServerSocket(PORT);
+				
+				if (mServerSocket.getLocalPort() == -1)
+					mServerSocket = new ServerSocket(0);
+				
 				mAndroidHostIP = getLocalIpAddress();
 				mAndroidHostPort = mServerSocket.getLocalPort();
 
