@@ -30,6 +30,50 @@ AlphaSprite* SpriteFactory_generateGameStatusSprite()
 	return this;
 }
 
+AlphaSprite* SpriteFactory_generateP1WinStatusSprite()
+{
+	AlphaSprite* this = AlphaSprite_init(AlphaSprite_alloc());
+	this->baseSprite.yPos = GAMEBOARD_TOP_CHAR_PADDING;
+	this->baseSprite.xPos = 18;
+	this->baseSprite.spriteId = ALPHA_P1_WIN_STATUS_SPRITE_ID;
+	this->string = "      ";
+
+	return this;
+}
+
+AlphaSprite* SpriteFactory_generateP2WinStatusSprite()
+{
+	AlphaSprite* this = AlphaSprite_init(AlphaSprite_alloc());
+	this->baseSprite.yPos = GAMEBOARD_TOP_CHAR_PADDING;
+	this->baseSprite.xPos = 50;
+	this->baseSprite.spriteId = ALPHA_P2_WIN_STATUS_SPRITE_ID;
+	this->string = "      ";
+
+	return this;
+}
+
+AlphaSprite* SpriteFactory_generateP1NameSprite()
+{
+	AlphaSprite* this = AlphaSprite_init(AlphaSprite_alloc());
+	this->baseSprite.yPos = GAMEBOARD_TOP_CHAR_PADDING + 40;
+	this->baseSprite.xPos = 18;
+	this->baseSprite.spriteId = ALPHA_P1_NAME_SPRITE_ID;
+	this->string = PLAYER_1_STRING;
+
+	return this;
+}
+
+AlphaSprite* SpriteFactory_generateP2NameSprite()
+{
+	AlphaSprite* this = AlphaSprite_init(AlphaSprite_alloc());
+	this->baseSprite.yPos = GAMEBOARD_TOP_CHAR_PADDING + 40;
+	this->baseSprite.xPos = 50;
+	this->baseSprite.spriteId = ALPHA_P2_NAME_SPRITE_ID;
+	this->string = PLAYER_2_STRING;
+
+	return this;
+}
+
 /**
  * Generates an array of SpriteArrayList for the board
  * The array should be size 10, and each element in the array is a new row.

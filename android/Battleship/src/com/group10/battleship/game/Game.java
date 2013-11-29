@@ -112,8 +112,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void start(boolean isMultiplayer) {
+		PrefsManager pm = PrefsManager.getInstance();
 		setState(GameState.PLACING_SHIPS);
 		mIsMultiplayer = isMultiplayer;
+		willYieldTurn = new Random().nextBoolean();
+		
 		if (isMultiplayer) {
 			isHost = NetworkManager.getInstance().isHost();
 
@@ -131,7 +134,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 
 			// Send profile data
-			PrefsManager pm = PrefsManager.getInstance();
 			String imageUriStr = pm.getString(
 					PrefsManager.KEY_PROFILE_IMAGE_URI, null);
 			try {
@@ -154,6 +156,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			willYieldTurn = new Random().nextBoolean();
 		else
 			willYieldTurn = true;
+	}
+	
+	public void onNiosGameStarted() {
+		// Send names to nios
+		if (isHost) {
+			NIOS2NetworkManager.sendProfileName(true, PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, "-"));
+			if (mOpponentProfileName != null) {
+				NIOS2NetworkManager.sendProfileName(false, mOpponentProfileName);
+			}
+		}
 	}
 
 	/**
@@ -199,7 +211,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 
 			if (isHost) {
-				NIOS2NetworkManager.sendGameOver(false, true);
+				NIOS2NetworkManager.sendGameOver(false);
 			}
 		}
 
@@ -217,7 +229,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 
 		if (isHost) {
-			NIOS2NetworkManager.sendGameOver(false, true);
+			NIOS2NetworkManager.sendGameOver(youWon);
 		}
 
 		if (youWon) {
@@ -514,10 +526,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 					// Update history
 					if (!isHost) {
-						String ip = NetworkManager.getInstance()
-								.getAndroidHostIP();
-						ConnectionHistoryRepository.updateNameforItem(ip,
-								mOpponentProfileName);
+						String ip = NetworkManager.getInstance().getAndroidHostIP();
+						ConnectionHistoryRepository.updateNameforItem(ip, mOpponentProfileName);
+					} else {
+						NIOS2NetworkManager.sendProfileName(false, mOpponentProfileName);
 					}
 
 					mOpponentProfileTaunt = obj
