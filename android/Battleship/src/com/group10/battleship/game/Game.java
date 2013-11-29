@@ -84,6 +84,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private BattleshipAI mSingleplayerAI;
 
+	private int mAIDifficulty = 1;
+	
 	public enum GameState {
 		UNINITIALIZED, PLACING_SHIPS, WAITING_FOR_OPPONENT, TAKING_TURN, GAME_OVER_WIN, GAME_OVER_LOSS
 	}
@@ -93,6 +95,14 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			sGameInstance = new Game();
 
 		return sGameInstance;
+	}
+	
+	/**
+	 * Sets the Ai's difficulty
+	 * @param diff 1 for hard, 2 for medium, 3 for easy
+	 */
+	public void setDifficulty(int diff) {
+		mAIDifficulty = diff; 
 	}
 
 	private Game() {
@@ -136,9 +146,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				e.printStackTrace();
 			}
 		} else {
-			// TODO detect difficulty somehow
 			mSingleplayerAI = new SmartAI();
-			mSingleplayerAI.setDifficulty(3);
+			mSingleplayerAI.setDifficulty(mAIDifficulty);
 			isHost = true;
 		}
 	}
@@ -205,10 +214,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			NIOS2NetworkManager.sendGameOver(false, true);
 		}
 
-		if (youWon)
+		if (youWon) {
 			setState(GameState.GAME_OVER_WIN);
-		else
+		} else {
 			setState(GameState.GAME_OVER_LOSS);
+			mOpponentBoard.revealShips();
+		}
 	}
 
 	public boolean isMultiplayer() {
@@ -683,7 +694,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 			// Give AI the ship if the ship is sunk,
 			// The coordinates of the sunken ship is public information
-
 			if (target != null)
 				sunk = target.isSunk();
 

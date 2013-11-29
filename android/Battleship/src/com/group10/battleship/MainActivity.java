@@ -16,6 +16,8 @@ import com.group10.battleship.network.NIOS2NetworkManager;
 import com.group10.battleship.network.NetworkManager;
 import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
 import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
+import com.group10.battleship.network.UDPManager;
+import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -32,28 +34,17 @@ import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.group10.battleship.audio.MusicManager;
-import com.group10.battleship.audio.MusicManager.Music;
-import com.group10.battleship.game.Game;
-import com.group10.battleship.game.Game.GameState;
-import com.group10.battleship.network.NIOS2NetworkManager;
-import com.group10.battleship.network.NetworkManager;
-import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListener;
-import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
-
-
-public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener {
+public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
+	private static final int DEFAULT_PORT = 50002;
 
 	private Button mStartGameBtn;
+
+	private UDPManager mUDPManager;
 	private Button mProfileButton;
 
 	private RadioGroup mGameModeGroup;
-
 
 	private Button mHostButton; 
 	private Button mGuestButton; 
@@ -79,6 +70,9 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			}
 		});
 
+		mUDPManager = new UDPManager(); 
+		mUDPManager.setOnBroadcastFoundListener(this);
+				
 		mHostButton = (Button) findViewById(R.id.rb_host);
 		mHostButton.setOnClickListener(this);
 		mGuestButton = (Button) findViewById(R.id.rb_guest);
@@ -167,6 +161,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			}
 			else if (mSelectedModeId == R.id.rb_host)
 			{
+				mUDPManager.new SendBroadcast().execute(null, null, null);
 				String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
 				int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
@@ -273,6 +268,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 				// Inflate and set the layout for the dialog
 		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
 		iptext.setText(ip); 
+		EditText portText = (EditText)dialogView.findViewById(R.id.et_port);
+		portText.setText(Integer.toString(DEFAULT_PORT));
 		builder.setView(dialogView)
 		.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
 			@Override
@@ -298,10 +295,28 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			public void onClick(DialogInterface dialog, int id) {
 				showIPHistoryDialog();
 			}
+		})
+		.setNegativeButton(R.string.dialog_scan, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				mUDPManager.new RecieveBroadcast().execute(null, null, null);
+				showScanningDialog();
+			}
 		});
 		builder.show();
 	}
 
+	private void showScanningDialog() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+		builder.setTitle("Scanning for a game").setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+		builder.show();
+	}
+	
 	private void showIPHistoryDialog() {
 		mHistoryItems = ConnectionHistoryRepository.getSortedHistory();
 
@@ -346,13 +361,17 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		builder.setItems(R.array.dialog_level_select, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int selected) {
-				// TODO set level on selecting the choice and start the game
+				Game.getInstance().setDifficulty(3 - selected);
 				Game.getInstance().start(false);
 				dialog.dismiss();
 				startActivity(new Intent(MainActivity.this, GameActivity.class));
 			}
 		});
 		builder.show();
+	}
+	
+	public void onBroadcastFound() {
+		this.showGuestDialog(mUDPManager.getIPString());
 	}
 
 }
