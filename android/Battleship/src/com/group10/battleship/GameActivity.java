@@ -28,8 +28,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
@@ -49,8 +47,8 @@ import com.group10.battleship.graphics.GifAnimation;
  * 
  */
 public class GameActivity extends SherlockActivity implements OnTouchListener,
-AnimationListener, GameStateChangedListener,
-ProfileDataReceivedListener {
+		AnimationListener, GameStateChangedListener,
+		ProfileDataReceivedListener {
 
 	private static final String TAG = GameActivity.class.getSimpleName();
 
@@ -67,8 +65,10 @@ ProfileDataReceivedListener {
 	private Handler mHideSmokeHandler = new Handler();
 	private Runnable mHideSmokeRunnable = new HideSmokeRunnable();
 
-	private int mSmokeSizeX = 175;
-	private int mSmokeSizeY = 230;
+	private int mSmokeSizeX = (int) (500 / 2.50);
+	private int mSmokeSizeY = (int) (667 / 3.50);
+
+	private boolean mGameStarted = false;
 
 	private RelativeLayout mBannerAd;
 
@@ -155,8 +155,9 @@ ProfileDataReceivedListener {
 			mPlayerProfileBitmap = null;
 		}
 
-		//		Set up overlays 
-		Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/BuxtonSketch.ttf");
+		// Set up overlays
+		Typeface tf = Typeface.createFromAsset(getAssets(),
+				"fonts/BuxtonSketch.ttf");
 		TextView doneText = (TextView) findViewById(R.id.text_done);
 		TextView reposText = (TextView) findViewById(R.id.text_move_ships);
 		TextView rotateText = (TextView) findViewById(R.id.text_rotate);
@@ -170,15 +171,18 @@ ProfileDataReceivedListener {
 		fireText.setTypeface(tf);
 		chooseText.setTypeface(tf);
 
-		mPlayerHelpOverlay = (RelativeLayout)findViewById(R.id.help_overlay_player); 
+		mPlayerHelpOverlay = (RelativeLayout) findViewById(R.id.help_overlay_player);
 		mPlayerHelpOverlay.setOnTouchListener(this);
-		Log.d(TAG, "has run before: " + !PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false));
+		Log.d(TAG,
+				"has run before: "
+						+ !PrefsManager.getInstance().getBoolean(
+								PrefsManager.KEY_HAS_RUN_BEFORE, false));
 		mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
-		mEnemyHelpOverlay = (RelativeLayout)findViewById(R.id.help_overlay_enemy);
+		mEnemyHelpOverlay = (RelativeLayout) findViewById(R.id.help_overlay_enemy);
 		mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
 		mEnemyHelpOverlay.setOnTouchListener(this);
 
-		//		Set up banner ad
+		// Set up banner ad
 		Animation slideUp = AnimationUtils.loadAnimation(
 				getApplicationContext(), R.anim.slide_up);
 		final Animation slideDown = AnimationUtils.loadAnimation(
@@ -234,10 +238,9 @@ ProfileDataReceivedListener {
 			mi = menu.getItem(i);
 			if (mi.getItemId() == R.id.switch_boards_item
 					&& mGLRenderer != null) {
-				if(state == GameState.PLACING_SHIPS)
+				if (state == GameState.PLACING_SHIPS)
 					mi.setVisible(false);
-				else
-				{
+				else {
 					mi.setVisible(true);
 					if (mGLRenderer.getCamPosY() > 1.0f) {
 						mi.setIcon(R.drawable.ic_find_next_holo_light);
@@ -279,7 +282,8 @@ ProfileDataReceivedListener {
 				mGLRenderer.translateCamWithAnimation(0f, 0f, 500);
 			} else {
 				mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
-				if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
+				if (!PrefsManager.getInstance().getBoolean(
+						PrefsManager.KEY_HAS_RUN_BEFORE, false))
 					mEnemyHelpOverlay.setVisibility(View.VISIBLE);
 			}
 		} else if (item.getItemId() == R.id.rotate_item) {
@@ -290,22 +294,19 @@ ProfileDataReceivedListener {
 		} else if (item.getItemId() == R.id.confirm_item) {
 			hideHelpOverlayIfVisible();
 			Game.getInstance().onConfirmBoardPressed();
-		} else if(item.getItemId() == R.id.show_help_item) {
-			if(Game.getInstance().getState() != Game.GameState.PLACING_SHIPS)
-			{  
-				if(mGLRenderer.getCamPosY() <= 1.0f)
+		} else if (item.getItemId() == R.id.show_help_item) {
+			if (Game.getInstance().getState() != Game.GameState.PLACING_SHIPS) {
+				if (mGLRenderer.getCamPosY() <= 1.0f)
 					mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
-				if(mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
+				if (mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
 					mEnemyHelpOverlay.setVisibility(View.VISIBLE);
-			}
-			else if(Game.getInstance().getState() == Game.GameState.PLACING_SHIPS)
-			{
-				if(mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
+			} else if (Game.getInstance().getState() == Game.GameState.PLACING_SHIPS) {
+				if (mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
 					mPlayerHelpOverlay.setVisibility(View.VISIBLE);
 			}
 		} else if (item.getItemId() == R.id.quit_item) {
 			showExitConfirmationDialog();
-		} 
+		}
 		return true;
 	}
 
@@ -358,16 +359,15 @@ ProfileDataReceivedListener {
 		refreshOptionsMenu();
 		if (Game.getInstance().getState() == GameState.TAKING_TURN) {
 			smokeAnimation();
-			// mGLRenderer.translateCamWithAnimation(0f, 2.0f,
-			// BOARD_TRANS_ANIM_DURATION);
-			if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false) && mGLRenderer.getCamPosY() > 1.0f)
-				mEnemyHelpOverlay.setVisibility(View.VISIBLE);
 			initiateHustling();
+
+			if (!PrefsManager.getInstance().getBoolean(
+					PrefsManager.KEY_HAS_RUN_BEFORE, false)
+					&& mGLRenderer.getCamPosY() > 1.0f)
+				mEnemyHelpOverlay.setVisibility(View.VISIBLE);
 		} else if (Game.getInstance().getState() == GameState.WAITING_FOR_OPPONENT) {
 			Log.d("", "waiting for opponent");
 			smokeAnimation();
-			// mGLRenderer.translateCamWithAnimation(0f, 0f,
-			// BOARD_TRANS_ANIM_DURATION);
 			stopHustling();
 		} else if (Game.getInstance().getState() == GameState.GAME_OVER_WIN) {
 			showGameoverDialog(true);
@@ -387,29 +387,35 @@ ProfileDataReceivedListener {
 			mCurrentTurnImage.setImageBitmap(bm);
 		} else {
 			mCurrentTurnImage
-			.setImageResource(R.drawable.profile_img_placeholder);
+					.setImageResource(R.drawable.profile_img_placeholder);
 		}
 	}
 
 	private void smokeAnimation() {
 
-//		float yOffset = mGLSurfaceView.getY();
-		float yOffset = mGLSurfaceView.getTop();
+		if (mGameStarted) {
+			//float yOffset = mGLSurfaceView.getY();
+			float yOffset = mGLSurfaceView.getTop();
 
-		float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
-		int x = (int) (mGLSurfaceView.getWidth() / glx * (Game.getInstance()
-				.getFirePosition()[0] - mGLRenderer.getLeft()));
+			float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
+			int x = (int) (mGLSurfaceView.getWidth() / glx * (Game
+					.getInstance().getFirePosition()[0] - mGLRenderer.getLeft()));
 
-		float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
-		int y = (int) (mGLSurfaceView.getHeight() / gly * (mGLRenderer.getTop() - Game
-				.getInstance().getFirePosition()[1]));
+			float gly = mGLRenderer.getTop() - mGLRenderer.getBottom();
+			int y = (int) (mGLSurfaceView.getHeight() / gly * (mGLRenderer
+					.getTop() - Game.getInstance().getFirePosition()[1]));
 
-		x = x - mSmokeSizeX;
-		y = (int) (y - mSmokeSizeY + yOffset);
+			x = x - mSmokeSizeX;
+			y = (int) (y - mSmokeSizeY + yOffset);
 
-		mSmokeView.show(x, y);
-		mSmokeView.getView().setVisibility(View.VISIBLE);
-		mHideSmokeHandler.postDelayed(mHideSmokeRunnable, SMOKE_ANIM_DURATION);
+			mSmokeView.show((int) (x + mSmokeSizeX * 0.2), y, mSmokeSizeX);
+			mSmokeView.getView().setVisibility(View.VISIBLE);
+			mHideSmokeHandler.postDelayed(mHideSmokeRunnable,
+					SMOKE_ANIM_DURATION);
+		} else {
+			mHideSmokeRunnable.run();
+			mGameStarted = true;
+		}
 	}
 
 	private class HideSmokeRunnable implements Runnable {
@@ -426,18 +432,17 @@ ProfileDataReceivedListener {
 		}
 	}
 
-	private void hideHelpOverlayIfVisible()
-	{
-		if(mPlayerHelpOverlay.getVisibility() == View.VISIBLE)
+	private void hideHelpOverlayIfVisible() {
+		if (mPlayerHelpOverlay.getVisibility() == View.VISIBLE)
 			mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
-		if(mEnemyHelpOverlay.getVisibility() == View.VISIBLE)
-		{
+		if (mEnemyHelpOverlay.getVisibility() == View.VISIBLE) {
 			mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
-			if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
-				PrefsManager.getInstance().putBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, true);
+			if (!PrefsManager.getInstance().getBoolean(
+					PrefsManager.KEY_HAS_RUN_BEFORE, false))
+				PrefsManager.getInstance().putBoolean(
+						PrefsManager.KEY_HAS_RUN_BEFORE, true);
 		}
 	}
-
 
 	private void initiateHustling() {
 		// allow player to decide for 30 seconds before hustling
@@ -451,28 +456,39 @@ ProfileDataReceivedListener {
 	}
 
 	private void showGameoverDialog(boolean won) {
-		if (this.isFinishing()) 
+		if (this.isFinishing())
 			return;
 		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 		LayoutInflater inflator = this.getLayoutInflater();
-		View view = inflator.inflate(R.layout.dialog_game_over, null); 
+		View view = inflator.inflate(R.layout.dialog_game_over, null);
 		dialogBuilder.setView(view);
 		dialogBuilder.setNegativeButton(R.string.dialog_cancel, null);
 		final boolean didWin = won;
-		dialogBuilder.setNeutralButton("Share", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Intent shareIntent = new Intent(Intent.ACTION_SEND);
-				shareIntent.putExtra(Intent.EXTRA_TEXT, 
-						(didWin?getString(R.string.dialog_win_message_p1):
-							getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
-				// TODO: can also add #taunt
-				shareIntent.putExtra(Intent.EXTRA_TEXT, (didWin?getString(R.string.dialog_win_message_p1):
-					getString(R.string.dialog_loss_message_p1)) + "opponentName" + getString(R.string.dialog_game_over_message_p2));
-				shareIntent.setType("text/plain"); 
-				startActivity(Intent.createChooser(shareIntent, "Share your result via..."));
-			}
-		});
+		dialogBuilder.setNeutralButton("Share",
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Intent shareIntent = new Intent(Intent.ACTION_SEND);
+						shareIntent
+								.putExtra(
+										Intent.EXTRA_TEXT,
+										(didWin ? getString(R.string.dialog_win_message_p1)
+												: getString(R.string.dialog_loss_message_p1))
+												+ "opponentName"
+												+ getString(R.string.dialog_game_over_message_p2));
+						// TODO: can also add #taunt
+						shareIntent
+								.putExtra(
+										Intent.EXTRA_TEXT,
+										(didWin ? getString(R.string.dialog_win_message_p1)
+												: getString(R.string.dialog_loss_message_p1))
+												+ "opponentName"
+												+ getString(R.string.dialog_game_over_message_p2));
+						shareIntent.setType("text/plain");
+						startActivity(Intent.createChooser(shareIntent,
+								"Share your result via..."));
+					}
+				});
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
@@ -482,12 +498,12 @@ ProfileDataReceivedListener {
 						GameActivity.this.finish();
 					}
 				});
-		ImageView iv = (ImageView)view.findViewById(R.id.game_over_dialog_image);
-		if(iv != null)
-		{
-			if(won)
+		ImageView iv = (ImageView) view
+				.findViewById(R.id.game_over_dialog_image);
+		if (iv != null) {
+			if (won)
 				iv.setImageResource(R.drawable.dialog_img_won);
-			else 
+			else
 				iv.setImageResource(R.drawable.dialog_img_lost);
 		}
 		dialogBuilder.show();
@@ -509,12 +525,12 @@ ProfileDataReceivedListener {
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Game.getInstance().forfeit();
-				GameActivity.this.finish();
-			}
-		});
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Game.getInstance().forfeit();
+						GameActivity.this.finish();
+					}
+				});
 		dialogBuilder.show();
 	}
 
@@ -524,14 +540,14 @@ ProfileDataReceivedListener {
 			mOpponentName.setText(name);
 		} else {
 			mOpponentName
-			.setText(R.string.game_vs_bar_opponent_name_placeholder);
+					.setText(R.string.game_vs_bar_opponent_name_placeholder);
 		}
 
 		if (taunt != null) {
 			mOpponentTaunt.setText(taunt);
 		} else {
 			mOpponentTaunt
-			.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
+					.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
 		}
 
 		setProfileImage(mOpponentImage, image);
