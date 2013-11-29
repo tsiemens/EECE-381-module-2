@@ -13,6 +13,8 @@
     <string name="menu_item_edit">Edit</string>
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_find_game">Find Game</string>
+    <string name="main_menu_send_udp">Send UDP</string>
+    <string name="main_menu_recieve_udp">Recieve UDP</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
     <string name="main_menu_dialog_level_select_title">Select Difficulty</string>
     <string name="main_menu_view_profile">View Profile</string>
@@ -26,6 +28,7 @@
     <string name="pref_title_use_nios">Use Nios/Middleman</string>
     <string name="dialog_confirm">OK</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_scan">Scan</string>
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
     <string name="dialog_win_message_p1">I beat\u0020</string>
     <string name="dialog_loss_message_p1">I lose to\u0020</string>
@@ -42,8 +45,8 @@
         <item>One</item>
         <item>Two</item>
         <item>Three</item>
-        <item>Four</item>
         <item>Five</item>
+        <item>Ten</item>
     </string-array>
     <string-array name="pref_history_entryvalues">
         <item>1</item>
