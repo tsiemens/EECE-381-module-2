@@ -27,7 +27,7 @@ public class NetworkManager extends Object {
 	private static NetworkManager NetworkManagerInstance;
 	private static int PORT = 50002; 
 	public boolean mIsHost = false;
-	
+
 
 	// IO Streams
 	private PrintWriter mAndroidSocketOutput;
@@ -53,7 +53,7 @@ public class NetworkManager extends Object {
 	private OnAndroidDataReceivedListener onAndroidDataReceivedListener;
 
 	private Handler mHandler;
-
+	private boolean mIsConnected = false;
 	// Private Constructor for Singleton
 	private NetworkManager() {
 		mHandler = new Handler(BattleshipApplication.getAppContext()
@@ -65,6 +65,24 @@ public class NetworkManager extends Object {
 		if (NetworkManagerInstance == null)
 			NetworkManagerInstance = new NetworkManager();
 		return NetworkManagerInstance;
+	}
+
+	public void endConnections()
+	{
+		mIsHost = false;
+		mIsConnected = false;
+		mHandler.post(
+				new Runnable() {
+					@Override
+					public void run() {
+						try {
+							mServerSocket.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				});
 	}
 
 	public void close() {
@@ -82,7 +100,7 @@ public class NetworkManager extends Object {
 		}
 
 	}
-	
+
 	public void setPort(int port) {
 		this.PORT = port;
 	}
@@ -128,7 +146,7 @@ public class NetworkManager extends Object {
 	}
 
 	public Socket setupSocket(String ip, int port) throws UnknownHostException,
-			IOException {
+	IOException {
 		InetAddress inet = InetAddress.getByName(ip);
 		return new Socket(inet, port);
 	}
@@ -177,7 +195,7 @@ public class NetworkManager extends Object {
 				mAndroidSocketOutput = new PrintWriter(
 						new BufferedWriter(new OutputStreamWriter(
 								mClientSocket.getOutputStream())), true);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				Log.d(TAG, "Error with socket writer");
 				e.printStackTrace();
 			}
@@ -268,9 +286,10 @@ public class NetworkManager extends Object {
 						onNiosSocketSetupListener.onSuccessfulNiosSetup();
 				}
 			} else {
+				mIsConnected = true;
 				if (onAndroidSocketSetupListener != null)
 					onAndroidSocketSetupListener.onGameFound();
-				
+
 			}
 		}
 
@@ -289,10 +308,10 @@ public class NetworkManager extends Object {
 					mServerSocket.close();
 				}
 				mServerSocket = new ServerSocket(PORT);
-				
+
 				if (mServerSocket.getLocalPort() == -1)
 					mServerSocket = new ServerSocket(0);
-				
+
 				mAndroidHostIP = getLocalIpAddress();
 				mAndroidHostPort = mServerSocket.getLocalPort();
 
@@ -313,28 +332,31 @@ public class NetworkManager extends Object {
 				if (mClientSocket != null) {
 					mClientSocket.close();
 				}
-
+				Log.d(TAG, "Waiting for guest on IP: " + getAndroidHostIP() + " : " + getAndroidHostPort());
 				mClientSocket = mServerSocket.accept();
+				mIsConnected = true;
 
 				// HOST SUCCESSFULLY FOUND A CLIENT! (accept() blocks until it
 				// finds a client)
 				new Thread(new ReceiveMessageRunnable()).start();
 				Log.d(TAG, "Connected!");
 
-			} catch (IOException e) {
+			}catch (IOException e) {
 				Log.d(TAG, "Thread Error");
 				e.printStackTrace();
 			}
 			return null;
 		}
-		
+
 		protected void onPostExecute(Void params) {
 			if (onAndroidSocketSetupListener != null) {
-				onAndroidSocketSetupListener.onGameFound();
+				if(mIsConnected)
+					onAndroidSocketSetupListener.onGameFound();
 			}
 		}
 
 	}
+
 
 	// SendMessageTask: New task to send a message, either to an Android
 	// device or the NIOS
@@ -368,6 +390,7 @@ public class NetworkManager extends Object {
 
 		@Override
 		public void run() {
+			if(mIsConnected == false) return;
 			Log.d(TAG, "Made Receiver thread");
 			while (true) {
 				String line = null;
@@ -387,7 +410,7 @@ public class NetworkManager extends Object {
 							public void run() {
 								if (onAndroidDataReceivedListener != null)
 									onAndroidDataReceivedListener
-											.ReceivedAndroidData(receivedString);
+									.ReceivedAndroidData(receivedString);
 							}
 						};
 						mHandler.post(gameFoundRunnable);
@@ -429,4 +452,5 @@ public class NetworkManager extends Object {
 	public Object getNiosSocket() {
 		return mNiosSocket;
 	}
+
 }

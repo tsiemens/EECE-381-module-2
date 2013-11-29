@@ -20,6 +20,7 @@ import com.group10.battleship.network.UDPManager;
 import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -54,6 +55,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	private String mHostIp;
 
 	private List<HistoryItem> mHistoryItems;
+	private AlertDialog mShowHostIPDialog;
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -237,9 +240,15 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-		builder.setNegativeButton(R.string.dialog_cancel, null)
-		.setMessage(mHostIp);
-		builder.show();
+		builder.setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO: CANCEL NETWORK MANAGER
+				NetworkManager.getInstance().endConnections();
+			}
+		}).setMessage(mHostIp);
+		mShowHostIPDialog = builder.show();
 	}
 
 	@Override
@@ -250,6 +259,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			// Game was in progress before, so we have to restart it.
 			game.invalidate();
 		}
+		mShowHostIPDialog.dismiss();
 		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
