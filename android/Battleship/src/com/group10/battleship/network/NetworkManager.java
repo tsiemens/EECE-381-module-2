@@ -217,6 +217,7 @@ public class NetworkManager extends Object {
 
 			try {
 				if (isNios) {
+					mNiosSocketOutput = null;
 					if (mNiosSocket != null) {
 						mNiosSocket.close();
 					}
@@ -336,12 +337,15 @@ public class NetworkManager extends Object {
 		protected Void doInBackground(Object... params) {
 			String message = (String) params[0];
 			Boolean sendToAndroid = (Boolean) params[1];
-			Log.d(TAG, "Sending message: " + message);
-			if (sendToAndroid)
+			if (sendToAndroid) {
+				Log.d(TAG, "Sending message to android: " + message);
 				getAndroidSocketOutput().println(message);
+			}
 			else
-				if(getNiosSocketOutput() != null)
+				if(getNiosSocketOutput() != null) {
+					Log.d(TAG, "Sending message to nios: " + message);
 					getNiosSocketOutput().println((char) (message.length() + 1) + message);
+				}
 			return null;
 		};
 	}

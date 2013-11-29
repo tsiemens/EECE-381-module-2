@@ -20,14 +20,14 @@
  * confirm_host_server_started = bytes { ‘C‘ [2 byte little endian short short for port], ip string} // sent after you_are_host
  * shot_missed = bytes: { 'M', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
  * shot_hit = bytes: { 'H', ['1' or '2' for board this affects], [1 byte x coord], [1 byte y coord] }
- * game_over = bytes: { 'O', ['1' or '2' for winner], ['1' for forfeit/quit midgame or '0' for not forfeit] }
+ * game_over = bytes: { 'O', ['1' or '2' for winner] }
  */
 
 void ProtocolHandler_receive(BSNStateMachine* sm) {
 	int length;
 	unsigned char* data = RS232Handler_receive(&length);
 	if (data[0] == 'N') {
-		if (sm->state == WAITING_FOR_PLAYERS) {
+		if (sm->state == WAITING_FOR_PLAYERS || sm->state == GAME_OVER) {
 			printf("Host Connected. Starting Game.\n");
 			GameBoard_reset(sm->gameBoard);
 			sm->state = PLAYING;
@@ -49,10 +49,7 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 	} else if (data[0] == 'O' && sm->state == PLAYING) {
 		// Game over
 		sm->winner = data[1];
-		if (data[2] == 1)
-			sm->state = FORFEIT;
-		else
-			sm->state = GAME_OVER;
+		sm->state = GAME_OVER;
 	}
 }
 

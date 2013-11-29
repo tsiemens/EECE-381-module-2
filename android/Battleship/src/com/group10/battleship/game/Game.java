@@ -184,7 +184,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			}
 
 			if (isHost) {
-				NIOS2NetworkManager.sendGameOver(false, true);
+				NIOS2NetworkManager.sendGameOver(false);
 			}
 		}
 
@@ -202,7 +202,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 
 		if (isHost) {
-			NIOS2NetworkManager.sendGameOver(false, true);
+			NIOS2NetworkManager.sendGameOver(youWon);
 		}
 
 		if (youWon)

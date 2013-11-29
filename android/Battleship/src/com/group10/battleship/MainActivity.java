@@ -153,6 +153,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		int id = view.getId();
 		if( id != R.id.btn_start_game)
 			performRadioButtonLikeActions(id);
+		
 		if( id == R.id.btn_start_game)
 		{
 			PrefsManager pm = PrefsManager.getInstance();
@@ -167,21 +168,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			}
 			else if (mSelectedModeId == R.id.rb_host)
 			{
-				String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
-				int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 				try {
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
 					NetworkManager.getInstance().setOnAndroidSocketSetupListener(this);			
-					// If using nios, also set up the nios 
-					if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
-					{
-						Log.d(TAG, ip+":"+port);
-						if (ip != null && port != -1) {
-							NetworkManager.getInstance().setupNiosSocket(ip, port);
-							NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
-						}
-					}
+					setUpNiosSocket();
 				} catch (Exception e) {
 					handleSocketError(e);
 					e.printStackTrace();
@@ -196,6 +187,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	private void setUpNiosSocket()
 	{
 		PrefsManager pm = PrefsManager.getInstance();
+		// If using nios, set up the nios 
 		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 		{
 			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
@@ -347,6 +339,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			@Override
 			public void onClick(DialogInterface dialog, int selected) {
 				// TODO set level on selecting the choice and start the game
+				setUpNiosSocket();
 				Game.getInstance().start(false);
 				dialog.dismiss();
 				startActivity(new Intent(MainActivity.this, GameActivity.class));

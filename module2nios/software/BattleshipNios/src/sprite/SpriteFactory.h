@@ -10,9 +10,19 @@
 
 // Should return an array of sprite arrays
 SpriteArrayList** SpriteFactory_generateNewBoard();
+
+AlphaSprite* SpriteFactory_generateGameStatusSprite();
+AlphaSprite* SpriteFactory_generateP1WinStatusSprite();
+AlphaSprite* SpriteFactory_generateP2WinStatusSprite();
+AlphaSprite* SpriteFactory_generateP1NameSprite();
+AlphaSprite* SpriteFactory_generateP2NameSprite();
 char intToChar(int val);
 
 #define ALPHA_STATUS_SPRITE_ID 1
+#define ALPHA_P1_WIN_STATUS_SPRITE_ID 2
+#define ALPHA_P2_WIN_STATUS_SPRITE_ID 3
+#define ALPHA_P1_NAME_SPRITE_ID 4
+#define ALPHA_P2_NAME_SPRITE_ID 5
 
 /****************CHAR AND PIXEL CONVERSIONS****************/
 #define CHAR_TO_PIXEL_HEIGHT ((float)SCREEN_HEIGHT/CHARBUFFER_HEIGHT)
