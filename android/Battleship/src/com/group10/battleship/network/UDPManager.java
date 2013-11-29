@@ -117,7 +117,9 @@ public class UDPManager {
 				
 				Log.d(TAG, "Starting to recieve UDP on " + mSocket.getLocalSocketAddress().toString());
 				
-				mSocket.receive(recPacket);
+				do {
+					mSocket.receive(recPacket);
+				} while (recPacket.getAddress().getHostAddress() == mSocket.getLocalAddress().getHostAddress());
 				
 				mTargetIP = recPacket.getAddress();
 				mPort = recPacket.getPort();
