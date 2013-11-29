@@ -29,10 +29,27 @@ public class UDPManager {
 	public UDPManager() {
 		try {
 			mSocket = new DatagramSocket(PORT);
+			mSocket.setSoTimeout(30000);
 			mSocket.setBroadcast(true);
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void resetSocket() {
+		mSocket.disconnect();
+		mSocket.close();
+		
+		try {
+			mSocket = new DatagramSocket(PORT);
+			mSocket.setSoTimeout(30000);
+			mSocket.setBroadcast(true);
+
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+		
+		Log.d(TAG, "UDP Socket Reset");
 	}
 	
 	public InetAddress getBroadcastAddress() throws IOException {
@@ -66,6 +83,10 @@ public class UDPManager {
 			}
 			return null;
 		}
+		
+		protected void onPostExecute(Void n) {
+		
+		}
 	}
 	
 	public String getIPString() {
@@ -90,11 +111,12 @@ public class UDPManager {
 	 */
 	public class RecieveBroadcast extends AsyncTask<Void, Void, Void> {
 		protected Void doInBackground(Void... n) {
-			try {			
+			try {		
 				byte[] buf = new byte[1024];
 				DatagramPacket recPacket = new DatagramPacket(buf, buf.length);
 				
 				Log.d(TAG, "Starting to recieve UDP on " + mSocket.getLocalSocketAddress().toString());
+				
 				mSocket.receive(recPacket);
 				
 				mTargetIP = recPacket.getAddress();
@@ -115,6 +137,7 @@ public class UDPManager {
 			if (onBroadcastFoundListener != null) {
 				onBroadcastFoundListener.onBroadcastFound();
 			}
+			resetSocket();
 		}
 	}
 }

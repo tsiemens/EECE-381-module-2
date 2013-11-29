@@ -85,7 +85,6 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		mSmokeView = new GifAnimation(this, "explosion.gif", mSmokeSizeX,
 				mSmokeSizeY);
 		FrameLayout rl = (FrameLayout) LayoutInflater.from(this).inflate(

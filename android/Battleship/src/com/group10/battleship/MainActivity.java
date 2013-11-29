@@ -90,8 +90,9 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public void onResume() {
 		super.onResume();
+		
 		MusicManager.getInstance().play(Music.MENU);
-
+		
 		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
 			startActivity(new Intent(this, ProfileActivity.class));
 		}
@@ -193,6 +194,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		PrefsManager pm = PrefsManager.getInstance();
 		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 		{
+			NetworkManager.getInstance().close();
 			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
 			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 			Log.d(TAG, ip+":"+port);
@@ -239,7 +241,8 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 		builder.setNegativeButton(R.string.dialog_cancel, null)
 		.setMessage(mHostIp);
-		builder.show();
+		builder.create().show();
+		
 	}
 
 	@Override
@@ -375,7 +378,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	}
 	
 	public void onBroadcastFound() {
+		Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
 		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
 	}
-
 }
