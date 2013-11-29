@@ -300,7 +300,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			@Override
 			public void onClick(DialogInterface dialog, int id) {
 				mUDPManager.new RecieveBroadcast().execute(null, null, null);
-				showScanningDialog();
+				Toast.makeText(getApplication(), "", Toast.LENGTH_LONG).show();
 			}
 		});
 		builder.show();

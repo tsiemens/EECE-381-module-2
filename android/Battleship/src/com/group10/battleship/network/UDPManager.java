@@ -58,10 +58,8 @@ public class UDPManager {
 				    getBroadcastAddress(), PORT);
 				Log.d(TAG, "Sent Broadcast packet to " + getBroadcastAddress().toString());
 				
-				long timerStart = System.currentTimeMillis();
-				while(System.currentTimeMillis() - timerStart < 30000) {
 				mSocket.send(sendPacket);
-				}
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
