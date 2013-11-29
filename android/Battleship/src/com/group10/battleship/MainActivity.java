@@ -5,6 +5,7 @@ import java.util.List;
 import com.group10.battleship.PrefsActivity;
 import com.group10.battleship.audio.MusicManager;
 import com.group10.battleship.audio.MusicManager.Music;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.database.ConnectionHistoryRepository;
 import com.group10.battleship.database.ConnectionHistoryRepository.HistoryItem;
 import com.group10.battleship.game.Game;
@@ -29,8 +30,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
@@ -52,6 +59,11 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 	private List<HistoryItem> mHistoryItems;
 
+	private ImageView mLogo;
+	private View mFadeOut;
+	
+	private boolean mIsFirstResume = true;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -69,7 +81,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 		mUDPManager = new UDPManager(); 
 		mUDPManager.setOnBroadcastFoundListener(this);
-				
+
 		mHostButton = (Button) findViewById(R.id.rb_host);
 		mHostButton.setOnClickListener(this);
 		mGuestButton = (Button) findViewById(R.id.rb_guest);
@@ -82,16 +94,21 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		mSinglePlayerButton.setSelected(false);
 
 		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+		mLogo = (ImageView) findViewById(R.id.logo);
+		mLogo.bringToFront();
+		mFadeOut = (View) findViewById(R.id.fade_view);		
+		performLaunchAnimation();
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		
-		MusicManager.getInstance().play(Music.MENU);
-		
-		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
-			startActivity(new Intent(this, ProfileActivity.class));
+
+		if (!mIsFirstResume) {
+			MusicManager.getInstance().play(Music.MENU);
+		} else {
+			mIsFirstResume = false;
 		}
 	}
 
@@ -145,7 +162,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		int id = view.getId();
 		if( id != R.id.btn_start_game)
 			performRadioButtonLikeActions(id);
-		
+
 		if( id == R.id.btn_start_game)
 		{
 			if (mSelectedModeId == R.id.rb_single) 
@@ -176,7 +193,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			}
 		}
 	}
-	
+
 	private void setUpNiosSocket()
 	{
 		PrefsManager pm = PrefsManager.getInstance();
@@ -226,14 +243,14 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	public void onFoundIPAddress(String ip, int port) {
 		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel!";
-		
+
 		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
-			
+
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				// TODO Auto-generated method stub
 				Log.i("Info", "Cancel");
-				
+
 			}
 		});
 	}
@@ -258,14 +275,14 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	private void showGuestDialog(String ip) { 
 		showGuestDialog(ip, Integer.toString(DEFAULT_PORT)); 
 	}
-	
+
 	private void showGuestDialog(String ip, String port){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		LayoutInflater inflater = this.getLayoutInflater();
 
 		// Inflate and set the layout for the dialog
 		final View dialogView = inflater.inflate(R.layout.dialog_guest_findgame, null);
-				// Inflate and set the layout for the dialog
+		// Inflate and set the layout for the dialog
 		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
 		iptext.setText(ip); 
 		EditText portText = (EditText)dialogView.findViewById(R.id.et_port);
@@ -305,7 +322,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		});
 		builder.show();
 	}
-	
+
 	private void showIPHistoryDialog() {
 		mHistoryItems = ConnectionHistoryRepository.getSortedHistory();
 
@@ -359,9 +376,49 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		});
 		builder.show();
 	}
-	
+
 	public void onBroadcastFound() {
 		Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
 		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
+	}
+
+	public void performLaunchAnimation() {
+		Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_drop);
+		animation.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationStart(Animation animation) {			
+			}
+			@Override
+			public void onAnimationRepeat(Animation animation) {				
+			}
+
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				SoundManager.getInstance().playSFX(R.raw.ship_explode);
+				Animation animation2 = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_out);
+				animation2.setAnimationListener(new AnimationListener() {
+
+					@Override
+					public void onAnimationStart(Animation animation) {
+					}					
+					@Override
+					public void onAnimationRepeat(Animation animation) {						
+					}
+
+					@Override
+					public void onAnimationEnd(Animation animation) {
+						mFadeOut.setVisibility(View.GONE);
+						if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
+							startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+						} else {
+							MusicManager.getInstance().play(Music.MENU);
+						}
+					}
+				});
+				mFadeOut.startAnimation(animation2);
+			}
+		});
+
+		mLogo.startAnimation(animation);
 	}
 }
