@@ -2,6 +2,7 @@ package com.group10.battleship;
 
 import java.io.IOException;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -16,6 +17,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,10 +32,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.audio.MusicManager;
+import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.game.Game;
 import com.group10.battleship.game.Game.GameState;
@@ -46,7 +47,7 @@ import com.group10.battleship.graphics.GifAnimation;
  * http://www.learnopengles.com/android-lesson-one-getting-started/
  * 
  */
-public class GameActivity extends SherlockActivity implements OnTouchListener,
+public class GameActivity extends Activity implements OnTouchListener,
 		AnimationListener, GameStateChangedListener,
 		ProfileDataReceivedListener {
 
@@ -136,7 +137,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		game.setGameStateListener(this);
 		game.setProfileDataReveivedListener(this);
 
-		supportInvalidateOptionsMenu();
+		invalidateOptionsMenu();
 		MusicManager.getInstance().stop(Music.MENU);
 		MusicManager.getInstance().play(Music.GAME);
 
@@ -230,7 +231,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getSupportMenuInflater().inflate(R.menu.game, menu);
+		getMenuInflater().inflate(R.menu.game, menu);
 		GameState state = Game.getInstance().getState();
 
 		MenuItem mi;
@@ -268,6 +269,17 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 				} else {
 					mi.setVisible(false);
 				}
+			} else if(mi.getItemId() == R.id.mute_music_item) {
+				if(MusicManager.getInstance().isMuted())
+					mi.setTitle(R.string.menu_item_music_unmute);
+				else 
+					mi.setTitle(R.string.menu_item_music_mute);
+			}
+			else if(mi.getItemId() == R.id.mute_sound_item) {
+				if(Game.getInstance().getSoundManager().isMuted())
+					mi.setTitle(R.string.menu_item_sound_unmute);
+				else 
+					mi.setTitle(R.string.menu_item_sound_mute);
 			}
 		}
 
@@ -294,6 +306,20 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		} else if (item.getItemId() == R.id.confirm_item) {
 			hideHelpOverlayIfVisible();
 			Game.getInstance().onConfirmBoardPressed();
+		} else if(item.getItemId() == R.id.mute_sound_item) {
+			if(Game.getInstance().getSoundManager().isMuted())
+				Game.getInstance().getSoundManager().unmute();
+			else 
+				Game.getInstance().getSoundManager().mute();
+			invalidateOptionsMenu();
+			
+		} else if(item.getItemId() == R.id.mute_music_item) {
+			if(MusicManager.getInstance().isMuted())
+				MusicManager.getInstance().unmute();
+			else 
+				MusicManager.getInstance().mute();
+			invalidateOptionsMenu();
+			
 		} else if (item.getItemId() == R.id.show_help_item) {
 			if (Game.getInstance().getState() != Game.GameState.PLACING_SHIPS) {
 				if (mGLRenderer.getCamPosY() <= 1.0f)
@@ -340,7 +366,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				GameActivity.this.supportInvalidateOptionsMenu();
+				GameActivity.this.invalidateOptionsMenu();
 			}
 		};
 		runOnUiThread(r);

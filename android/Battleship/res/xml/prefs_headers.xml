@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <header
+        android:fragment="com.group10.battleship.PrefsActivity$GeneralFragment"
+        android:title="@string/pref_general_group_title" />
+    
+    <header
+        android:fragment="com.group10.battleship.PrefsActivity$NiosFragment"
+        android:title="@string/pref_nios_group_title" />
+
+</preference-headers>

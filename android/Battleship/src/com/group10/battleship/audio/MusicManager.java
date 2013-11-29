@@ -15,6 +15,8 @@ public class MusicManager {
 	private MediaPlayer mMenuMusic;
 	private MediaPlayer mGameMusic;
 	private MediaPlayer mThinkingMusic;
+	private boolean mIsMuted = false;
+	
 
 	public enum Music {
 		MENU, GAME, THINKING
@@ -90,6 +92,10 @@ public class MusicManager {
 			}
 		}
 	}
+	public boolean isMuted()
+	{
+		return mIsMuted;
+	}
 	
 	public void resume() {
 		if(mNowPlaying == null) {
@@ -101,5 +107,21 @@ public class MusicManager {
 		} else {
 			mThinkingMusic.start();
 		}
+	}
+	
+	public void mute() {
+		mIsMuted = true;
+		mMenuMusic.setVolume(0, 0);
+		mGameMusic.setVolume(0, 0);
+		mThinkingMusic.setVolume(0, 0);
+	}
+	
+	public void unmute()
+	{
+		mIsMuted = false;
+		mMenuMusic.setVolume(0.3f, 0.3f);
+		mGameMusic.setVolume(0.1f, 0.1f);
+		mThinkingMusic.setVolume(0.1f, 0.1f);
+		
 	}
 }
