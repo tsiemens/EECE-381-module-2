@@ -651,4 +651,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public Bitmap getOpponentImage() {
 		return mOpponentProfileImage;
 	}
+	
+	public SoundManager getSoundManager()
+	{
+		return mSoundManager;
+	}
 }
