@@ -2,6 +2,7 @@ package com.group10.battleship;
 
 import java.io.IOException;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -16,6 +17,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,9 +32,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.audio.MusicManager;
 import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.game.Game;
@@ -46,7 +46,7 @@ import com.group10.battleship.graphics.GifAnimation;
  * http://www.learnopengles.com/android-lesson-one-getting-started/
  * 
  */
-public class GameActivity extends SherlockActivity implements OnTouchListener,
+public class GameActivity extends Activity implements OnTouchListener,
 		AnimationListener, GameStateChangedListener,
 		ProfileDataReceivedListener {
 
@@ -135,7 +135,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		game.setGameStateListener(this);
 		game.setProfileDataReveivedListener(this);
 
-		supportInvalidateOptionsMenu();
+		invalidateOptionsMenu();
 		MusicManager.getInstance().stop(Music.MENU);
 		MusicManager.getInstance().play(Music.GAME);
 
@@ -229,7 +229,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getSupportMenuInflater().inflate(R.menu.game, menu);
+		getMenuInflater().inflate(R.menu.game, menu);
 		GameState state = Game.getInstance().getState();
 
 		MenuItem mi;
@@ -339,7 +339,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				GameActivity.this.supportInvalidateOptionsMenu();
+				GameActivity.this.invalidateOptionsMenu();
 			}
 		};
 		runOnUiThread(r);

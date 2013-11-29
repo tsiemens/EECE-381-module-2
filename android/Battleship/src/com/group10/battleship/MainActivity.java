@@ -1,11 +1,8 @@
 package com.group10.battleship;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.List;
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+
+import com.group10.battleship.PrefsActivity;
 import com.group10.battleship.audio.MusicManager;
 import com.group10.battleship.audio.MusicManager.Music;
 import com.group10.battleship.database.ConnectionHistoryRepository;
@@ -19,6 +16,7 @@ import com.group10.battleship.network.NetworkManager.OnNiosSocketSetupListener;
 import com.group10.battleship.network.UDPManager;
 import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,15 +24,15 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
-public class MainActivity extends SherlockActivity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
+public class MainActivity extends Activity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 	private static final int DEFAULT_PORT = 50002;
@@ -43,8 +41,6 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 
 	private UDPManager mUDPManager;
 	private Button mProfileButton;
-
-	private RadioGroup mGameModeGroup;
 
 	private Button mHostButton; 
 	private Button mGuestButton; 
@@ -107,14 +103,14 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getSupportMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.app_settings) {
-			startActivity(new Intent(this, PreferenceActivity.class));
+			startActivity(new Intent(this, PrefsActivity.class));
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
