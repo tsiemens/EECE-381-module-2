@@ -394,8 +394,7 @@ public class GameActivity extends SherlockActivity implements OnTouchListener,
 	private void smokeAnimation() {
 
 		if (mGameStarted) {
-			//float yOffset = mGLSurfaceView.getY();
-			float yOffset = mGLSurfaceView.getTop();
+			float yOffset = mGLSurfaceView.getY();
 
 			float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
 			int x = (int) (mGLSurfaceView.getWidth() / glx * (Game

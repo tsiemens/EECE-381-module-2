@@ -74,23 +74,12 @@ public class ModelParser {
 		return board.toString();
 	}
 	
-	public static String getJsonForMove(int xPos, int yPos, String response) throws JSONException
+	public static String getJsonForMove(int xPos, int yPos) throws JSONException
 	{
 		JSONObject obj = new JSONObject(); 
 		obj.put(TYPE_KEY , MOVE_TYPE_VAL);
 		obj.put(MOVE_XPOS_KEY, xPos);
 		obj.put(MOVE_YPOS_KEY, yPos);
-		obj.put(MOVE_RESPONSE_KEY, response);
-		String json = obj.toString(); 
-		return json; 
-	}
-	
-	public static String getJsonForMoveResponse(boolean wasHit, boolean wasSunk) throws JSONException
-	{
-		JSONObject obj = new JSONObject(); 
-		obj.put(TYPE_KEY , MOVE_RESPONSE_TYPE_VAL);
-		obj.put(MOVE_RESPONSE_HIT_KEY, wasHit);
-		obj.put(MOVE_RESPONSE_SUNK_KEY, wasSunk);
 		String json = obj.toString(); 
 		return json; 
 	}

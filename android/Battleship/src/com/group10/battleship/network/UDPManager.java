@@ -22,6 +22,7 @@ public class UDPManager {
 	private static final String TAG = UDPManager.class.getSimpleName();
 	private static final int PORT = 50002;
 	private InetAddress mTargetIP;
+	private int mPort;
 	private DatagramSocket mSocket;
 	private OnBroadcastFoundListener onBroadcastFoundListener;
 	
@@ -58,10 +59,8 @@ public class UDPManager {
 				    getBroadcastAddress(), PORT);
 				Log.d(TAG, "Sent Broadcast packet to " + getBroadcastAddress().toString());
 				
-				long timerStart = System.currentTimeMillis();
-				while(System.currentTimeMillis() - timerStart < 30000) {
 				mSocket.send(sendPacket);
-				}
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -71,6 +70,10 @@ public class UDPManager {
 	
 	public String getIPString() {
 		return mTargetIP.getHostAddress();
+	}
+	
+	public String getPortString() {
+		return Integer.toString(mPort);
 	}
 	
 	public void setOnBroadcastFoundListener(
@@ -95,6 +98,7 @@ public class UDPManager {
 				mSocket.receive(recPacket);
 				
 				mTargetIP = recPacket.getAddress();
+				mPort = recPacket.getPort();
 				
 				Log.d(TAG, "Received UDP Packet: " + buf + " from " + mTargetIP.toString());
 				

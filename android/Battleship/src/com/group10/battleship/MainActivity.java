@@ -259,7 +259,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
 	}
 
-	private void showGuestDialog(String ip){
+	private void showGuestDialog(String ip) { 
+		showGuestDialog(ip, Integer.toString(DEFAULT_PORT)); 
+	}
+	
+	private void showGuestDialog(String ip, String port){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		LayoutInflater inflater = this.getLayoutInflater();
 
@@ -269,7 +273,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		EditText iptext = (EditText)dialogView.findViewById(R.id.et_ip);
 		iptext.setText(ip); 
 		EditText portText = (EditText)dialogView.findViewById(R.id.et_port);
-		portText.setText(Integer.toString(DEFAULT_PORT));
+		portText.setText(port);
 		builder.setView(dialogView)
 		.setPositiveButton(R.string.dialog_confirm, new DialogInterface.OnClickListener() {
 			@Override
@@ -300,7 +304,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 			@Override
 			public void onClick(DialogInterface dialog, int id) {
 				mUDPManager.new RecieveBroadcast().execute(null, null, null);
-				showScanningDialog();
+				Toast.makeText(getApplication(), "Scanning for a game...", Toast.LENGTH_LONG).show();
 			}
 		});
 		builder.show();
@@ -371,7 +375,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	}
 	
 	public void onBroadcastFound() {
-		this.showGuestDialog(mUDPManager.getIPString());
+		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
 	}
 
 }
