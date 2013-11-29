@@ -322,11 +322,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		try {
 			if (!isMultiplayer()) {
 				mSingleplayerAI.arrangeShips(mOpponentBoard);
-				if (willYieldTurn) {
-					setState(GameState.WAITING_FOR_OPPONENT);
-				} else {
-					setState(GameState.TAKING_TURN);
-				}
 			} else {
 				// Player is confirming board
 				NetworkManager.getInstance().send(
@@ -336,7 +331,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 			if (willYieldTurn) {
 				setState(GameState.WAITING_FOR_OPPONENT);
-				if (isHost)
+				if (isMultiplayer() && isHost)
 					NetworkManager.getInstance().send(
 							ModelParser.getJsonForYield(), true);
 			} else {
