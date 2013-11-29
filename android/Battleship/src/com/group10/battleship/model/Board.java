@@ -288,14 +288,16 @@ public class Board implements GL20Drawable {
 	}
 	
 	public void revealShips() {
-		for (Ship ship : mShips) {
-		
-			BoardCoord[] coords = ship.getShipCoords();
-		
-			for( int i = 0; i < coords.length; i++) {
-				if (mTileRows.get(coords[i].y).get(coords[i].x).getColor() == TILE_COLOR_NORMAL)
-					setTileColour(TILE_COLOR_REVEAL, coords[i].x, coords[i].y);
-			} 
+		if (mShips != null && mShips.size() > 0) {
+			for (Ship ship : mShips) {
+			
+				BoardCoord[] coords = ship.getShipCoords();
+			
+				for( int i = 0; i < coords.length; i++) {
+					if (mTileRows.get(coords[i].y).get(coords[i].x).getColor() == TILE_COLOR_NORMAL)
+						setTileColour(TILE_COLOR_REVEAL, coords[i].x, coords[i].y);
+				} 
+			}
 		}
 	}
 	
