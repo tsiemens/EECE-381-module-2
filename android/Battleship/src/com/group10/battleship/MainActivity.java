@@ -29,8 +29,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
@@ -55,6 +59,9 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	private String mHostIp;
 
 	private List<HistoryItem> mHistoryItems;
+	
+	private ImageView mLogo;
+	private View mFadeOut;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -86,6 +93,11 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		mSinglePlayerButton.setSelected(false);
 
 		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
+		mLogo = (ImageView) findViewById(R.id.logo);
+		mLogo.bringToFront();
+		mFadeOut = (View) findViewById(R.id.fade_view);		
+		performLaunchAnimation();
 	}
 
 	@Override
@@ -383,4 +395,37 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
 	}
 
+	public void performLaunchAnimation() {
+		Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.logo_drop);
+		animation.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationStart(Animation animation) {			
+			}
+			@Override
+			public void onAnimationRepeat(Animation animation) {				
+			}
+
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				Animation animation2 = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_out);
+				animation2.setAnimationListener(new AnimationListener() {
+
+					@Override
+					public void onAnimationStart(Animation animation) {
+					}					
+					@Override
+					public void onAnimationRepeat(Animation animation) {						
+					}
+
+					@Override
+					public void onAnimationEnd(Animation animation) {
+						mFadeOut.setVisibility(View.GONE);						
+					}
+				});
+				mFadeOut.startAnimation(animation2);
+			}
+		});
+
+		mLogo.startAnimation(animation);
+	}
 }
