@@ -87,8 +87,9 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	@Override
 	public void onResume() {
 		super.onResume();
+		
 		MusicManager.getInstance().play(Music.MENU);
-
+		
 		if (PrefsManager.getInstance().getString(PrefsManager.KEY_PROFILE_NAME, null) == null) {
 			startActivity(new Intent(this, ProfileActivity.class));
 		}
@@ -182,6 +183,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		// If using nios, set up the nios 
 		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 		{
+			NetworkManager.getInstance().close();
 			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
 			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 			Log.d(TAG, ip+":"+port);
@@ -224,7 +226,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	public void onFoundIPAddress(String ip, int port) {
 		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel!";
-
+		
 		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
 			
 			@Override
@@ -359,7 +361,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	}
 	
 	public void onBroadcastFound() {
+		Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
 		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
 	}
-
 }

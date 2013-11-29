@@ -241,7 +241,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			setState(GameState.GAME_OVER_WIN);
 		} else {
 			setState(GameState.GAME_OVER_LOSS);
-			mOpponentBoard.revealShips();
+			if (mOpponentBoard != null)
+				mOpponentBoard.revealShips();
 		}
 	}
 
