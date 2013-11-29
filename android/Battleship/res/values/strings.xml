@@ -35,7 +35,7 @@
     <string name="dialog_quit_conf_message">Do you want to quit the game?</string>
     <string name="dialog_win_message_p1">I beat\u0020</string>
     <string name="dialog_loss_message_p1">I lose to\u0020</string>
-    <string name="dialog_game_over_message_p2">\u0020 in Battleship! #battleship #eece381 #group10</string>
+    <string name="dialog_game_over_message_p2">\u0020in Battleship! #battleship #eece381 #group10</string>
     <string name="pref_title_middleman_ip">Middleman IP</string>
     <string name="pref_title_middleman_port">Middleman Port</string>
     <string name="btn_guest">Guest</string>

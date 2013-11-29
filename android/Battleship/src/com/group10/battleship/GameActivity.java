@@ -494,22 +494,16 @@ public class GameActivity extends Activity implements OnTouchListener,
 				new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
+												
 						Intent shareIntent = new Intent(Intent.ACTION_SEND);
 						shareIntent
 								.putExtra(
 										Intent.EXTRA_TEXT,
 										(didWin ? getString(R.string.dialog_win_message_p1)
 												: getString(R.string.dialog_loss_message_p1))
-												+ "opponentName"
+												+ mOpponentName.getText()
 												+ getString(R.string.dialog_game_over_message_p2));
 						// TODO: can also add #taunt
-						shareIntent
-								.putExtra(
-										Intent.EXTRA_TEXT,
-										(didWin ? getString(R.string.dialog_win_message_p1)
-												: getString(R.string.dialog_loss_message_p1))
-												+ "opponentName"
-												+ getString(R.string.dialog_game_over_message_p2));
 						shareIntent.setType("text/plain");
 						startActivity(Intent.createChooser(shareIntent,
 								"Share your result via..."));
