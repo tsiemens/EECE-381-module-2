@@ -21,9 +21,8 @@ public class Board implements GL20Drawable {
 	public static final int TILE_COLOR_SUNK = Color.parseColor("#aa545454");
 	public static final int TILE_COLOR_SELECTION = Color.parseColor("#ffff7800");
 
-	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff68b943");
-	public static final int BORDER_COLOR_OPPONENT = Color
-			.parseColor("#ffce0202");
+	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff6CB34B");
+	public static final int BORDER_COLOR_OPPONENT = Color.parseColor("#FFA60000");
 	public static final int BOARD_SIZE = 10;
 
 	private Context mContext;

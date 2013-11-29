@@ -336,7 +336,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 			if (willYieldTurn) {
 				setState(GameState.WAITING_FOR_OPPONENT);
-				if (isHost)
+				if (isMultiplayer() && isHost)
 					NetworkManager.getInstance().send(
 							ModelParser.getJsonForYield(), true);
 			} else {
