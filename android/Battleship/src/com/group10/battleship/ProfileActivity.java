@@ -8,18 +8,17 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 import com.group10.battleship.graphics.BitmapUtils;
 
-public class ProfileActivity extends SherlockActivity implements OnClickListener{
+public class ProfileActivity extends Activity implements OnClickListener{
 
 	private static final String TAG = ProfileActivity.class.getSimpleName();
 	private static final int IMAGE_REQUEST_CODE = 1;
@@ -44,7 +43,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_profile);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		mProfileName = (TextView)findViewById(R.id.tv_profile_name);
 		
@@ -70,7 +69,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getSupportMenuInflater().inflate(R.menu.profile, menu);
+		getMenuInflater().inflate(R.menu.profile, menu);
 
 		MenuItem mi;
 		for (int i = 0; i < menu.size(); i++) {
@@ -193,7 +192,7 @@ public class ProfileActivity extends SherlockActivity implements OnClickListener
 			mProfileTaunt.setVisibility(View.VISIBLE);
 			mProfileTauntEditor.setVisibility(View.GONE);
 		}
-		supportInvalidateOptionsMenu();
+		invalidateOptionsMenu();
 	}
 
 	@Override

@@ -65,6 +65,7 @@
 	    android:layout_below="@id/button_layout"
 	    android:layout_above="@+id/start_layout"
 	    android:src="@drawable/logo"
+	    android:layout_centerHorizontal="true"
 	    android:padding="20dp" />
 
     <LinearLayout

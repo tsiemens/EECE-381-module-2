@@ -21,9 +21,8 @@ public class Board implements GL20Drawable {
 	public static final int TILE_COLOR_SUNK = Color.parseColor("#aa545454");
 	public static final int TILE_COLOR_SELECTION = Color.parseColor("#ffff7800");
 
-	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff68b943");
-	public static final int BORDER_COLOR_OPPONENT = Color
-			.parseColor("#ffce0202");
+	public static final int BORDER_COLOR_PLAYER = Color.parseColor("#ff6CB34B");
+	public static final int BORDER_COLOR_OPPONENT = Color.parseColor("#FFA60000");
 	public static final int BOARD_SIZE = 10;
 
 	private Context mContext;
@@ -289,14 +288,16 @@ public class Board implements GL20Drawable {
 	}
 	
 	public void revealShips() {
-		for (Ship ship : mShips) {
-		
-			BoardCoord[] coords = ship.getShipCoords();
-		
-			for( int i = 0; i < coords.length; i++) {
-				if (mTileRows.get(coords[i].y).get(coords[i].x).getColor() == TILE_COLOR_NORMAL)
-					setTileColour(TILE_COLOR_REVEAL, coords[i].x, coords[i].y);
-			} 
+		if (mShips != null && mShips.size() > 0) {
+			for (Ship ship : mShips) {
+			
+				BoardCoord[] coords = ship.getShipCoords();
+			
+				for( int i = 0; i < coords.length; i++) {
+					if (mTileRows.get(coords[i].y).get(coords[i].x).getColor() == TILE_COLOR_NORMAL)
+						setTileColour(TILE_COLOR_REVEAL, coords[i].x, coords[i].y);
+				} 
+			}
 		}
 	}
 	

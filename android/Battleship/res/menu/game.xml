@@ -28,6 +28,16 @@
         android:showAsAction="always"
         android:title="@string/menu_item_goto_oboard"/>
     
+    <item
+        android:id="@+id/mute_music_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_item_music_mute"/>
+    <item
+        android:id="@+id/mute_sound_item"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_item_sound_mute"/>
      <item
         android:id="@+id/show_help_item"
         android:orderInCategory="100"

@@ -32,7 +32,7 @@
 #define HIT 2
 
 typedef enum {
-	WAITING_FOR_PLAYERS, PLAYING, GAME_OVER, FORFEIT
+	WAITING_FOR_PLAYERS, PLAYING, GAME_OVER
 } SystemState; // TODO add other states
 
 typedef struct BSNStateMachine {
