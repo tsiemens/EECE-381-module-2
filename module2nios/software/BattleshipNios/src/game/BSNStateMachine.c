@@ -56,15 +56,15 @@ void BSNStateMachine_performFrameLogic(BSNStateMachine* this)
 void BSNStateMachine_PerformLogic(BSNStateMachine* this) {
 	switch (this->state) {
 	case WAITING_FOR_PLAYERS:
-		printf("performing wait logic");
+		printf("performing wait logic\n");
 		BSNStateMachine_WaitingPerformLogic(this);
 		break;
 	case PLAYING:
-		printf("performing play logic");
+		printf("performing play logic\n");
 		BSNStateMachine_PlayingPerformLogic(this);
 		break;
 	case GAME_OVER:
-		printf("performing game over logic");
+		printf("performing game over logic\n");
 		BSNStateMachine_GameOverPerformLogic(this);
 		break;
 	}

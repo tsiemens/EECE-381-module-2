@@ -40,4 +40,17 @@ public class NIOS2NetworkManager {
 		byte[] data = { (byte) 'O', (byte) player };
 		NetworkManager.getInstance().send(new String(data), false);
 	}
+	
+	// bytes: { 'P', ['1' or '2' for player], "name" }
+	public static void sendProfileName(boolean isHost, String name) {
+		if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_USE_NIOS, false)) return;
+		int player = (byte) (isHost ? 1 : 2);
+		byte[] data = new byte[name.length() + 2];
+		data[0] = 'P';
+		data[1] = (byte) player;
+		for (int i = 0; i < name.length(); i++) {
+			data[i+2] = (byte)name.charAt(i);
+		}
+		NetworkManager.getInstance().send(new String(data), false);
+	}
 }

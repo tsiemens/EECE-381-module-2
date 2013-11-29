@@ -8,6 +8,9 @@
 #include "../sprite/BaseSprite.h"
 #include "../sprite/SpriteArrayList.h"
 
+static char PLAYER_1_STRING[] = "Player 1";
+static char PLAYER_2_STRING[] = "Player 2";
+
 // Should return an array of sprite arrays
 SpriteArrayList** SpriteFactory_generateNewBoard();
 

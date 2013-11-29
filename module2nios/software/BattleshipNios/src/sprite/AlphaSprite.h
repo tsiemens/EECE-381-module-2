@@ -28,7 +28,7 @@ AlphaSprite* AlphaSprite_init(AlphaSprite* this);
 
 void AlphaSprite_draw(BaseSprite* super);
 
-void AlphaSprite_ClearPrev(AlphaSprite* this);
+void AlphaSprite_Clear(AlphaSprite* this);
 
 void AlphaSprite_setString(AlphaSprite* super, char* string);
 

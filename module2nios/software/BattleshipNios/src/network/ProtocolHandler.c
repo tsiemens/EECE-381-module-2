@@ -30,6 +30,14 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 		if (sm->state == WAITING_FOR_PLAYERS || sm->state == GAME_OVER) {
 			printf("Host Connected. Starting Game.\n");
 			GameBoard_reset(sm->gameBoard);
+			AlphaSprite* p1name = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, ALPHA_P1_NAME_SPRITE_ID));
+			if (p1name->string != PLAYER_1_STRING) {
+				free(p1name->string);
+			}
+			AlphaSprite* p2name = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, ALPHA_P2_NAME_SPRITE_ID));
+			if (p2name->string != PLAYER_2_STRING) {
+				free(p2name->string);
+			}
 			sm->state = PLAYING;
 		}
 	} else if (data[0] == 'M' && sm->state == PLAYING) {
@@ -50,7 +58,24 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 		// Game over
 		sm->winner = data[1];
 		sm->state = GAME_OVER;
+	} else if (data[0] == 'P') {
+		// Update player data
+		int player = data[1];
+		int id = (player == 1)? ALPHA_P1_NAME_SPRITE_ID : ALPHA_P2_NAME_SPRITE_ID;
+		int i = 2;
+		char* name;
+		name = malloc(sizeof(unsigned char) * (length - 2));
+		while (data[i] != '\xa') {
+			name[i-2] = data[i];
+			i++;
+		}
+		name[i-1] = 0;
+		AlphaSprite* namespr = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, id));
+		namespr->string = name;
+		printf("player %d's name is %s (%s)\n", player, name, namespr->string);
 	}
+
+	free(data);
 }
 
 /**

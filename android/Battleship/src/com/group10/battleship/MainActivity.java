@@ -220,6 +220,7 @@ public class MainActivity extends SherlockActivity implements OnClickListener, O
 	public void onSuccessfulNiosSetup() {
 		NIOS2NetworkManager.sendNewGame();
 		Toast.makeText(this, "Successfully set up the Nios socket", Toast.LENGTH_LONG).show();
+		Game.getInstance().onNiosGameStarted();
 	}
 
 	@Override

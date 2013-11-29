@@ -11,8 +11,6 @@
 #include "../video/VideoHandler.h"
 #include <stdlib.h>
 
-void AlphaSprite_Clear(AlphaSprite* this);
-
 AlphaSprite* AlphaSprite_alloc()
 {
 	AlphaSprite *this = (AlphaSprite *)malloc(sizeof(AlphaSprite));
@@ -49,10 +47,14 @@ void AlphaSprite_draw(BaseSprite* super)
 		//Assign previous values
 		this->prev_x = this->baseSprite.xPos;
 		this->prev_y = this->baseSprite.yPos;
+		if (this->prev_str != NULL) {
+			free(this->prev_str);
+		}
 		this->prev_str = AlphaSprite_EmptyString(this->string);
 
-	//Print current string
-	printString(this->string, (unsigned int)this->baseSprite.xPos, (unsigned int)this->baseSprite.yPos);
+		//Print current string
+		printf("drawing alpha %s\n", this->string);
+		printString(this->string, (unsigned int)this->baseSprite.xPos, (unsigned int)this->baseSprite.yPos);
 }
 
 void AlphaSprite_Clear(AlphaSprite* this)
