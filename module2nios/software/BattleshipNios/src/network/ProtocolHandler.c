@@ -65,11 +65,10 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 		int i = 2;
 		char* name;
 		name = malloc(sizeof(unsigned char) * (length - 2));
-		while (data[i] != '\xa') {
+		for(i = 2; i < length - 1 && i <= 15; i++) {
 			name[i-2] = data[i];
-			i++;
 		}
-		name[i-1] = 0;
+		name[i] = 0;
 		AlphaSprite* namespr = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, id));
 		namespr->string = name;
 		printf("player %d's name is %s (%s)\n", player, name, namespr->string);

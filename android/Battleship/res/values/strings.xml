@@ -37,7 +37,7 @@
     <string name="pref_title_middleman_port">Middleman Port</string>
     <string name="btn_guest">Guest</string>
     <string name="btn_host">Host</string>
-    <string name="btn_one_player">1-P</string>
+    <string name="btn_one_player">1 Player</string>
     <string name="pref_nios_group_title">Nios Settings</string>
     <string name="pref_general_group_title">General Settings</string>
 
