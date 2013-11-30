@@ -48,8 +48,8 @@ import com.group10.battleship.graphics.GifAnimation;
  * 
  */
 public class GameActivity extends Activity implements OnTouchListener,
-		AnimationListener, GameStateChangedListener,
-		ProfileDataReceivedListener {
+AnimationListener, GameStateChangedListener,
+ProfileDataReceivedListener {
 
 	private static final String TAG = GameActivity.class.getSimpleName();
 
@@ -171,11 +171,10 @@ public class GameActivity extends Activity implements OnTouchListener,
 
 		mPlayerHelpOverlay = (RelativeLayout) findViewById(R.id.help_overlay_player);
 		mPlayerHelpOverlay.setOnTouchListener(this);
-		Log.d(TAG,
-				"has run before: "
-						+ !PrefsManager.getInstance().getBoolean(
-								PrefsManager.KEY_HAS_RUN_BEFORE, false));
-		mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
+		if(!PrefsManager.getInstance().getBoolean(PrefsManager.KEY_HAS_RUN_BEFORE, false))
+			mPlayerHelpOverlay.setVisibility(View.VISIBLE);
+		else 
+			mPlayerHelpOverlay.setVisibility(View.INVISIBLE);
 		mEnemyHelpOverlay = (RelativeLayout) findViewById(R.id.help_overlay_enemy);
 		mEnemyHelpOverlay.setVisibility(View.INVISIBLE);
 		mEnemyHelpOverlay.setOnTouchListener(this);
@@ -309,18 +308,18 @@ public class GameActivity extends Activity implements OnTouchListener,
 			else 
 				Game.getInstance().getSoundManager().mute();
 			invalidateOptionsMenu();
-			
+
 		} else if(item.getItemId() == R.id.mute_music_item) {
 			if(MusicManager.getInstance().isMuted())
 				MusicManager.getInstance().unmute();
 			else 
 				MusicManager.getInstance().mute();
 			invalidateOptionsMenu();
-			
+
 		} else if (item.getItemId() == R.id.show_help_item) {
-			
+
 			GameState state = Game.getInstance().getState();
-			
+
 			if (state == Game.GameState.PLACING_SHIPS) {
 				if (mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
 					mPlayerHelpOverlay.setVisibility(View.VISIBLE);
@@ -433,7 +432,7 @@ public class GameActivity extends Activity implements OnTouchListener,
 			mCurrentTurnImage.setImageBitmap(bm);
 		} else {
 			mCurrentTurnImage
-					.setImageResource(R.drawable.profile_img_placeholder);
+			.setImageResource(R.drawable.profile_img_placeholder);
 		}
 	}
 
@@ -510,32 +509,32 @@ public class GameActivity extends Activity implements OnTouchListener,
 		final boolean didWin = won;
 		dialogBuilder.setNeutralButton("Share",
 				new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-												
-						Intent shareIntent = new Intent(Intent.ACTION_SEND);
-						shareIntent
-								.putExtra(
-										Intent.EXTRA_TEXT,
-										(didWin ? getString(R.string.dialog_win_message_p1)
-												: getString(R.string.dialog_loss_message_p1))
-												+ mOpponentName.getText()
-												+ getString(R.string.dialog_game_over_message_p2));
-						// TODO: can also add #taunt
-						shareIntent.setType("text/plain");
-						startActivity(Intent.createChooser(shareIntent,
-								"Share your result via..."));
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+
+				Intent shareIntent = new Intent(Intent.ACTION_SEND);
+				shareIntent
+				.putExtra(
+						Intent.EXTRA_TEXT,
+						(didWin ? getString(R.string.dialog_win_message_p1)
+								: getString(R.string.dialog_loss_message_p1))
+								+ mOpponentName.getText()
+								+ getString(R.string.dialog_game_over_message_p2));
+				// TODO: can also add #taunt
+				shareIntent.setType("text/plain");
+				startActivity(Intent.createChooser(shareIntent,
+						"Share your result via..."));
+			}
+		});
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						GameActivity.this.finish();
-						Game.getInstance().invalidate();
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				GameActivity.this.finish();
+				Game.getInstance().invalidate();
+			}
+		});
 		ImageView iv = (ImageView) view
 				.findViewById(R.id.game_over_dialog_image);
 		if (iv != null) {
@@ -563,12 +562,12 @@ public class GameActivity extends Activity implements OnTouchListener,
 		dialogBuilder.setPositiveButton(R.string.dialog_confirm,
 				new DialogInterface.OnClickListener() {
 
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						Game.getInstance().forfeit();
-						GameActivity.this.finish();
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Game.getInstance().forfeit();
+				GameActivity.this.finish();
+			}
+		});
 		dialogBuilder.show();
 	}
 
@@ -578,14 +577,14 @@ public class GameActivity extends Activity implements OnTouchListener,
 			mOpponentName.setText(name);
 		} else {
 			mOpponentName
-					.setText(R.string.game_vs_bar_opponent_name_placeholder);
+			.setText(R.string.game_vs_bar_opponent_name_placeholder);
 		}
 
 		if (taunt != null) {
 			mOpponentTaunt.setText(taunt);
 		} else {
 			mOpponentTaunt
-					.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
+			.setText(R.string.game_vs_bar_opponent_taunt_placeholder);
 		}
 
 		setProfileImage(mOpponentImage, image);
