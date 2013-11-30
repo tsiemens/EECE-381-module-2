@@ -20,6 +20,7 @@ import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.Application;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -36,8 +37,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
@@ -58,6 +57,8 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	private String mHostIp;
 
 	private List<HistoryItem> mHistoryItems;
+	private AlertDialog mShowHostIPDialog;
+	
 
 	private ImageView mLogo;
 	private View mFadeOut;
@@ -160,11 +161,12 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	@Override
 	public void onClick(View view) {
 		int id = view.getId();
-		if( id != R.id.btn_start_game)
+		if( id == R.id.rb_guest || id == R.id.rb_host || id == R.id.rb_single)
 			performRadioButtonLikeActions(id);
 
 		if( id == R.id.btn_start_game)
 		{
+			//mUDPManager.new SendBroadcast().execute(null, null, null);
 			if (mSelectedModeId == R.id.rb_single) 
 			{
 				Game game = Game.getInstance();
@@ -177,7 +179,6 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			else if (mSelectedModeId == R.id.rb_host)
 			{
 				mUDPManager.new SendBroadcast().execute(null, null, null);
-
 				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 				try {
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
@@ -187,6 +188,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 					handleSocketError(e);
 					e.printStackTrace();
 				} 
+				
 			}
 			else if (mSelectedModeId == R.id.rb_guest){
 				showGuestDialog(null);
@@ -203,7 +205,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			NetworkManager.getInstance().close();
 			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
 			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
-			Log.d(TAG, ip+":"+port);
+			Log.d(TAG, "Setting up nios socket "+ip+":"+port);
 			if (ip != null && port != -1 && ip.length() != 0) {
 				try {
 					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
@@ -242,14 +244,14 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
 		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel!";
+				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel";
 
-		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
-
+		mShowHostIPDialog = ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
 			@Override
 			public void onCancel(DialogInterface dialog) {
-				// TODO Auto-generated method stub
-				Log.i("Info", "Cancel");
+				NetworkManager.getInstance().endConnections();
+				mUDPManager.cancelOperations();
+				Log.i(TAG, "Host canceled");
 
 			}
 		});
@@ -263,13 +265,17 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			// Game was in progress before, so we have to restart it.
 			game.invalidate();
 		}
+		
+		if (mShowHostIPDialog != null)
+			mShowHostIPDialog.dismiss();
+		mShowHostIPDialog = null;
 		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
 
 	@Override
 	public void onAndroidSocketSetupError() {
-		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Failed to connect to Android device", Toast.LENGTH_LONG).show();
 	}
 
 	private void showGuestDialog(String ip) { 
@@ -378,8 +384,13 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	}
 
 	public void onBroadcastFound() {
-		Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
-		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
+		if (mUDPManager.getIPString() != null) {
+			Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
+			this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
+		} else {
+			Toast.makeText(getApplication(), "Could not find a game...", Toast.LENGTH_LONG).show();
+			this.showGuestDialog("");
+		}
 	}
 
 	public void performLaunchAnimation() {

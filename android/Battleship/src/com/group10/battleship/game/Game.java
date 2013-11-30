@@ -23,7 +23,6 @@ import com.group10.battleship.R;
 import com.group10.battleship.audio.SoundManager;
 import com.group10.battleship.database.ConnectionHistoryRepository;
 import com.group10.battleship.game.ai.BattleshipAI;
-import com.group10.battleship.game.ai.RandomAI;
 import com.group10.battleship.game.ai.SmartAI;
 import com.group10.battleship.graphics.BitmapUtils;
 import com.group10.battleship.graphics.GL20Drawable;
@@ -65,14 +64,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private boolean isHost;
 	private boolean mIsMultiplayer;
-
 	private boolean hasReceivedOpponentBoard = false;
+
 	private boolean willYieldTurn = false;
+	private boolean mGameStarted = false;
 
 	private GameState mState;
-
-	// Temporary coords for last move if player 2s
-	private BoardCoord mLastMove;
 
 	// Ship dragging state
 	private Ship mDraggedShip;
@@ -109,7 +106,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Game() {
 		setState(GameState.UNINITIALIZED);
 		mShipDraggingOffset = new int[] { 0, 0 };
-		mLastMove = new BoardCoord(-1, -1);
 		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 
@@ -154,6 +150,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 			mSingleplayerAI.setDifficulty(mAIDifficulty);
 			isHost = true;
 		}
+		
 		if (isHost)
 			willYieldTurn = new Random().nextBoolean();
 		else
@@ -266,6 +263,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public float getTileLength() {
 		return mTileLength;
 	}
+	
+	public boolean isGameStarted() {
+		return mGameStarted;
+	}
 
 	@Override
 	public void onSurfaceCreated(GL20Renderer renderer) {
@@ -352,8 +353,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				if (isMultiplayer() && isHost)
 					NetworkManager.getInstance().send(
 							ModelParser.getJsonForYield(), true);
+			} else if (hasReceivedOpponentBoard == false) {
+				setState(GameState.WAITING_FOR_OPPONENT);
 			} else {
 				setState(GameState.TAKING_TURN);
+				mGameStarted = true;
 			}
 
 		} catch (JSONException e) {
@@ -371,13 +375,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		}
 		// Don't do anything if tile has already been acted on.
 		if (mOpponentBoard.getTileColour(pos.x, pos.y) == Board.TILE_COLOR_NORMAL) {
-			boolean hit = processMoveOnBoard(pos.x, pos.y, true);
+			processMoveOnBoard(pos.x, pos.y, true);
 			if (isMultiplayer()) {
 				try {
 					Ship oppShip = mOpponentBoard.getShipAtIndex(pos.x, pos.y);
-					boolean sunk = false;
 					if (oppShip != null)
-						sunk = oppShip.isSunk();
+						oppShip.isSunk();
 					String msg = ModelParser.getJsonForMove(pos.x, pos.y);
 					NetworkManager.getInstance().send(msg, true);
 				} catch (JSONException e) {
@@ -458,16 +461,15 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				if (obj.getString(ModelParser.TYPE_KEY).equals(
 						ModelParser.MOVE_TYPE_VAL)) {
 					// Process Move data
-					boolean wasHit = processMoveOnBoard(
+					processMoveOnBoard(
 							obj.getInt(ModelParser.MOVE_XPOS_KEY),
 							obj.getInt(ModelParser.MOVE_YPOS_KEY), false);
 
 					Ship playerShip = mPlayerBoard.getShipAtIndex(
 							obj.getInt(ModelParser.MOVE_XPOS_KEY),
 							obj.getInt(ModelParser.MOVE_YPOS_KEY));
-					boolean wasSunk = false;
 					if (playerShip != null)
-						wasSunk = playerShip.isSunk();
+						playerShip.isSunk();
 
 					if (mPlayerBoard.isAllSunk())
 						win(false);
@@ -478,6 +480,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 									+ ", "
 									+ obj.getInt(ModelParser.MOVE_YPOS_KEY),
 							Toast.LENGTH_SHORT).show();
+					
+					mGameStarted = true;
+					
 					if (mState != GameState.GAME_OVER_LOSS
 							&& mState != GameState.GAME_OVER_WIN)
 						setState(GameState.TAKING_TURN);
@@ -501,7 +506,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 										ModelParser.getShipTypeFromString(ship
 												.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
 					}
-
+					
+					if (mState == GameState.WAITING_FOR_OPPONENT && willYieldTurn == false) {
+						setState(GameState.TAKING_TURN);
+						mGameStarted = true;
+					}
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
 						ModelParser.YIELD_TURN_TYPE_VAL)) {
 					// The guest has been told by host that it gets to move
