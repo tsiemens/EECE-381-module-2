@@ -320,15 +320,36 @@ public class GameActivity extends Activity implements OnTouchListener,
 			invalidateOptionsMenu();
 			
 		} else if (item.getItemId() == R.id.show_help_item) {
-			if (Game.getInstance().getState() != Game.GameState.PLACING_SHIPS) {
-				if (mGLRenderer.getCamPosY() <= 1.0f)
-					mGLRenderer.translateCamWithAnimation(0f, 2.0f, 500);
-				if (mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
-					mEnemyHelpOverlay.setVisibility(View.VISIBLE);
-			} else if (Game.getInstance().getState() == Game.GameState.PLACING_SHIPS) {
+			
+			GameState state = Game.getInstance().getState();
+			
+			if (state == Game.GameState.PLACING_SHIPS) {
 				if (mPlayerHelpOverlay.getVisibility() == View.INVISIBLE)
 					mPlayerHelpOverlay.setVisibility(View.VISIBLE);
 			}
+			else if(state == Game.GameState.WAITING_FOR_OPPONENT || state == Game.GameState.GAME_OVER_LOSS || state == Game.GameState.GAME_OVER_WIN)
+			{
+				if(Game.getInstance().isMultiplayer())
+				{
+					TextView fireText = (TextView)findViewById(R.id.text_fire);
+					ImageView fireArr = (ImageView)findViewById(R.id.arrow_fire);
+					TextView chooseText = (TextView) findViewById(R.id.text_choose_tile);
+					chooseText.setVisibility(View.GONE);
+					fireText.setVisibility(View.GONE);
+					fireArr.setVisibility(View.GONE);
+				}
+				mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+			}			
+			else if (state == Game.GameState.TAKING_TURN) {
+				TextView fireText = (TextView)findViewById(R.id.text_fire);
+				ImageView fireArr = (ImageView)findViewById(R.id.arrow_fire);
+				TextView chooseText = (TextView) findViewById(R.id.text_choose_tile);
+				chooseText.setVisibility(View.VISIBLE);
+				fireText.setVisibility(View.VISIBLE);
+				fireArr.setVisibility(View.VISIBLE);
+				if (mEnemyHelpOverlay.getVisibility() == View.INVISIBLE)
+					mEnemyHelpOverlay.setVisibility(View.VISIBLE);
+			} 
 		} else if (item.getItemId() == R.id.quit_item) {
 			showExitConfirmationDialog();
 		}
