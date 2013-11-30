@@ -68,11 +68,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private boolean hasReceivedOpponentBoard = false;
 	private boolean willYieldTurn = false;
+	private boolean mGameStarted = false;
 
 	private GameState mState;
-
-	// Temporary coords for last move if player 2s
-	private BoardCoord mLastMove;
 
 	// Ship dragging state
 	private Ship mDraggedShip;
@@ -109,7 +107,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	private Game() {
 		setState(GameState.UNINITIALIZED);
 		mShipDraggingOffset = new int[] { 0, 0 };
-		mLastMove = new BoardCoord(-1, -1);
 		NetworkManager.getInstance().setOnAndroidDataReceivedListener(this);
 	}
 
@@ -266,6 +263,10 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	public float getTileLength() {
 		return mTileLength;
 	}
+	
+	public boolean isGameStarted() {
+		return mGameStarted;
+	}
 
 	@Override
 	public void onSurfaceCreated(GL20Renderer renderer) {
@@ -352,8 +353,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				if (isMultiplayer() && isHost)
 					NetworkManager.getInstance().send(
 							ModelParser.getJsonForYield(), true);
+			} else if (hasReceivedOpponentBoard == false) {
+				setState(GameState.WAITING_FOR_OPPONENT);
 			} else {
 				setState(GameState.TAKING_TURN);
+				mGameStarted = true;
 			}
 
 		} catch (JSONException e) {
@@ -478,6 +482,9 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 									+ ", "
 									+ obj.getInt(ModelParser.MOVE_YPOS_KEY),
 							Toast.LENGTH_SHORT).show();
+					
+					mGameStarted = true;
+					
 					if (mState != GameState.GAME_OVER_LOSS
 							&& mState != GameState.GAME_OVER_WIN)
 						setState(GameState.TAKING_TURN);
@@ -501,7 +508,11 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 										ModelParser.getShipTypeFromString(ship
 												.getString(ModelParser.SHIP_TYPE_TYPE_KEY)));
 					}
-
+					
+					if (mState == GameState.WAITING_FOR_OPPONENT && willYieldTurn == false) {
+						setState(GameState.TAKING_TURN);
+						mGameStarted = true;
+					}
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
 						ModelParser.YIELD_TURN_TYPE_VAL)) {
 					// The guest has been told by host that it gets to move

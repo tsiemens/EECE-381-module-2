@@ -69,8 +69,6 @@ public class GameActivity extends Activity implements OnTouchListener,
 	private int mSmokeSizeX = (int) (500 / 2.50);
 	private int mSmokeSizeY = (int) (667 / 3.50);
 
-	private boolean mGameStarted = false;
-
 	private RelativeLayout mBannerAd;
 
 	private ImageView mOpponentImage;
@@ -420,7 +418,7 @@ public class GameActivity extends Activity implements OnTouchListener,
 
 	private void smokeAnimation() {
 
-		if (mGameStarted) {
+		if (Game.getInstance().isGameStarted()) {
 			float yOffset = mGLSurfaceView.getY();
 
 			float glx = mGLRenderer.getRight() - mGLRenderer.getLeft();
@@ -440,7 +438,6 @@ public class GameActivity extends Activity implements OnTouchListener,
 					SMOKE_ANIM_DURATION);
 		} else {
 			mHideSmokeRunnable.run();
-			mGameStarted = true;
 		}
 	}
 
