@@ -36,8 +36,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnClickListener, OnAndroidSocketSetupListener, OnNiosSocketSetupListener, OnBroadcastFoundListener {
@@ -160,7 +158,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	@Override
 	public void onClick(View view) {
 		int id = view.getId();
-		if( id != R.id.btn_start_game)
+		if( id == R.id.rb_guest || id == R.id.rb_host || id == R.id.rb_single)
 			performRadioButtonLikeActions(id);
 
 		if( id == R.id.btn_start_game)
@@ -202,7 +200,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			NetworkManager.getInstance().close();
 			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
 			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
-			Log.d(TAG, ip+":"+port);
+			Log.d(TAG, "Setting up nios socket "+ip+":"+port);
 			if (ip != null && port != -1 && ip.length() != 0) {
 				try {
 					NetworkManager.getInstance().setOnNiosSocketSetupListener(this);
@@ -241,14 +239,14 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	@Override
 	public void onFoundIPAddress(String ip, int port) {
 		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
-				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel!";
+				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel";
 
 		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
 
 			@Override
 			public void onCancel(DialogInterface dialog) {
-				// TODO Auto-generated method stub
-				Log.i("Info", "Cancel");
+				NetworkManager.getInstance().close();
+				Log.i(TAG, "Host canceled");
 
 			}
 		});
@@ -268,7 +266,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 	@Override
 	public void onAndroidSocketSetupError() {
-		Toast.makeText(this, "Error: Could not make Android socket", Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Failed to connect to Android device", Toast.LENGTH_LONG).show();
 	}
 
 	private void showGuestDialog(String ip) { 

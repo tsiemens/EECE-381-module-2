@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -70,6 +71,9 @@ public class NetworkManager extends Object {
 	public void close() {
 		try {
 			mAndroidSocketVersion++;
+			mAndroidSocketInput = null;
+			mAndroidSocketOutput = null;
+			mNiosSocketOutput = null;
 			if (mClientSocket != null)
 				mClientSocket.close();
 			if (mServerSocket != null)
@@ -129,8 +133,11 @@ public class NetworkManager extends Object {
 
 	public Socket setupSocket(String ip, int port) throws UnknownHostException,
 			IOException {
-		InetAddress inet = InetAddress.getByName(ip);
-		return new Socket(inet, port);
+		Log.d(TAG, "attempting to get new socket at "+ip);
+		Socket s = new Socket();
+		s.connect(new InetSocketAddress(ip, port), 1000);
+		Log.d(TAG, "got new socket");
+		return s;
 	}
 
 	// ACCESSORS
@@ -257,7 +264,7 @@ public class NetworkManager extends Object {
 		}
 
 		protected void onPostExecute(Object result) {
-			if (result instanceof IOException) {
+			if (!isNios && result instanceof IOException) {
 				if (onAndroidSocketSetupListener != null)
 					onAndroidSocketSetupListener.onAndroidSocketSetupError();
 			} else if (isNios) {
@@ -331,7 +338,10 @@ public class NetworkManager extends Object {
 		
 		protected void onPostExecute(Void params) {
 			if (onAndroidSocketSetupListener != null) {
-				onAndroidSocketSetupListener.onGameFound();
+				if (mAndroidSocketOutput != null)
+					onAndroidSocketSetupListener.onGameFound();
+				else
+					onAndroidSocketSetupListener.onAndroidSocketSetupError();
 			}
 		}
 
