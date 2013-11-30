@@ -202,7 +202,6 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		// If using nios, set up the nios 
 		if (pm.getBoolean(PrefsManager.KEY_USE_NIOS, true))
 		{
-			NetworkManager.getInstance().close();
 			String ip = pm.getString(PrefsManager.KEY_MM_IP, null);
 			int port = pm.getInt(PrefsManager.KEY_MM_PORT, -1);
 			Log.d(TAG, "Setting up nios socket "+ip+":"+port);
@@ -249,10 +248,11 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		mShowHostIPDialog = ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
 			@Override
 			public void onCancel(DialogInterface dialog) {
-				NetworkManager.getInstance().endConnections();
+				if (Game.getInstance().getState() == GameState.UNINITIALIZED) {
+					NetworkManager.getInstance().endConnections();
+					Log.i(TAG, "Host canceled");
+				}
 				mUDPManager.cancelOperations();
-				Log.i(TAG, "Host canceled");
-
 			}
 		});
 	}
@@ -266,10 +266,10 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			game.invalidate();
 		}
 		
+		game.start(true);
 		if (mShowHostIPDialog != null)
 			mShowHostIPDialog.dismiss();
 		mShowHostIPDialog = null;
-		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
 
@@ -302,8 +302,8 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 					String ip = ((EditText)dialogView.findViewById(R.id.et_ip)).getText().toString();
 					int port = Integer.parseInt(((EditText)dialogView.findViewById(R.id.et_port)).getText().toString());
 					Log.d(TAG, "should find game at "+ip+":"+port);
-					NetworkManager.getInstance().setupAndroidSocket(ip, port, false); 
 					NetworkManager.getInstance().setOnAndroidSocketSetupListener(MainActivity.this);
+					NetworkManager.getInstance().setupAndroidSocket(ip, port, false);
 				} catch(NumberFormatException e)
 				{
 					Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();

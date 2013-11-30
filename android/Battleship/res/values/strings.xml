@@ -18,7 +18,7 @@
     <string name="main_menu_start_game">Start Game</string>
     <string name="main_menu_find_game">Find Game</string>
     <string name="main_menu_send_udp">Send UDP</string>
-    <string name="main_menu_recieve_udp">Recieve UDP</string>
+    <string name="main_menu_recieve_udp">Receive UDP</string>
     <string name="main_menu_nios_ip">Nios II/Middleman IP:</string>
     <string name="main_menu_dialog_level_select_title">Select Difficulty</string>
     <string name="main_menu_view_profile">View Profile</string>
@@ -87,7 +87,7 @@
     <string name="game_vs_bar_turn">Turn:</string>
     <string name="help_overlay_choose_move">Touch and choose a move to send your opponent</string>
     <string name="help_overlay_fire_move">When you’ve picked a position, tap this fire button to send your move</string>
-    <string name="help_overlay_seeOther">Tap this button to see your own board</string>
+    <string name="help_overlay_seeOther">Tap this button to see the other board</string>
     <string name="help_overlay_reposition">Tap and drag to reposition your ships.</string>
     <string name="help_overlay_done">When you’re done repositioning, hit the check mark to set your board</string>
     <string name="help_overlay_rotate">Tap this button to rotate your ship</string>

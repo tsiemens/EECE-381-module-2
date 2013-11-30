@@ -33,6 +33,16 @@ public class PrefsActivity extends PreferenceActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
+	@Override
+	protected boolean isValidFragment (String fragmentName){
+		if(GeneralFragment.class.getName().equals(fragmentName)) {
+			return true;
+		} else if(NiosFragment.class.getName().equals(fragmentName)) {
+			return true;
+		}
+		return false;
+	}
 
 	public static class GeneralFragment extends PreferenceFragment {
 		@Override

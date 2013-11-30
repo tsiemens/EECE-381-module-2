@@ -188,14 +188,12 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	 * and configureBoard() must be called after this.
 	 */
 	public void invalidate() {
+		Log.d(TAG, "Inavlidating Game");
 		setState(GameState.UNINITIALIZED);
 		mPlayerBoard = null;
 		mOpponentBoard = null;
 
-		if (mOpponentProfileImage != null) {
-			mOpponentProfileImage.recycle();
-			mOpponentProfileImage = null;
-		}
+		mOpponentProfileImage = null;
 		mOpponentProfileName = null;
 		mOpponentProfileTaunt = null;
 	}
