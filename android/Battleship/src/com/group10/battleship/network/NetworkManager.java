@@ -88,12 +88,31 @@ public class NetworkManager extends Object {
 	public void close() {
 		try {
 			mAndroidSocketVersion++;
-			if (mClientSocket != null)
+			if (mClientSocket != null) {
 				mClientSocket.close();
-			if (mServerSocket != null)
+				mClientSocket = null;
+			}
+			
+			if (mAndroidSocketInput != null) {
+				mAndroidSocketInput.close();
+				mAndroidSocketInput = null;
+			}
+			
+			if (mAndroidSocketOutput != null) {
+				mAndroidSocketOutput.close();
+				mAndroidSocketOutput = null;
+			}
+			
+			if (mServerSocket != null) {
 				mServerSocket.close();
-			if (mNiosSocket != null)
+				mServerSocket = null;
+			}
+			if (mNiosSocket != null) {
+				mNiosSocketOutput.close();
+				mNiosSocketOutput = null;
 				mNiosSocket.close();
+				mNiosSocket = null;
+			}
 		} catch (IOException e) {
 			Log.d(TAG, "Error closing socket.");
 			e.printStackTrace();
@@ -244,9 +263,13 @@ public class NetworkManager extends Object {
 			try {
 				if (isNios) {
 					if (mNiosSocket != null) {
+						mNiosSocketOutput.close();
+						mNiosSocketOutput = null;
 						mNiosSocket.close();
+						mNiosSocket = null;
 					}
 					mNiosSocket = setupSocket(ipAddress, portNum);
+					mNiosSocket.setKeepAlive(true);
 					Log.d(TAG, "Set up NIOS Socket");
 				} else {
 					mAndroidSocketVersion++;
@@ -262,6 +285,7 @@ public class NetworkManager extends Object {
 					}
 					if (mClientSocket != null) {
 						mClientSocket.close();
+						mClientSocket = null;
 					}
 					mClientSocket = setupSocket(ipAddress, portNum);
 					mClientSocket.setKeepAlive(true);
@@ -338,10 +362,18 @@ public class NetworkManager extends Object {
 				mHandler.post(ipRunnable);
 
 				mAndroidSocketVersion++;
-				mAndroidSocketInput = null;
-				mAndroidSocketOutput = null;
 				if (mClientSocket != null) {
 					mClientSocket.close();
+					mClientSocket = null;
+				}
+				if (mAndroidSocketInput != null) {
+					mAndroidSocketInput.close();
+					mAndroidSocketInput = null;
+				}
+				
+				if (mAndroidSocketOutput != null) {
+					mAndroidSocketOutput.close();
+					mAndroidSocketOutput = null;
 				}
 				Log.d(TAG, "Waiting for guest on IP: " + getAndroidHostIP() + " : " + getAndroidHostPort());
 				mClientSocket = mServerSocket.accept();
@@ -376,15 +408,20 @@ public class NetworkManager extends Object {
 	class SendMessageTask extends AsyncTask<Object, Void, Void> {
 
 		@Override
-		protected Void doInBackground(Object... params) {
+		synchronized protected Void doInBackground(Object... params) {
 			String message = (String) params[0];
 			Boolean sendToAndroid = (Boolean) params[1];
-			Log.d(TAG, "Sending message: " + message);
-			if (sendToAndroid)
+			if (sendToAndroid) {
+				Log.d(TAG, "Sending message to Android: " + message);
 				getAndroidSocketOutput().println(message);
-			else
-				if(getNiosSocketOutput() != null)
+			}
+			else {
+				Log.d(TAG, "Sending message to NIOS: " + message);
+				if(getNiosSocketOutput() != null) {
 					getNiosSocketOutput().println((char) (message.length() + 1) + message);
+					getNiosSocketOutput().flush();
+				}
+			}
 			return null;
 		};
 	}

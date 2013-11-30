@@ -583,12 +583,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 		if (sunk) {
 			mSoundManager.playSFX(R.raw.ship_explode);
+			if(isHost)
+				NIOS2NetworkManager.sendHit(isPlayerMove, x, y);
 		} else if (wasHit) {
 			mSoundManager.playSFX(R.raw.hit);
-			NIOS2NetworkManager.sendHit(isPlayerMove, x, y);
+			if(isHost)
+				NIOS2NetworkManager.sendHit(isPlayerMove, x, y);
 		} else {
 			mSoundManager.playSFX(R.raw.miss);
-			NIOS2NetworkManager.sendMiss(isPlayerMove, x, y);
+			if(isHost)
+				NIOS2NetworkManager.sendMiss(isPlayerMove, x, y);
 		}
 
 		mFireTileX = board.getTileLocationAtIndex(x, y)[0];
