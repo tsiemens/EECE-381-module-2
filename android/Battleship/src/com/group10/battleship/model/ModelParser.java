@@ -25,10 +25,6 @@ public class ModelParser {
 	public static final String MOVE_XPOS_KEY = "xpos";
 	public static final String MOVE_YPOS_KEY  = "ypos";
 	
-	public static final String MOVE_RESPONSE_KEY  = "response";
-	public static final String MOVE_RESPONSE_TYPE_VAL = "moveresponse";
-	public static final String MOVE_RESPONSE_HIT_KEY = "hit";
-	public static final String MOVE_RESPONSE_SUNK_KEY = "sunk";
 	public static final String GAME_OVER_TYPE_VAL = "gameover";
 	public static final String GAME_OVER_WIN_KEY = "youwin";
 	
