@@ -15,11 +15,11 @@ typedef struct AlphaSprite
 	// The super class. This MUST be the first element in the struct
 	// in order to permit error free casting between super and subclasses
 	BaseSprite baseSprite;
-	char* string;
-	void (*setString)(struct AlphaSprite*, char* string);
+	unsigned char* string;
+	void (*setString)(struct AlphaSprite*, unsigned char* string);
 	int prev_x;
 	int prev_y;
-	char* prev_str;
+	unsigned char* prev_str;
 } AlphaSprite;
 
 AlphaSprite* AlphaSprite_alloc();
@@ -30,8 +30,8 @@ void AlphaSprite_draw(BaseSprite* super);
 
 void AlphaSprite_Clear(AlphaSprite* this);
 
-void AlphaSprite_setString(AlphaSprite* super, char* string);
+void AlphaSprite_setString(AlphaSprite* super, unsigned char* string);
 
-char* AlphaSprite_EmptyString(char* string);
+char* AlphaSprite_EmptyString(unsigned char* string);
 
 #endif /* ALPHASPRITE_H_ */

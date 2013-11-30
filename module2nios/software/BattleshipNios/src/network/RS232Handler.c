@@ -64,7 +64,6 @@ unsigned char* RS232Handler_receive(int* numReceived)
 	unsigned char data;
 	unsigned char parity;
 	unsigned char* message;
-	Timer* timer = Timer_init(Timer_alloc(), 3000);
 
 	// Receive the message from the Middleman
 	printf("Waiting for data to come back from the Middleman\n");
