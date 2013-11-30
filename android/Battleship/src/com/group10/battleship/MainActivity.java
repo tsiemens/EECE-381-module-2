@@ -176,8 +176,6 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			}
 			else if (mSelectedModeId == R.id.rb_host)
 			{
-				mUDPManager.new SendBroadcast().execute(null, null, null);
-
 				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 				try {
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
@@ -187,6 +185,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 					handleSocketError(e);
 					e.printStackTrace();
 				} 
+				mUDPManager.new SendBroadcast().execute(null, null, null);
 			}
 			else if (mSelectedModeId == R.id.rb_guest){
 				showGuestDialog(null);

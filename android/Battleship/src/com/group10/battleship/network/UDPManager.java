@@ -20,30 +20,43 @@ import com.group10.battleship.network.NetworkManager.OnAndroidSocketSetupListene
 
 public class UDPManager {
 	private static final String TAG = UDPManager.class.getSimpleName();
-	private static final int PORT = 50002;
+	private static final int BROADCAST_PORT = 50002;
+	private static final int RECIEVING_PORT = 50003;
 	private InetAddress mTargetIP;
 	private int mPort;
-	private DatagramSocket mSocket;
+	private DatagramSocket mBroadcastSocket;
+	private DatagramSocket mRecievingSocket;
 	private OnBroadcastFoundListener onBroadcastFoundListener;
 	
 	public UDPManager() {
 		try {
-			mSocket = new DatagramSocket(PORT);
-			mSocket.setSoTimeout(30000);
-			mSocket.setBroadcast(true);
+			mBroadcastSocket = new DatagramSocket(BROADCAST_PORT);
+			mBroadcastSocket.setSoTimeout(30000);
+			mBroadcastSocket.setBroadcast(true);
+			
+			mRecievingSocket = new DatagramSocket(RECIEVING_PORT);
+			mRecievingSocket.setSoTimeout(30000);
+			mRecievingSocket.setBroadcast(true);
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	private void resetSocket() {
-		mSocket.disconnect();
-		mSocket.close();
+		mBroadcastSocket.disconnect();
+		mBroadcastSocket.close();
+		
+		mRecievingSocket.disconnect();
+		mRecievingSocket.close();
 		
 		try {
-			mSocket = new DatagramSocket(PORT);
-			mSocket.setSoTimeout(30000);
-			mSocket.setBroadcast(true);
+			mBroadcastSocket = new DatagramSocket(BROADCAST_PORT);
+			mBroadcastSocket.setSoTimeout(30000);
+			mBroadcastSocket.setBroadcast(true);
+			
+			mRecievingSocket = new DatagramSocket(RECIEVING_PORT);
+			mRecievingSocket.setSoTimeout(30000);
+			mRecievingSocket.setBroadcast(true);
 
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -73,12 +86,16 @@ public class UDPManager {
 				String data = new String("B");
 				
 				DatagramPacket sendPacket = new DatagramPacket(data.getBytes(), data.length(),
-				    getBroadcastAddress(), PORT);
-				Log.d(TAG, "Sent Broadcast packet to " + getBroadcastAddress().toString());
+				    getBroadcastAddress(), RECIEVING_PORT);
 				
-				mSocket.send(sendPacket);
-				
+				for (int i = 0; i < 180; i++) {
+					mBroadcastSocket.send(sendPacket);
+					Log.d(TAG, "Sent Broadcast packet to " + getBroadcastAddress().toString());
+					Thread.sleep(1000);
+				}
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			return null;
@@ -90,6 +107,8 @@ public class UDPManager {
 	}
 	
 	public String getIPString() {
+		if (mTargetIP == null)
+			return null;
 		return mTargetIP.getHostAddress();
 	}
 	
@@ -115,11 +134,11 @@ public class UDPManager {
 				byte[] buf = new byte[1024];
 				DatagramPacket recPacket = new DatagramPacket(buf, buf.length);
 				
-				Log.d(TAG, "Starting to recieve UDP on " + mSocket.getLocalSocketAddress().toString());
+				Log.d(TAG, "Starting to recieve UDP on " + mRecievingSocket.getLocalSocketAddress().toString());
 				
 				do {
-					mSocket.receive(recPacket);
-				} while (recPacket.getAddress().getHostAddress() == mSocket.getLocalAddress().getHostAddress());
+					mRecievingSocket.receive(recPacket);
+				} while (recPacket.getAddress().getHostAddress() == mRecievingSocket.getLocalAddress().getHostAddress());
 				
 				mTargetIP = recPacket.getAddress();
 				mPort = recPacket.getPort();
@@ -139,7 +158,6 @@ public class UDPManager {
 			if (onBroadcastFoundListener != null) {
 				onBroadcastFoundListener.onBroadcastFound();
 			}
-			resetSocket();
 		}
 	}
 }
