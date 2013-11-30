@@ -333,12 +333,16 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 	}
 
 	public void onConfirmBoardPressed() {
+		
+		mGameStarted = false;
+		
 		// deselect the highlighted ship
 		if (mPlayerBoard.getSelectedShip() != null)
 			mPlayerBoard.getSelectedShip().setSelected(false);
 		try {
 			if (!isMultiplayer()) {
 				mSingleplayerAI.arrangeShips(mOpponentBoard);
+				hasReceivedOpponentBoard = true;
 			} else {
 				// Player is confirming board
 				NetworkManager.getInstance().send(
@@ -355,7 +359,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 				setState(GameState.WAITING_FOR_OPPONENT);
 			} else {
 				setState(GameState.TAKING_TURN);
-				mGameStarted = true;
 			}
 
 		} catch (JSONException e) {
@@ -479,8 +482,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 									+ obj.getInt(ModelParser.MOVE_YPOS_KEY),
 							Toast.LENGTH_SHORT).show();
 					
-					mGameStarted = true;
-					
 					if (mState != GameState.GAME_OVER_LOSS
 							&& mState != GameState.GAME_OVER_WIN)
 						setState(GameState.TAKING_TURN);
@@ -507,7 +508,6 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 					
 					if (mState == GameState.WAITING_FOR_OPPONENT && willYieldTurn == false) {
 						setState(GameState.TAKING_TURN);
-						mGameStarted = true;
 					}
 				} else if (obj.getString(ModelParser.TYPE_KEY).equals(
 						ModelParser.YIELD_TURN_TYPE_VAL)) {
@@ -573,6 +573,8 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 		else
 			board = mPlayerBoard;
 
+		mGameStarted = true;
+		
 		boolean wasHit = board.playerShotAttempt(x, y);
 
 		Ship target = board.getShipAtIndex(x, y);
