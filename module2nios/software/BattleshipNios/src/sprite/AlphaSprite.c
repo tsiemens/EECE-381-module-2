@@ -21,7 +21,7 @@ AlphaSprite* AlphaSprite_init(AlphaSprite* this)
 {
 	BaseSprite_init(&this->baseSprite);
 
-	char* defaultString = "Please Set A String";
+	unsigned char* defaultString = "Please Set A String";
 	this->prev_x = 0;
 	this->prev_y = 0;
 	this->baseSprite.classType = ALPHASPRITE_CLASS_TYPE;
@@ -33,7 +33,7 @@ AlphaSprite* AlphaSprite_init(AlphaSprite* this)
 	return this;
 }
 
-void AlphaSprite_setString(AlphaSprite* this, char* string)
+void AlphaSprite_setString(AlphaSprite* this, unsigned char* string)
 {
 	this->string = string;
 }
@@ -62,12 +62,12 @@ void AlphaSprite_Clear(AlphaSprite* this)
 	printString(this->prev_str, (unsigned int)this->prev_x, (unsigned int)this->prev_y);
 }
 
-char* AlphaSprite_EmptyString(char* string)
+char* AlphaSprite_EmptyString(unsigned char* string)
 {
 	int i,j;
 	for(i = 0; string[i] != '\0'; i++);
 
-	char* prev_str = (char*)malloc(sizeof(char)*(i+1));
+	unsigned char* prev_str = (unsigned char*)malloc(sizeof(unsigned char)*(i+1));
 
 	prev_str[i] = '\0';
 

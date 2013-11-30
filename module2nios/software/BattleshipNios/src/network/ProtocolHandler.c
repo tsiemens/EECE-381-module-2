@@ -27,19 +27,17 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 	int length;
 	unsigned char* data = RS232Handler_receive(&length);
 	if (data[0] == 'N') {
-		if (sm->state == WAITING_FOR_PLAYERS || sm->state == GAME_OVER) {
-			printf("Host Connected. Starting Game.\n");
-			GameBoard_reset(sm->gameBoard);
-			AlphaSprite* p1name = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, ALPHA_P1_NAME_SPRITE_ID));
-			if (p1name->string != PLAYER_1_STRING) {
-				free(p1name->string);
-			}
-			AlphaSprite* p2name = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, ALPHA_P2_NAME_SPRITE_ID));
-			if (p2name->string != PLAYER_2_STRING) {
-				free(p2name->string);
-			}
-			sm->state = PLAYING;
+		printf("Host Connected. Starting Game.\n");
+		GameBoard_reset(sm->gameBoard);
+		AlphaSprite* p1name = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, ALPHA_P1_NAME_SPRITE_ID));
+		if (p1name->string != PLAYER_1_STRING) {
+			free(p1name->string);
 		}
+		AlphaSprite* p2name = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, ALPHA_P2_NAME_SPRITE_ID));
+		if (p2name->string != PLAYER_2_STRING) {
+			free(p2name->string);
+		}
+		sm->state = PLAYING;
 	} else if (data[0] == 'M' && sm->state == PLAYING) {
 		// Shot missed
 		if (data[1] == HOST) {
@@ -63,13 +61,16 @@ void ProtocolHandler_receive(BSNStateMachine* sm) {
 		int player = data[1];
 		int id = (player == 1)? ALPHA_P1_NAME_SPRITE_ID : ALPHA_P2_NAME_SPRITE_ID;
 		int i = 2;
-		char* name;
+		unsigned char* name;
 		name = malloc(sizeof(unsigned char) * (length - 2));
 		for(i = 2; i < length - 1 && i <= 15; i++) {
 			name[i-2] = data[i];
 		}
-		name[i] = 0;
+		name[i-2] = '\0';
 		AlphaSprite* namespr = ((AlphaSprite*)SpriteArrayList_getWithId(sm->boardSprites, id));
+		if (namespr->string != PLAYER_1_STRING && namespr->string != PLAYER_2_STRING){
+			free(namespr->string);
+		}
 		namespr->string = name;
 		printf("player %d's name is %s (%s)\n", player, name, namespr->string);
 	}
