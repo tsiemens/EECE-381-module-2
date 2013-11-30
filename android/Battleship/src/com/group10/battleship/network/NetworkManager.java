@@ -229,6 +229,7 @@ public class NetworkManager extends Object {
 		if (mAndroidSocketInput == null)
 			try {
 				Log.d(TAG, "Creating new Socket Input");
+				if(mClientSocket == null) return null; 
 				mAndroidSocketInput = new BufferedReader(new InputStreamReader(
 						mClientSocket.getInputStream()));
 			} catch (IOException e) { 
@@ -464,7 +465,7 @@ public class NetworkManager extends Object {
 							}
 						};
 						mHandler.post(dataReceivedRunnable);
-						input = getAndroidSocketInput();
+//						input = getAndroidSocketInput();
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
