@@ -20,6 +20,7 @@ import com.group10.battleship.network.UDPManager.OnBroadcastFoundListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.Application;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -56,6 +57,8 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	private String mHostIp;
 
 	private List<HistoryItem> mHistoryItems;
+	private AlertDialog mShowHostIPDialog;
+	
 
 	private ImageView mLogo;
 	private View mFadeOut;
@@ -163,6 +166,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 
 		if( id == R.id.btn_start_game)
 		{
+			//mUDPManager.new SendBroadcast().execute(null, null, null);
 			if (mSelectedModeId == R.id.rb_single) 
 			{
 				Game game = Game.getInstance();
@@ -174,6 +178,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			}
 			else if (mSelectedModeId == R.id.rb_host)
 			{
+				mUDPManager.new SendBroadcast().execute(null, null, null);
 				Toast.makeText(this, "Starting game...", Toast.LENGTH_SHORT).show();
 				try {
 					NetworkManager.getInstance().setupAndroidSocket(null, 0, true);
@@ -183,7 +188,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 					handleSocketError(e);
 					e.printStackTrace();
 				} 
-				mUDPManager.new SendBroadcast().execute(null, null, null);
+				
 			}
 			else if (mSelectedModeId == R.id.rb_guest){
 				showGuestDialog(null);
@@ -242,10 +247,10 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel";
 
 		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
-
 			@Override
 			public void onCancel(DialogInterface dialog) {
-				NetworkManager.getInstance().close();
+				NetworkManager.getInstance().endConnections();
+				mUDPManager.cancelOperations();
 				Log.i(TAG, "Host canceled");
 
 			}
@@ -260,6 +265,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			// Game was in progress before, so we have to restart it.
 			game.invalidate();
 		}
+		mShowHostIPDialog.dismiss();
 		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
@@ -375,8 +381,12 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 	}
 
 	public void onBroadcastFound() {
-		Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
-		this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
+		if (mUDPManager.getIPString() != null) {
+			Toast.makeText(getApplication(), "Found a game!", Toast.LENGTH_SHORT).show();
+			this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
+		} else {
+			Toast.makeText(getApplication(), "Could not find a game...", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	public void performLaunchAnimation() {

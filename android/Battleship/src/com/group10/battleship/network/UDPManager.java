@@ -27,15 +27,16 @@ public class UDPManager {
 	private DatagramSocket mBroadcastSocket;
 	private DatagramSocket mRecievingSocket;
 	private OnBroadcastFoundListener onBroadcastFoundListener;
+	private boolean mStopOperations = false;
 	
 	public UDPManager() {
 		try {
 			mBroadcastSocket = new DatagramSocket(BROADCAST_PORT);
-			mBroadcastSocket.setSoTimeout(30000);
+			mBroadcastSocket.setSoTimeout(3000);
 			mBroadcastSocket.setBroadcast(true);
 			
 			mRecievingSocket = new DatagramSocket(RECIEVING_PORT);
-			mRecievingSocket.setSoTimeout(30000);
+			mRecievingSocket.setSoTimeout(3000);
 			mRecievingSocket.setBroadcast(true);
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -65,6 +66,23 @@ public class UDPManager {
 		Log.d(TAG, "UDP Socket Reset");
 	}
 	
+	private void close() {
+		if (mBroadcastSocket != null) {
+			mBroadcastSocket.disconnect();
+			mBroadcastSocket.close();
+			mBroadcastSocket = null;
+		}
+		
+		if (mRecievingSocket != null) {
+			mRecievingSocket.disconnect();
+			mRecievingSocket.close();
+			mRecievingSocket = null;
+		}
+	}
+	public void cancelOperations() {
+		mStopOperations = true;
+	}
+	
 	public InetAddress getBroadcastAddress() throws IOException {
 		WifiManager wifi = (WifiManager) BattleshipApplication
 				.getAppContext().getSystemService(Context.WIFI_SERVICE);
@@ -83,26 +101,23 @@ public class UDPManager {
 	public class SendBroadcast extends AsyncTask<Void, Void, Void> {
 		protected Void doInBackground(Void... n) {
 			try {
+				mStopOperations = false;
 				String data = new String("B");
 				
 				DatagramPacket sendPacket = new DatagramPacket(data.getBytes(), data.length(),
 				    getBroadcastAddress(), RECIEVING_PORT);
 				
-				for (int i = 0; i < 180; i++) {
-					mBroadcastSocket.send(sendPacket);
-					Log.d(TAG, "Sent Broadcast packet to " + getBroadcastAddress().toString());
-					Thread.sleep(1000);
-				}
+	
+				mBroadcastSocket.send(sendPacket);
+				Log.d(TAG, "Sent Broadcast packet to " + getBroadcastAddress().toString());
+				
 			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			return null;
 		}
 		
 		protected void onPostExecute(Void n) {
-		
 		}
 	}
 	
@@ -138,8 +153,8 @@ public class UDPManager {
 				
 				do {
 					mRecievingSocket.receive(recPacket);
-				} while (recPacket.getAddress().getHostAddress() == mRecievingSocket.getLocalAddress().getHostAddress());
-				
+				} while (recPacket.getAddress().getHostAddress().contentEquals(NetworkManager.getLocalIpAddress()));
+				Log.d(TAG, recPacket.getAddress().getHostAddress() + " local: " + NetworkManager.getLocalIpAddress());
 				mTargetIP = recPacket.getAddress();
 				mPort = recPacket.getPort();
 				
