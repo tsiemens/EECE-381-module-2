@@ -64,6 +64,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 
 	private boolean isHost;
 	private boolean mIsMultiplayer;
+	private boolean hasReceivedOpponentBoard = false;
 
 	private boolean willYieldTurn = false;
 	private boolean mGameStarted = false;
@@ -493,6 +494,7 @@ public class Game implements RendererListener, OnAndroidDataReceivedListener {
 							.getJSONArray(ModelParser.BOARD_TYPE_SHIPS_KEY);
 					Toast.makeText(mContext, "Received game board",
 							Toast.LENGTH_SHORT).show();
+					hasReceivedOpponentBoard = true;
 
 					for (int i = 0; i < shipArr.length(); i++) {
 						JSONObject ship = (JSONObject) shipArr.get(i);
