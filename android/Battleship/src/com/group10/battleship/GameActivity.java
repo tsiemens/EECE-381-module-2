@@ -532,8 +532,8 @@ public class GameActivity extends Activity implements OnTouchListener,
 
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						Game.getInstance().invalidate();
 						GameActivity.this.finish();
+						Game.getInstance().invalidate();
 					}
 				});
 		ImageView iv = (ImageView) view
