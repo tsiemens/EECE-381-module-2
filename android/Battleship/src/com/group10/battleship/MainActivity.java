@@ -246,7 +246,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 		mHostIp = "IP: " + NetworkManager.getInstance().getAndroidHostIP() + ":"
 				+ NetworkManager.getInstance().getAndroidHostPort() + "\nPress Back to Cancel";
 
-		ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
+		mShowHostIPDialog = ProgressDialog.show(this, "Waiting for Player...", mHostIp, true, true, new DialogInterface.OnCancelListener() {
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				NetworkManager.getInstance().endConnections();
@@ -265,7 +265,10 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			// Game was in progress before, so we have to restart it.
 			game.invalidate();
 		}
-		mShowHostIPDialog.dismiss();
+		
+		if (mShowHostIPDialog != null)
+			mShowHostIPDialog.dismiss();
+		mShowHostIPDialog = null;
 		game.start(true);
 		startActivity(new Intent(this, GameActivity.class));
 	}
@@ -386,6 +389,7 @@ public class MainActivity extends Activity implements OnClickListener, OnAndroid
 			this.showGuestDialog(mUDPManager.getIPString(), mUDPManager.getPortString());
 		} else {
 			Toast.makeText(getApplication(), "Could not find a game...", Toast.LENGTH_LONG).show();
+			this.showGuestDialog("");
 		}
 	}
 
